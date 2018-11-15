@@ -1,9 +1,10 @@
 import sys
 import genotypes
 from graphviz import Digraph
+import genotypes as gt
 
 
-def plot(genotype, file_path):
+def plot(genotype, file_path, caption=None):
     """ make DAG plot and save to file_path as .png """
     edge_attr = {
         'fontsize': '20',
@@ -52,20 +53,22 @@ def plot(genotype, file_path):
     for i in range(n_nodes):
         g.edge(str(i), "c_{k}", fillcolor="gray")
 
+    # add image caption
+    if caption:
+        g.attr(label=caption, overlap='false', fontsize='20', fontname='times')
+
     g.render(file_path, view=False)
 
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
-        print("usage:\n python {} ARCH_NAME".format(sys.argv[0]))
-        sys.exit(1)
+        raise ValueError("usage:\n python {} GENOTYPE".format(sys.argv[0]))
 
-    genotype_name = sys.argv[1]
+    genotype_str = sys.argv[1]
     try:
-        genotype = eval('genotypes.{}'.format(genotype_name))
+        genotype = gt.from_str(genotype_str)
     except AttributeError:
-        print("{} is not specified in genotypes.py".format(genotype_name))
-        sys.exit(1)
+        raise ValueError("Cannot parse {}".format(genotype_str))
 
     plot(genotype.normal, "normal")
     plot(genotype.reduce, "reduction")

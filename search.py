@@ -93,8 +93,10 @@ def main():
         logger.info("genotype = {}".format(genotype))
 
         # genotype as a image
-        plot(genotype.normal, os.path.join(config.plot_path, "EP{:02d}-normal".format(epoch)))
-        plot(genotype.reduce, os.path.join(config.plot_path, "EP{:02d}-reduce".format(epoch)))
+        plot_path = os.path.join(config.plot_path, "EP{:02d}".format(epoch+1))
+        caption = "Epoch {}".format(epoch+1)
+        plot(genotype.normal, plot_path + "-normal", caption)
+        plot(genotype.reduce, plot_path + "-reduce", caption)
 
         # save
         if best_top1 < top1:

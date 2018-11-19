@@ -27,27 +27,27 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 <p align="center">
 <img src="assets/cifar10-normal.gif" alt="cifar10-progress-normal" width=45% />
 <img src="assets/cifar10-reduce.gif" alt="cifar10-progress-reduce" width=45% />
+<br/> CIFAR-10 
 </p>
-<p align="center"> CIFAR-10 </p>
 
 <p align="center">
 <img src="assets/mnist-normal.gif" alt="mnist-progress-normal" width=45% />
 <img src="assets/mnist-reduce.gif" alt="mnist-progress-reduce" width=45% />
+<br/> MNIST 
 </p>
-<p align="center"> MNIST </p>
 
 <p align="center">
 <img src="assets/fashionmnist-normal.gif" alt="fashionmnist-progress-normal" width=45% />
 <img src="assets/fashionmnist-reduce.gif" alt="fashionmnist-progress-reduce" width=45% />
+<br/> Fashion-MNIST 
 </p>
-<p align="center"> Fashion-MNIST </p>
 
 ### Plots
 
 <p align="center">
-<img src="assets/fashionmnist-search.png" alt="fashionmnist-search" width=80% /> <br/>
-Fashion-MNIST Search/Training phase
+<img src="assets/fashionmnist-search.png" alt="fashionmnist-search" width=80% />
 </p>
+<p align="center"> Search-training phase of Fashion-MNIST </p>
 
 <p align="center">
 <img src="assets/cifar10-val.png" alt="cifar10-val" width=48% />

@@ -44,15 +44,16 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 
 ### Plots
 
+<p align="center">
 <img src="assets/fashionmnist-search.png" alt="fashionmnist-search" width=80% />
-<p align="center"> Fashion-MNIST Search/Training phase </p>
+Fashion-MNIST Search/Training phase
+</p>
 
 <p align="center">
-<img src="assets/cifar10-val.png" alt="cifar10-val" width=33% />
-<img src="assets/fashionmnist-val.png" alt="fashionmnist-val" width=33% />
-<img src="assets/mnist-val.png" alt="mnist-val" width=33% />
+<img src="assets/cifar10-val.png" alt="cifar10-val" width=48% />
+<img src="assets/fashionmnist-val.png" alt="fashionmnist-val" width=48% />
 </p>
-<p align="center"> Augment/Validation phase of CIFAR-10, Fashion-MNIST, and MNIST </p>
+<p align="center"> Augment-validation phase of CIFAR-10 and Fashion-MNIST </p>
 
 ## Reference
 

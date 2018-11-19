@@ -45,7 +45,7 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 ### Plots
 
 <p align="center">
-<img src="assets/fashionmnist-search.png" alt="fashionmnist-search" width=80% />
+<img src="assets/fashionmnist-search.png" alt="fashionmnist-search" width=80% /> <br/>
 Fashion-MNIST Search/Training phase
 </p>
 

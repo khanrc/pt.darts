@@ -1,3 +1,4 @@
+""" Operations """
 import torch
 import torch.nn as nn
 import genotypes as gt
@@ -21,7 +22,7 @@ OPS = {
 def drop_path_(x, drop_prob, training):
     if training and drop_prob > 0.:
         keep_prob = 1. - drop_prob
-        # per data point mask
+        # per data point mask; assuming x in cuda.
         mask = torch.cuda.FloatTensor(x.size(0), 1, 1, 1).bernoulli_(keep_prob)
         x.div_(keep_prob).mul_(mask)
 

@@ -1,8 +1,7 @@
+""" CNN cell for architecture search """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from models import ops
-import genotypes as gt
 
 
 class SearchCell(nn.Module):

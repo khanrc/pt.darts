@@ -1,5 +1,5 @@
+""" Network architecture visualizer using graphviz """
 import sys
-import genotypes
 from graphviz import Digraph
 import genotypes as gt
 

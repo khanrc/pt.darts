@@ -1,15 +1,15 @@
+""" CNN for network augmentation """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from models.augment_cells import AugmentCell
 from models import ops
-import genotypes as gt
 
 
 class AuxiliaryHead(nn.Module):
+    """ Auxiliary head in 2/3 place of network to let the gradient flow well """
     def __init__(self, input_size, C, n_classes):
         """ assuming input size 7x7 or 8x8 """
-        assert input_size == 7 or input_size == 8
+        assert input_size in [7, 8]
         super().__init__()
         self.net = nn.Sequential(
             nn.ReLU(inplace=True),
@@ -95,6 +95,7 @@ class AugmentCNN(nn.Module):
         return logits, aux_logits
 
     def drop_path_prob(self, p):
+        """ Set drop path probability """
         for module in self.modules():
             if isinstance(module, ops.DropPath_):
                 module.p = p

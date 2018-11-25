@@ -1,3 +1,4 @@
+""" CNN for architecture search """
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -65,7 +66,6 @@ class SearchCNN(nn.Module):
 
         self.alpha_normal = nn.ParameterList()
         self.alpha_reduce = nn.ParameterList()
-        device = torch.device('cuda:0')
 
         for i in range(self.n_nodes):
             self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
@@ -77,7 +77,7 @@ class SearchCNN(nn.Module):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
         weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
-        for i, cell in enumerate(self.cells):
+        for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
 

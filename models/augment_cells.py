@@ -1,6 +1,6 @@
+""" CNN cell for network augmentation """
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 from models import ops
 import genotypes as gt
 

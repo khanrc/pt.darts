@@ -70,3 +70,13 @@ https://github.com/quark0/darts (official implementation)
 - No RNN
 
 and so on.
+
+## TODO
+
+- scripts
+    - gif script
+    - benchmark script
+- benchmark various `architect` structure
+    - `deepcopy`
+    - `load_stat_dict`
+    - original version

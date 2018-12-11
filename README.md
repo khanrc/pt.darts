@@ -8,11 +8,27 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 - pytorch >= 0.4
 - graphviz
     - First install using `apt install` and then `pip install`.
-    - or conda install may make it work.
 - numpy
 - tensorboardX
 
+## Run example
+
+- Search
+
+```shell
+python search.py --name cifar10 --dataset cifar10
+```
+
+- Augment
+
+```shell
+# genotype: from search
+python augment.py --name cifar10 --dataset cifar10 --genotype genotype
+```
+
 ## Results
+
+The following results are obtained using the default arguments.
 
 | Dataset | Final validation acc | Best validation acc |
 | ------- | -------------------- | ------------------- |

@@ -1,3 +1,5 @@
+torch
+torchvision
 graphviz
 numpy
 tensorboard

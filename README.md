@@ -28,6 +28,15 @@ python search.py --name cifar10 --dataset cifar10
 python augment.py --name cifar10 --dataset cifar10 --genotype genotype
 ```
 
+- with docker
+
+```shell
+$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.1 bash
+
+# you can run directly also
+$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.1 python search.py --name cifar10 --dataset cifar10
+```
+
 ## Results
 
 The following results are obtained using the default arguments.
@@ -83,7 +92,7 @@ https://github.com/quark0/darts (official implementation)
 - Code that is easy to read and commented.
 - Implemenation of architect
     - Original implementation is very slow in pytorch >= 0.4.
-- Various dataset
+- Tested on FashionMNIST / MNIST
 - Tensorboard
 - No RNN
 

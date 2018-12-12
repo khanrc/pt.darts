@@ -13,6 +13,8 @@ Liu, Hanxiao, Karen Simonyan, and Yiming Yang. "Darts: Differentiable architectu
 
 ## Run example
 
+Adjust the batch size if out of memory (OOM) occurs. It dependes on your gpu memory size and genotype.
+
 - Search
 
 ```shell

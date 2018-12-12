@@ -52,7 +52,7 @@ class SearchConfig(BaseConfig):
         super().__init__(**vars(args))
 
         self.data_path = './data/'
-        self.path = os.path.join('searchs', self.dataset, self.name)
+        self.path = os.path.join('searchs', self.name)
         self.plot_path = os.path.join(self.path, 'plots')
 
 
@@ -88,5 +88,5 @@ class AugmentConfig(BaseConfig):
         super().__init__(**vars(args))
 
         self.data_path = './data/'
-        self.path = os.path.join('augments', self.dataset, self.name)
+        self.path = os.path.join('augments', self.name)
         self.genotype = gt.from_str(self.genotype)

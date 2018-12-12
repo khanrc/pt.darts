@@ -1,6 +1,6 @@
 FROM anibali/pytorch:cuda-9.0
 
-COPY . /app/pt.darts/
+COPY --chown=user . /app/pt.darts/
 
 WORKDIR /app/pt.darts/
 

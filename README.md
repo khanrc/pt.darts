@@ -39,15 +39,43 @@ $ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.1 python search.py --na
 
 ## Results
 
-The following results are obtained using the default arguments.
+The following results were obtained using the default arguments, except for the epochs. `--epochs 300` was used in MNIST and Fashion-MNIST.
 
 | Dataset | Final validation acc | Best validation acc |
 | ------- | -------------------- | ------------------- |
-| MNIST         | 99.75% | 99.80% |
-| Fashion-MNIST | 99.20% | 99.31% | 
+| MNIST         | 99.75% | 99.81% |
+| Fashion-MNIST | 99.27% | 99.39% |
 | CIFAR-10       | 97.17% | 97.23% |
 
 97.17%, final validation accuracy in CIFAR-10, is the same number as the paper.
+
+### Found architectures
+
+```py
+# CIFAR10
+Genotype(
+    normal=[[('sep_conv_3x3', 0), ('dil_conv_5x5', 1)], [('skip_connect', 0), ('dil_conv_3x3', 2)], [('sep_conv_3x3', 1), ('skip_connect', 0)], [('sep_conv_3x3', 1), ('skip_connect', 0)]],
+    normal_concat=range(2, 6),
+    reduce=[[('max_pool_3x3', 0), ('max_pool_3x3', 1)], [('max_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 3), ('max_pool_3x3', 0)], [('skip_connect', 2), ('max_pool_3x3', 0)]],
+    reduce_concat=range(2, 6)
+)
+
+# FashionMNIST
+Genotype(
+    normal=[[('max_pool_3x3', 0), ('dil_conv_5x5', 1)], [('max_pool_3x3', 0), ('sep_conv_3x3', 1)], [('sep_conv_5x5', 1), ('sep_conv_3x3', 3)], [('sep_conv_5x5', 4), ('dil_conv_5x5', 3)]],
+    normal_concat=range(2, 6),
+    reduce=[[('sep_conv_3x3', 1), ('avg_pool_3x3', 0)], [('avg_pool_3x3', 0), ('skip_connect', 2)], [('skip_connect', 3), ('avg_pool_3x3', 0)], [('sep_conv_3x3', 2), ('skip_connect', 3)]],
+    reduce_concat=range(2, 6)
+)
+
+# MNIST
+Genotype(
+    normal=[[('sep_conv_3x3', 0), ('dil_conv_5x5', 1)], [('sep_conv_3x3', 2), ('sep_conv_3x3', 1)], [('dil_conv_5x5', 3), ('sep_conv_3x3', 1)], [('sep_conv_5x5', 4), ('dil_conv_5x5', 3)]],
+    normal_concat=range(2, 6),
+    reduce=[[('dil_conv_3x3', 0), ('sep_conv_3x3', 1)], [('avg_pool_3x3', 0), ('skip_connect', 2)], [('dil_conv_5x5', 3), ('avg_pool_3x3', 0)], [('dil_conv_3x3', 1), ('max_pool_3x3', 0)]],
+    reduce_concat=range(2, 6)
+)
+```
 
 ### Architecture progress
 

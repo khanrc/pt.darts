@@ -3,6 +3,7 @@ import argparse
 import os
 import genotypes as gt
 from functools import partial
+import torch
 
 
 def get_parser(name):
@@ -11,6 +12,13 @@ def get_parser(name):
     # print default value always
     parser.add_argument = partial(parser.add_argument, help=' ')
     return parser
+
+
+def parse_gpus(gpus):
+    if gpus == 'all':
+        return list(range(torch.cuda.device_count()))
+    else:
+        return [int(s) for s in gpus.split(',')]
 
 
 class BaseConfig(argparse.Namespace):
@@ -44,7 +52,8 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--w_grad_clip', type=float, default=5.,
                             help='gradient clipping for weights')
         parser.add_argument('--print_freq', type=int, default=50, help='print frequency')
-        parser.add_argument('--gpu', type=int, default=0, help='gpu device id')
+        parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
+                            '`all` indicates use all gpus.')
         parser.add_argument('--epochs', type=int, default=50, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=16)
         parser.add_argument('--layers', type=int, default=8, help='# of layers')
@@ -64,6 +73,7 @@ class SearchConfig(BaseConfig):
         self.data_path = './data/'
         self.path = os.path.join('searchs', self.name)
         self.plot_path = os.path.join(self.path, 'plots')
+        self.gpus = parse_gpus(self.gpus)
 
 
 class AugmentConfig(BaseConfig):
@@ -78,7 +88,8 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--grad_clip', type=float, default=5.,
                             help='gradient clipping for weights')
         parser.add_argument('--print_freq', type=int, default=200, help='print frequency')
-        parser.add_argument('--gpu', type=int, default=0, help='gpu device id')
+        parser.add_argument('--gpus', default='0', help='gpu device ids separated by comma. '
+                            '`all` indicates use all gpus.')
         parser.add_argument('--epochs', type=int, default=600, help='# of training epochs')
         parser.add_argument('--init_channels', type=int, default=36)
         parser.add_argument('--layers', type=int, default=20, help='# of layers')
@@ -100,3 +111,4 @@ class AugmentConfig(BaseConfig):
         self.data_path = './data/'
         self.path = os.path.join('augments', self.name)
         self.genotype = gt.from_str(self.genotype)
+        self.gpus = parse_gpus(self.gpus)

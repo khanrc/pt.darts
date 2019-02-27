@@ -24,9 +24,8 @@ config.print_params(logger.info)
 def main():
     logger.info("Logger is set - training start")
 
-    # set gpu device id
-    logger.info("Set GPU device {}".format(config.gpu))
-    torch.cuda.set_device(config.gpu)
+    # set default gpu device id
+    torch.cuda.set_device(config.gpus[0])
 
     # set seed
     np.random.seed(config.seed)
@@ -43,7 +42,7 @@ def main():
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
                        use_aux, config.genotype)
-    model = model.to(device)
+    model = nn.DataParallel(model, device_ids=config.gpus).to(device)
 
     # model size
     mb_params = utils.param_size(model)
@@ -70,7 +69,7 @@ def main():
     for epoch in range(config.epochs):
         lr_scheduler.step()
         drop_prob = config.drop_path_prob * epoch / config.epochs
-        model.drop_path_prob(drop_prob)
+        model.module.drop_path_prob(drop_prob)
 
         # training
         train(train_loader, model, optimizer, criterion, epoch)

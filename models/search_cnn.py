@@ -81,7 +81,6 @@ class SearchCNNController(nn.Module):
                  device_ids=None):
         super().__init__()
         self.n_nodes = n_nodes
-        self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
         self.criterion = criterion
         if device_ids is None:
             device_ids = list(range(torch.cuda.device_count()))
@@ -96,6 +95,14 @@ class SearchCNNController(nn.Module):
         for i in range(n_nodes):
             self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
             self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+
+        # setup alphas list
+        self._alphas = []
+        for n, p in self.named_parameters():
+            if 'alpha' in n:
+                self._alphas.append((n, p))
+
+        self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
@@ -147,7 +154,9 @@ class SearchCNNController(nn.Module):
         return self.net.named_parameters()
 
     def alphas(self):
-        return self.parameters()
+        for n, p in self._alphas:
+            yield p
 
     def named_alphas(self):
-        return self.named_parameters()
+        for n, p in self._alphas:
+            yield n, p

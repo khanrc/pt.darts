@@ -5,6 +5,7 @@ import torch.nn.functional as F
 from models.search_cells import SearchCell
 import genotypes as gt
 from torch.nn.parallel._functions import Broadcast
+import logging
 
 
 def broadcast_list(l, device_ids):
@@ -128,16 +129,26 @@ class SearchCNNController(nn.Module):
         logits = self.forward(X)
         return self.criterion(logits, y)
 
-    def print_alphas(self):
-        print("####### ALPHA #######")
-        print("# Alpha - normal")
-        for alpha in self.alpha_normal:
-            print(F.softmax(alpha, dim=-1))
+    def print_alphas(self, logger):
+        # remove formats
+        org_formatters = []
+        for handler in logger.handlers:
+            org_formatters.append(handler.formatter)
+            handler.setFormatter(logging.Formatter("%(message)s"))
 
-        print("\n# Alpha - reduce")
+        logger.info("####### ALPHA #######")
+        logger.info("# Alpha - normal")
+        for alpha in self.alpha_normal:
+            logger.info(F.softmax(alpha, dim=-1))
+
+        logger.info("\n# Alpha - reduce")
         for alpha in self.alpha_reduce:
-            print(F.softmax(alpha, dim=-1))
-        print("#####################")
+            logger.info(F.softmax(alpha, dim=-1))
+        logger.info("#####################")
+
+        # restore formats
+        for handler, formatter in zip(logger.handlers, org_formatters):
+            handler.setFormatter(formatter)
 
     def genotype(self):
         gene_normal = gt.parse(self.alpha_normal, k=2)

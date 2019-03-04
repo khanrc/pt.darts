@@ -36,10 +36,10 @@ python augment.py --name cifar10 --dataset cifar10 --genotype "Genotype(
 - with docker
 
 ```shell
-$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.1 bash
+$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.2 bash
 
 # you can run directly also
-$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.1 python search.py --name cifar10 --dataset cifar10
+$ docker run --runtime=nvidia -it khanrc/pytorch-darts:0.2 python search.py --name cifar10 --dataset cifar10
 ```
 
 ## Multi-GPU

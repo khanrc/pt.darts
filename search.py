@@ -6,7 +6,7 @@ import numpy as np
 from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils
-from models.search_cnn import SearchCNN
+from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 
@@ -26,8 +26,8 @@ config.print_params(logger.info)
 def main():
     logger.info("Logger is set - training start")
 
-    # set gpu device id
-    torch.cuda.set_device(config.gpu)
+    # set default gpu device id
+    torch.cuda.set_device(config.gpus[0])
 
     # set seed
     np.random.seed(config.seed)
@@ -41,7 +41,8 @@ def main():
         config.dataset, config.data_path, cutout_length=0, validation=False)
 
     net_crit = nn.CrossEntropyLoss().to(device)
-    model = SearchCNN(input_channels, config.init_channels, n_classes, config.layers, net_crit)
+    model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
+                                net_crit, device_ids=config.gpus)
     model = model.to(device)
 
     # weights optimizer
@@ -50,7 +51,6 @@ def main():
     # alphas optimizer
     alpha_optim = torch.optim.Adam(model.alphas(), config.alpha_lr, betas=(0.5, 0.999),
                                    weight_decay=config.alpha_weight_decay)
-
 
     # split data to train/validation
     n_train = len(train_data)

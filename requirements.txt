@@ -1,6 +1,6 @@
-torch
-torchvision
-graphviz
-numpy
-tensorboard
-tensorboardx
+numpy==1.15.4
+graphviz==0.8.4
+torch==1.0.0
+torchvision==0.2.1
+tensorboard==1.13.0
+tensorboardX==1.6

@@ -1,4 +1,7 @@
 """ Search cell """
+
+import sys
+raise IndexError(sys.argv)
 import os
 import torch
 import torch.nn as nn
@@ -9,7 +12,6 @@ import utils
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
-import sys
 
 
 config = SearchConfig()
@@ -239,5 +241,4 @@ def get_epoch_type(epoch):
 
 
 if __name__ == "__main__":
-    raise IndexError(sys.argv)
     main()

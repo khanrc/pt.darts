@@ -212,7 +212,8 @@ def validate(valid_loader, model, epoch, cur_step):
 
 def train_hardness(train_loader, model):
     hardness = [None for i in range(len(train_loader))]
-    print(len(hardness[0]))
+    len_hard = len(hardness)
+    temp_hardness = hardness[:]
 
     for step, (trn_X, trn_y) in enumerate(train_loader):
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
@@ -222,7 +223,7 @@ def train_hardness(train_loader, model):
         new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
         hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-N, batch 2 takes N+1-2N, etc.
 
-    raise AttributeError(len(hardness), "hardness post process")
+    raise AttributeError(len(hardness), len_hard, temp_hardness, "hardness post process")
     return hardness
 
 

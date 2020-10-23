@@ -9,7 +9,7 @@ import numpy as np
 import preproc
 from config import SearchConfig
 import sys
-sys.path.insert(0, "home2/lgfm95/hem/perceptual")
+sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 from dataloader import DynamicDataset
 
 config = SearchConfig()

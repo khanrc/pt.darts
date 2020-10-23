@@ -239,5 +239,5 @@ def get_epoch_type(epoch):
 
 
 if __name__ == "__main__":
-    main()
     raise IndexError(sys.argv)
+    main()

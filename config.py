@@ -5,12 +5,16 @@ import genotypes as gt
 from functools import partial
 import torch
 
+import sys
+
 
 def get_parser(name):
     """ make default formatted parser """
     parser = argparse.ArgumentParser(name, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # print default value always
     parser.add_argument = partial(parser.add_argument, help=' ')
+    idx = sys.argv.index('--ncc')
+    raise AttributeError(idx)
     return parser
 
 

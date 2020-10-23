@@ -35,8 +35,9 @@ def get_data(dataset, data_path, cutout_length, validation):
     else:
         raise ValueError(dataset)
 
-    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                     std=[0.229, 0.224, 0.225])
+    normalize = transforms.Normalize(
+        mean=[0.13066051707548254],
+        std=[0.30810780244715075])
     perc_transforms = transforms.Compose([
         transforms.RandomResizedCrop(64),
         transforms.ToTensor(),

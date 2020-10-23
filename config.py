@@ -64,6 +64,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--alpha_weight_decay', type=float, default=1e-3,
                             help='weight decay for alpha')
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
+        parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
 
         return parser
 
@@ -103,6 +104,7 @@ class AugmentConfig(BaseConfig):
 
         parser.add_argument('--genotype', required=True, help='Cell genotype')
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
+        parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
 
         return parser
 

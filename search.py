@@ -1,7 +1,6 @@
 """ Search cell """
 
 import sys
-raise IndexError(sys.argv)
 import os
 import torch
 import torch.nn as nn

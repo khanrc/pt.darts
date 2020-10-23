@@ -6,6 +6,7 @@ from functools import partial
 import torch
 
 import sys
+raise IndexError(sys.argv)
 
 
 def get_parser(name):

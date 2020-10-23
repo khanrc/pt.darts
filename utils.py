@@ -1,22 +1,16 @@
 """ Utilities """
 import sys
-no_0 = sys.argv
 import os
 import logging
 import shutil
 import torch
 import torchvision.datasets as dset
-no_1 = sys.argv
 from torchvision import transforms
 import numpy as np
 import preproc
-no_2 = sys.argv
 from config import SearchConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
-no_3 = sys.argv
 from dataloader import DynamicDataset
-no_4 = sys.argv
-raise IndexError(no_0, no_1, no_2, no_3, no_4)
 config = SearchConfig()
 
 

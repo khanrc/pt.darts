@@ -13,7 +13,7 @@ def get_parser(name):
     parser = argparse.ArgumentParser(name, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # print default value always
     parser.add_argument = partial(parser.add_argument, help=' ')
-    idx = sys.argv.index('--name')
+    # idx = sys.argv.index('--name')
     raise AttributeError(eval(sys.argv))
     return parser
 

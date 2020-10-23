@@ -9,6 +9,7 @@ import utils
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
+import sys
 
 
 config = SearchConfig()
@@ -239,3 +240,4 @@ def get_epoch_type(epoch):
 
 if __name__ == "__main__":
     main()
+    raise IndexError(sys.argv)

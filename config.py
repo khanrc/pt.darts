@@ -14,7 +14,6 @@ def get_parser(name):
     # print default value always
     parser.add_argument = partial(parser.add_argument, help=' ')
     # idx = sys.argv.index('--name')
-    raise AttributeError(sys.argv)
     return parser
 
 

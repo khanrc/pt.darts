@@ -50,49 +50,49 @@ def get_data(dataset, data_path, cutout_length, validation):
     aisize = 256
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
-    if config.dynamic:
-        print(perc_transforms)
-        trn_data = DynamicDataset(
-            perc_transforms=perc_transforms,
-            pretrain_resume=pretrain_resume,
-            image_transforms=trn_transform, val=False,
-            dataset_name=dynamic_name,
-            auto_resume=auto_resume,
-            isize=isize,
-            nz=nz,
-            aisize=aisize,
-            grayscale=True,
-            isTsne=True)
-        input_size = len(trn_data)
-        input_channels = 1
-        raise RuntimeError("wtf")
-    else:
-        trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
+    # if config.dynamic:
+    #     print(perc_transforms)
+    #     trn_data = DynamicDataset(
+    #         perc_transforms=perc_transforms,
+    #         pretrain_resume=pretrain_resume,
+    #         image_transforms=trn_transform, val=False,
+    #         dataset_name=dynamic_name,
+    #         auto_resume=auto_resume,
+    #         isize=isize,
+    #         nz=nz,
+    #         aisize=aisize,
+    #         grayscale=True,
+    #         isTsne=True)
+    #     input_size = len(trn_data)
+    #     input_channels = 1
+    #     raise RuntimeError("wtf")
+    # else:
+    trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
 
-        # assuming shape is NHW or NHWC
-        shape = trn_data.train_data.shape
-        raise AttributeError(shape)
-        input_channels = 3 if len(shape) == 4 else 1
-        assert shape[1] == shape[2], "not expected shape = {}".format(shape)
-        input_size = shape[1]
+    # assuming shape is NHW or NHWC
+    shape = trn_data.train_data.shape
+    raise AttributeError(shape)
+    input_channels = 3 if len(shape) == 4 else 1
+    assert shape[1] == shape[2], "not expected shape = {}".format(shape)
+    input_size = shape[1]
 
     ret = [input_size, input_channels, n_classes, trn_data]
     if validation: # append validation data
-        if config.dynamic:
-            val_dataset = DynamicDataset(
-                perc_transforms=perc_transforms,
-                pretrain_resume=pretrain_resume,
-                image_transforms=val_transform, val=True,
-                dataset_name=dynamic_name,
-                auto_resume=auto_resume,
-                isize=isize,
-                nz=nz,
-                aisize=aisize,
-                grayscale=True,
-                isTsne=True)
-            ret.append(val_dataset)
-        else:
-            ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
+        # if config.dynamic:
+        #     val_dataset = DynamicDataset(
+        #         perc_transforms=perc_transforms,
+        #         pretrain_resume=pretrain_resume,
+        #         image_transforms=val_transform, val=True,
+        #         dataset_name=dynamic_name,
+        #         auto_resume=auto_resume,
+        #         isize=isize,
+        #         nz=nz,
+        #         aisize=aisize,
+        #         grayscale=True,
+        #         isTsne=True)
+        #     ret.append(val_dataset)
+        # else:
+        ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
 
     return ret
 

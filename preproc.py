@@ -33,7 +33,8 @@ def data_transforms(dataset, cutout_length):
         MEAN = [0.49139968, 0.48215827, 0.44653124]
         STD = [0.24703233, 0.24348505, 0.26158768]
         transf = [
-            transforms.RandomCrop(32, padding=4),
+            transforms.RandomCrop(64, padding=4),
+            transforms.Grayscale(1),
             transforms.RandomHorizontalFlip()
         ]
     elif dataset == 'mnist':

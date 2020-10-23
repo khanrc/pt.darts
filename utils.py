@@ -11,6 +11,8 @@ import preproc
 from config import SearchConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 from dataloader import DynamicDataset
+sys.argv.insert(1, "cifar10")
+sys.argv.insert(1, "--name")
 config = SearchConfig()
 
 

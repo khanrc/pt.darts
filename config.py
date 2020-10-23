@@ -5,8 +5,6 @@ import genotypes as gt
 from functools import partial
 import torch
 
-import sys
-
 
 def get_parser(name):
     """ make default formatted parser """

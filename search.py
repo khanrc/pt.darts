@@ -80,33 +80,41 @@ def main():
 
         model.print_alphas(logger)
 
-        # training
-        train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
+        epoch_type = 1
+        if config.dynamic:
+            epoch_type = get_epoch_type(epoch)
 
-        # validation
-        cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, epoch, cur_step)
+        if epoch_type:
+            # training
+            train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
 
-        # log
-        # genotype
-        genotype = model.genotype()
-        logger.info("genotype = {}".format(genotype))
+            # validation
+            cur_step = (epoch+1) * len(train_loader)
+            top1 = validate(valid_loader, model, epoch, cur_step)
 
-        # genotype as a image
-        plot_path = os.path.join(config.plot_path, "EP{:02d}".format(epoch+1))
-        caption = "Epoch {}".format(epoch+1)
-        plot(genotype.normal, plot_path + "-normal", caption)
-        plot(genotype.reduce, plot_path + "-reduce", caption)
+            # log
+            # genotype
+            genotype = model.genotype()
+            logger.info("genotype = {}".format(genotype))
 
-        # save
-        if best_top1 < top1:
-            best_top1 = top1
-            best_genotype = genotype
-            is_best = True
+            # genotype as a image
+            plot_path = os.path.join(config.plot_path, "EP{:02d}".format(epoch+1))
+            caption = "Epoch {}".format(epoch+1)
+            plot(genotype.normal, plot_path + "-normal", caption)
+            plot(genotype.reduce, plot_path + "-reduce", caption)
+
+            # save
+            if best_top1 < top1:
+                best_top1 = top1
+                best_genotype = genotype
+                is_best = True
+            else:
+                is_best = False
+            utils.save_checkpoint(model, config.path, is_best)
+            print("")
         else:
-            is_best = False
-        utils.save_checkpoint(model, config.path, is_best)
-        print("")
+            hardness = train_hardness(train_loader, model)
+            train_loader.dataset.update_subset(hardness, epoch)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
@@ -195,6 +203,38 @@ def validate(valid_loader, model, epoch, cur_step):
     logger.info("Valid: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
     return top1.avg
+
+
+def train_hardness(train_loader, model):
+    hardness = [None for i in range(len(train_loader))]
+
+    model.train()
+
+    for step, (trn_X, trn_y) in enumerate(train_loader):
+        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
+        N = trn_X.size(0)
+
+        logits = model(trn_X)
+        new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
+        hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-N, batch 2 takes N+1-2N, etc.
+
+    return hardness
+
+
+def get_hardness(output, target):
+    # currently a binary association between correct classication => 0.8
+    # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
+    _, predicted = torch.max(output.data, 1)
+    hardness = np.where((predicted == target), 0.2, 0.8)
+    return hardness
+
+
+def get_epoch_type(epoch):
+    # naive if early stage, train dataset, else train normally
+    if epoch < 30:
+        return 0
+    else:
+        return 1
 
 
 if __name__ == "__main__":

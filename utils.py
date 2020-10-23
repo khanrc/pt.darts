@@ -4,8 +4,15 @@ import logging
 import shutil
 import torch
 import torchvision.datasets as dset
+from torchvision import transforms
 import numpy as np
 import preproc
+from config import SearchConfig
+import sys
+sys.path.insert(0, "home2/lgfm95/hem/perceptual")
+from dataloader import DynamicDataset
+
+config = SearchConfig()
 
 
 def get_data(dataset, data_path, cutout_length, validation):
@@ -14,18 +21,47 @@ def get_data(dataset, data_path, cutout_length, validation):
 
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
+        dynamic_name = "cifar10"
         n_classes = 10
     elif dataset == 'mnist':
         dset_cls = dset.MNIST
         n_classes = 10
+        dynamic_name = "mnist"
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
+        dynamic_name = "fashion"
     else:
         raise ValueError(dataset)
 
+    normalize = transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                     std=[0.229, 0.224, 0.225])
+    perc_transforms = transforms.Compose([
+        transforms.RandomResizedCrop(64),
+        transforms.ToTensor(),
+        normalize,
+    ])
+    pretrain_resume = "/home2/lgfm95/hem/perceptual/good.pth.tar"
+    auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
+    isize = 64
+    nz = 8
+    aisize = 256
+
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
-    trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
+    if config.dynamic:
+        trn_data = DynamicDataset(
+            perc_transforms=perc_transforms,
+            pretrain_resume=pretrain_resume,
+            image_transforms=trn_transform, val=False,
+            dataset_name=dynamic_name,
+            auto_resume=auto_resume,
+            isize=isize,
+            nz=nz,
+            aisize=aisize,
+            grayscale=True,
+            isTsne=True)
+    else:
+        trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
 
     # assuming shape is NHW or NHWC
     shape = trn_data.train_data.shape
@@ -35,7 +71,21 @@ def get_data(dataset, data_path, cutout_length, validation):
 
     ret = [input_size, input_channels, n_classes, trn_data]
     if validation: # append validation data
-        ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
+        if config.dynamic:
+            val_dataset = DynamicDataset(
+                perc_transforms=perc_transforms,
+                pretrain_resume=pretrain_resume,
+                image_transforms=val_transform, val=True,
+                dataset_name=dynamic_name,
+                auto_resume=auto_resume,
+                isize=isize,
+                nz=nz,
+                aisize=aisize,
+                grayscale=True,
+                isTsne=True)
+            ret.append(val_dataset)
+        else:
+            ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
 
     return ret
 

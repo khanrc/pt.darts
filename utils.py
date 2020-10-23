@@ -12,6 +12,7 @@ import sys
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 from dataloader import DynamicDataset
 
+raise IndexError(sys.argv)
 config = SearchConfig()
 
 

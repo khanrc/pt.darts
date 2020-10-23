@@ -65,6 +65,7 @@ def get_data(dataset, data_path, cutout_length, validation):
             isTsne=True)
         input_size = len(trn_data)
         input_channels = 1
+        raise RuntimeError("wtf")
     else:
         trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
 

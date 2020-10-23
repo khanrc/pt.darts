@@ -51,7 +51,7 @@ def get_data(dataset, data_path, cutout_length, validation):
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     if config.dynamic:
-        print(perc_transforms)
+        # print(perc_transforms)
         trn_data = DynamicDataset(
             perc_transforms=perc_transforms,
             pretrain_resume=pretrain_resume,

@@ -116,7 +116,10 @@ def main():
             print("")
         else:
             hardness = train_hardness(train_loader, model)
-            train_loader.dataset.update_subset(hardness, epoch)
+            try:
+                train_loader.dataset.update_subset(hardness, epoch)
+            except IndexError:
+                raise AttributeError(len(hardness))
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))

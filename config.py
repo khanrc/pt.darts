@@ -6,7 +6,6 @@ from functools import partial
 import torch
 
 import sys
-raise IndexError(sys.argv)
 
 
 def get_parser(name):
@@ -45,6 +44,7 @@ class BaseConfig(argparse.Namespace):
 
 class SearchConfig(BaseConfig):
     def build_parser(self):
+        raise IndexError(sys.argv)
         parser = get_parser("Search config")
         parser.add_argument('--name', required=True)
         parser.add_argument('--dataset', required=True, help='CIFAR10 / MNIST / FashionMNIST')

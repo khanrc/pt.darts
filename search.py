@@ -2,12 +2,17 @@
 
 import sys
 import os
+no_0 = sys.argv
 import torch
 import torch.nn as nn
 import numpy as np
+no_1 = sys.argv
 from tensorboardX import SummaryWriter
+no_2= sys.argv
 from config import SearchConfig
+no_3 = sys.argv
 import utils
+raise IndexError(no_0, no_1, no_2, no_3)
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot

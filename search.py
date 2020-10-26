@@ -152,9 +152,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss = model.criterion(logits, trn_y)
         loss.backward()
 
-        batch_size = len(trn_X)
         new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
-        hardness[(i*batch_size):(i*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+        hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)

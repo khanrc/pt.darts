@@ -119,7 +119,7 @@ def main():
             try:
                 train_loader.dataset.update_subset(hardness, epoch)
             except IndexError:
-                raise AttributeError(len(hardness))
+                raise AttributeError(len(hardness), len(train_loader.dataset))
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
@@ -137,6 +137,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     hardness = [None for i in range(len(train_loader))]
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
+        print("step", step, len(trn_X))
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)

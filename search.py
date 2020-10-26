@@ -213,7 +213,7 @@ def validate(valid_loader, model, epoch, cur_step):
 def train_hardness(train_loader, model):
     hardness = [None for i in range(len(train_loader))]
     len_hard = len(hardness)
-    temp_hardness = hardness[:]
+    temp_hardness = [aHard for aHard in hardness]
 
     for step, (trn_X, trn_y) in enumerate(train_loader):
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)

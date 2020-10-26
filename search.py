@@ -39,8 +39,8 @@ def main():
     torch.backends.cudnn.benchmark = True
 
     # get data with meta info
-    input_size, input_channels, n_classes, train_data = utils.get_data(
-        config.dataset, config.data_path, cutout_length=0, validation=False)
+    input_size, input_channels, n_classes, train_data, val_data = utils.get_data(
+        config.dataset, config.data_path, cutout_length=0, validation=True)
 
     net_crit = nn.CrossEntropyLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
@@ -55,19 +55,19 @@ def main():
                                    weight_decay=config.alpha_weight_decay)
 
     # split data to train/validation
-    n_train = len(train_data)
-    split = n_train // 2
-    indices = list(range(n_train))
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+    # n_train = len(train_data)
+    # split = n_train // 2
+    # indices = list(range(n_train))
+    # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
+    # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
-                                               sampler=train_sampler,
+                                               # sampler=train_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True)
-    valid_loader = torch.utils.data.DataLoader(train_data,
+    valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
-                                               sampler=valid_sampler,
+                                               # sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True)
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

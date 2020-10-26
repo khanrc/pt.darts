@@ -136,6 +136,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
 
     hardness = [None for i in range(len(train_loader))]
+    batch_size = config.batch_size
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         print("step", step, len(trn_X))
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
@@ -154,7 +155,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss.backward()
 
         new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
-        hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+        hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)

@@ -214,7 +214,7 @@ def train_hardness(train_loader, model):
     hardness = [None for i in range(len(train_loader.dataset))]
     len_hard = len(hardness)
 
-    for step, (trn_X, trn_y) in enumerate(train_loader):
+    for step, (trn_X, trn_y) in enumerate(train_loader.dataset):
         print("step", step)
         print("len trnX", len(trn_X), trn_X[0])
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
@@ -224,8 +224,7 @@ def train_hardness(train_loader, model):
         new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
         hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-N, batch 2 takes N+1-2N, etc.
 
-    print(len(train_loader.dataset.cur_set), "cur set shape")
-    raise AttributeError(len(hardness), len_hard, train_loader.dataset.image_transforms, "hardness post process")
+    raise AttributeError(len(hardness), len_hard, hardness, "hardness post process")
     return hardness
 
 

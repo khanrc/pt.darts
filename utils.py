@@ -66,7 +66,7 @@ def get_data(dataset, data_path, cutout_length, validation):
         input_size = len(trn_data)
         input_channels = 1
     else:
-        trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)
+        trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 
         # assuming shape is NHW or NHWC
         shape = trn_data.data.shape
@@ -90,7 +90,7 @@ def get_data(dataset, data_path, cutout_length, validation):
                 isTsne=True)
             ret.append(val_dataset)
         else:
-            ret.append(dset_cls(root=data_path, train=False, download=True, transform=val_transform))
+            ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 
     return ret
 

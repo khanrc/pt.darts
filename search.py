@@ -76,6 +76,7 @@ def main():
 
     # training loop
     best_top1 = 0.
+    hardness = None
     for epoch in range(config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
@@ -86,7 +87,6 @@ def main():
         if config.dynamic:
             epoch_type = get_epoch_type(epoch)
 
-        hardness = None
         if epoch_type:
             # training
             hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)

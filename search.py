@@ -216,6 +216,8 @@ def train_hardness(train_loader, model):
     temp_hardness = [aHard for aHard in hardness]
 
     for step, (trn_X, trn_y) in enumerate(train_loader):
+        print("step", step)
+        print("len trnX", len(trn_X))
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 

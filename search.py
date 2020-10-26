@@ -138,7 +138,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     hardness = [None for i in range(len(train_loader))]
     batch_size = config.batch_size
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-        print("step", step, len(trn_X))
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
@@ -246,6 +245,8 @@ def get_hardness(output, target):
 
 def get_epoch_type(epoch):
     # naive alternate, starting with normal training
+    if not config.dynamic:
+        return 1
     if epoch % 2 == 0:
         return 1
     else:

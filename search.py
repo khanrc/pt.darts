@@ -211,7 +211,7 @@ def validate(valid_loader, model, epoch, cur_step):
 
 
 def train_hardness(train_loader, model):
-    hardness = [None for i in range(len(list(enumerate(train_loader))))]
+    hardness = [None for i in range(len(train_loader.dataset))]
     len_hard = len(hardness)
     temp_hardness = [aHard for aHard in hardness]
 

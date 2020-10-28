@@ -11,7 +11,7 @@ import utils
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
-
+import time
 
 config = SearchConfig()
 
@@ -26,7 +26,8 @@ config.print_params(logger.info)
 
 
 def main():
-    logger.info("Logger is set - training start")
+    start_time = time.time()
+    logger.info("Logger is set - training start {}".format(start_time))
 
     # set default gpu device id
     torch.cuda.set_device(config.gpus[0])
@@ -123,6 +124,7 @@ def main():
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
+    logger.info("Training end".format(time.time()-start_time))
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch):

@@ -20,6 +20,7 @@ def get_data(dataset, data_path, cutout_length, validation):
     """ Get torchvision dataset """
     dataset = dataset.lower()
 
+    grayscale = False
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"
@@ -28,10 +29,12 @@ def get_data(dataset, data_path, cutout_length, validation):
         dset_cls = dset.MNIST
         n_classes = 10
         dynamic_name = "mnist"
+        grayscale = True
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"
+        grayscale = True
     else:
         raise ValueError(dataset)
 
@@ -61,7 +64,7 @@ def get_data(dataset, data_path, cutout_length, validation):
             isize=isize,
             nz=nz,
             aisize=aisize,
-            grayscale=True,
+            grayscale=grayscale,
             isTsne=True)
         input_size = len(trn_data)
         input_channels = 1
@@ -86,7 +89,7 @@ def get_data(dataset, data_path, cutout_length, validation):
                 isize=isize,
                 nz=nz,
                 aisize=aisize,
-                grayscale=True,
+                grayscale=grayscale,
                 isTsne=True)
             ret.append(val_dataset)
         else:

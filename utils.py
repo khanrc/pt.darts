@@ -67,7 +67,7 @@ def get_data(dataset, data_path, cutout_length, validation):
             grayscale=grayscale,
             isTsne=True)
         input_size = len(trn_data)
-        raise AttributeError(trn_data.cur_set[0].getbands(), grayscale)
+        input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
         trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 

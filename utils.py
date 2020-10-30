@@ -65,7 +65,8 @@ def get_data(dataset, data_path, cutout_length, validation):
             nz=nz,
             aisize=aisize,
             grayscale=grayscale,
-            isTsne=True)
+            isTsne=True,
+            tree=config.isTree)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
@@ -90,7 +91,8 @@ def get_data(dataset, data_path, cutout_length, validation):
                 nz=nz,
                 aisize=aisize,
                 grayscale=grayscale,
-                isTsne=True)
+                isTsne=True,
+                tree=config.isTree)
             ret.append(val_dataset)
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))

@@ -65,6 +65,7 @@ class SearchConfig(BaseConfig):
                             help='weight decay for alpha')
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
+        parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
 
         return parser
 
@@ -105,6 +106,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--genotype', required=True, help='Cell genotype')
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
+        parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
 
         return parser
 

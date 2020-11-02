@@ -12,6 +12,7 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 import time
+sys.path.insert(0, "./torchsample")
 from torchsample.callbacks import EarlyStopping
 
 config = SearchConfig()

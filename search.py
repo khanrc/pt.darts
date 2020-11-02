@@ -50,7 +50,7 @@ def main():
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
 
-    callbacks = [EarlyStopping(monitor='val_loss', patience=5, verbose=1)]
+    callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
     model.set_callbacks(callbacks)
 
     # weights optimizer

@@ -12,8 +12,8 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 import time
+import math
 sys.path.insert(0, "./torchsample")
-from torchsample.callbacks import EarlyStopping
 
 config = SearchConfig()
 
@@ -50,9 +50,6 @@ def main():
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
 
-    callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
-    model.set_callbacks(callbacks)
-
     # weights optimizer
     w_optim = torch.optim.SGD(model.weights(), config.w_lr, momentum=config.w_momentum,
                               weight_decay=config.w_weight_decay)
@@ -83,6 +80,7 @@ def main():
     # training loop
     best_top1 = 0.
     hardness = None
+    old_loss = 0
     for epoch in range(config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
@@ -99,7 +97,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1 = validate(valid_loader, model, epoch, cur_step)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step)
 
             # log
             # genotype
@@ -121,6 +119,10 @@ def main():
                 is_best = False
             utils.save_checkpoint(model, config.path, is_best)
             print("")
+            if math.abs(old_loss - new_loss) < 0.0001:
+                print("stopping early")
+                break
+            old_loss = new_loss
         else:
             try:
                 train_loader.dataset.update_subset(hardness, epoch)
@@ -221,7 +223,7 @@ def validate(valid_loader, model, epoch, cur_step):
 
     logger.info("Valid: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
-    return top1.avg
+    return top1.avg, losses.avg
 
 
 def train_hardness(train_loader, model):

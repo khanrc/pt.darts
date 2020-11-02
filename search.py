@@ -12,7 +12,6 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 import time
-import math
 sys.path.insert(0, "./torchsample")
 
 config = SearchConfig()
@@ -119,7 +118,7 @@ def main():
                 is_best = False
             utils.save_checkpoint(model, config.path, is_best)
             print("")
-            if math.abs(old_loss - new_loss) < 0.0001:
+            if abs(old_loss - new_loss) < 0.0001:
                 print("stopping early")
                 break
             old_loss = new_loss

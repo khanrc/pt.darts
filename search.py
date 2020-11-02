@@ -12,6 +12,7 @@ from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
 import time
+from torchsample.callbacks import EarlyStopping
 
 config = SearchConfig()
 
@@ -47,6 +48,9 @@ def main():
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)
+
+    callbacks = [EarlyStopping(monitor='val_loss', patience=5)]
+    model.set_callbacks(callbacks)
 
     # weights optimizer
     w_optim = torch.optim.SGD(model.weights(), config.w_lr, momentum=config.w_momentum,

@@ -211,7 +211,7 @@ def validate(valid_loader, model, epoch, cur_step):
 
             if step % config.print_freq == 0 or step == len(valid_loader)-1:
                 logger.info(
-                    "Valid: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
+                    "Valid: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))

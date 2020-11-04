@@ -120,7 +120,7 @@ def main():
             print("")
             if abs(old_loss - new_loss) < 0.0001:
                 print("stopping early")
-                break
+                # break
             old_loss = new_loss
         else:
             try:

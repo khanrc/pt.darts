@@ -80,22 +80,22 @@ def get_data(dataset, data_path, cutout_length, validation):
 
     ret = [input_size, input_channels, n_classes, trn_data]
     if validation: # append validation data
-        if config.dynamic:
-            val_dataset = DynamicDataset(
-                perc_transforms=perc_transforms,
-                pretrain_resume=pretrain_resume,
-                image_transforms=val_transform, val=True,
-                dataset_name=dynamic_name,
-                auto_resume=auto_resume,
-                isize=isize,
-                nz=nz,
-                aisize=aisize,
-                grayscale=grayscale,
-                isTsne=True,
-                tree=config.isTree)
-            ret.append(val_dataset)
-        else:
-            ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
+        # if config.dynamic:
+        #     val_dataset = DynamicDataset(
+        #         perc_transforms=perc_transforms,
+        #         pretrain_resume=pretrain_resume,
+        #         image_transforms=val_transform, val=True,
+        #         dataset_name=dynamic_name,
+        #         auto_resume=auto_resume,
+        #         isize=isize,
+        #         nz=nz,
+        #         aisize=aisize,
+        #         grayscale=grayscale,
+        #         isTsne=True,
+        #         tree=config.isTree)
+        #     ret.append(val_dataset)
+        # else:
+        ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 
     return ret
 

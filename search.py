@@ -83,6 +83,7 @@ def main():
     old_loss = 0
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
+        print("grep here {} {} {}".format(epoch, config.epochs, config.init_train_epochs))
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 
@@ -258,7 +259,7 @@ def get_hardness(output, target, loss):
 
 def get_epoch_type(epoch, hardness):
     # naive alternate, starting with normal training
-    if not config.dynamic or epoch < 1:# or epoch < config.init_train_epochs:
+    if not config.dynamic or epoch < config.init_train_epochs:
         return 1
     is_mastered = get_mastered(hardness)
     if is_mastered:

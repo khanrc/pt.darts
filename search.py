@@ -85,7 +85,7 @@ def main():
         lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
-    
+
         epoch_type = 1
         if config.dynamic:
             epoch_type = get_epoch_type(epoch, hardness)
@@ -248,6 +248,7 @@ def get_hardness(output, target):
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
     hardness = np.where((predicted == target), 0.2, 0.8)
+    raise AttributeError(output, target, hardness)
     return hardness
 
 

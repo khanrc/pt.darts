@@ -266,7 +266,6 @@ def get_epoch_type(epoch, hardness):
 
 
 def get_mastered(hardness):
-    raise AttributeError(np.array(hardness), type(np.array(hardness)))
     if len(np.where(np.array(hardness) > 0.5)) > len(hardness)-2:
         # a lot of images still being misclassified
         raise AttributeError(len(np.where(np.array(hardness) > 0.5)), np.where(np.array(hardness) > 0.5))

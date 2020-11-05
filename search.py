@@ -85,10 +85,10 @@ def main():
         lr = lr_scheduler.get_lr()[0]
 
         model.print_alphas(logger)
-
+    
         epoch_type = 1
         if config.dynamic:
-            epoch_type = get_epoch_type(epoch)
+            epoch_type = get_epoch_type(epoch, hardness)
 
         if epoch_type: # 1 is train, as normal (0 is dataset update)
             # training

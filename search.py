@@ -257,7 +257,7 @@ def get_hardness(output, target, loss):
 
 def get_epoch_type(epoch, hardness):
     # naive alternate, starting with normal training
-    if not config.dynamic or epoch < 2:# or epoch < config.init_train_epochs:
+    if not config.dynamic or epoch < 1:# or epoch < config.init_train_epochs:
         return 1
     is_mastered = get_mastered(hardness)
     if is_mastered:

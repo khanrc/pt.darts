@@ -254,7 +254,7 @@ def get_hardness(output, target, loss):
     # if object X is misclassified, hardness needs to be higher still.
     # assumes that it does not confidently misclassify.
     hardness = [confidence[i][predicted[i]] * hardness_scaler[i] for i in range(output.size(0))]
-    raise AttributeError(hardness)
+    raise AttributeError(hardness, confidence, predicted, hardness_scaler)
     return hardness
 
 

@@ -90,7 +90,7 @@ def main():
         if config.dynamic:
             epoch_type = get_epoch_type(epoch)
 
-        if epoch_type:
+        if epoch_type: # 1 is train, as normal (0 is dataset update)
             # training
             hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
 
@@ -251,14 +251,21 @@ def get_hardness(output, target):
     return hardness
 
 
-def get_epoch_type(epoch):
+def get_epoch_type(epoch, hardness):
     # naive alternate, starting with normal training
-    if not config.dynamic:
+    if not config.dynamic or epoch < config.init_train_epochs:
         return 1
-    if epoch % 2 == 0:
+    is_mastered = get_mastered(hardness)
+    if is_mastered:
         return 1
-    else:
+    return 0
+
+
+def get_mastered(hardness):
+    if np.sum(hardness==0.8) > len(hardness)-2:
+        # a lot of images still being misclassified
         return 0
+    return 1
 
 
 if __name__ == "__main__":

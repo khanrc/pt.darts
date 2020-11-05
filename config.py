@@ -66,6 +66,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
         parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
+        parser.add_argument('--init_train_epochs', default=20, type=int, help="how many epochs before we start to (consider to) adjust dataset")
 
         return parser
 
@@ -107,6 +108,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--dynamic', default=False, type=bool, help="learn dataset at same time")
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
         parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
+        parser.add_argument('--init_train_epochs', default=20, type=int, help="how many epochs before we start to (consider to) adjust dataset")
 
         return parser
 

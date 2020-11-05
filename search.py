@@ -240,7 +240,7 @@ def train_hardness(train_loader, model):
         new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
         hardness[(step*N):(step*N)+N] = new_hardness # assumes batch 1 takes idx 0-N, batch 2 takes N+1-2N, etc.
 
-    raise AttributeError(len(hardness), len_hard, hardness, "hardness post process")
+    # raise AttributeError(len(hardness), len_hard, hardness, "hardness post process")
     return hardness
 
 

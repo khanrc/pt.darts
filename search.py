@@ -81,6 +81,7 @@ def main():
     best_top1 = 0.
     hardness = None
     old_loss = 0
+    # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
@@ -268,7 +269,6 @@ def get_epoch_type(epoch, hardness):
 def get_mastered(hardness):
     if len(np.where(np.array(hardness) > 0.5)) > len(hardness)-2:
         # a lot of images still being misclassified
-        raise AttributeError(len(np.where(np.array(hardness) > 0.5)), np.where(np.array(hardness) > 0.5))
         return 0
     return 1
 

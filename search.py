@@ -247,8 +247,14 @@ def get_hardness(output, target, loss):
     # currently a binary association between correct classication => 0.8
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
-    hardness = np.where((predicted == target), 0.2, 0.8)
-    raise AttributeError(output, predicted, target, hardness, F.softmax(output, dim=1))
+    confidence = F.softmax(output, dim=1)
+    hardness_scaler = np.where((predicted == target), 1, 3) # if correct, simply use confidence as measure of hardness
+    # therefore if model can easily say yep this is object X, then hardness will be low. if it only just manages to identify
+    # object X, hardness if higher
+    # if object X is misclassified, hardness needs to be higher still.
+    # assumes that it does not confidently misclassify.
+    hardness = [confidence[i][predicted[i]] * hardness_scaler[i] for i in range(output.size(0))]
+    raise AttributeError(hardness)
     return hardness
 
 

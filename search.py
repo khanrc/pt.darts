@@ -247,7 +247,7 @@ def get_hardness(output, target, loss):
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
     hardness = np.where((predicted == target), 0.2, 0.8)
-    raise AttributeError(output, predicted, target, hardness, loss)
+    raise AttributeError(output, predicted, target, hardness, nn.SoftMax(output))
     return hardness
 
 

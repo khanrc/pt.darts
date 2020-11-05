@@ -159,8 +159,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits = model(trn_X)
         loss = model.criterion(logits, trn_y)
+        new_hardness = get_hardness(logits.cpu(), trn_y.cpu(), loss)
         loss.backward()
-        new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 
         # gradient clipping
@@ -242,12 +242,12 @@ def train_hardness(train_loader, model):
     return hardness
 
 
-def get_hardness(output, target):
+def get_hardness(output, target, loss):
     # currently a binary association between correct classication => 0.8
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
     hardness = np.where((predicted == target), 0.2, 0.8)
-    raise AttributeError(output, predicted, target, hardness)
+    raise AttributeError(output, predicted, target, hardness, loss)
     return hardness
 
 

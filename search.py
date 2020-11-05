@@ -248,13 +248,13 @@ def get_hardness(output, target, loss):
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
     confidence = F.softmax(output, dim=1)
-    hardness_scaler = np.where((predicted == target), 1, 3) # if correct, simply use confidence as measure of hardness
+    hardness_scaler = np.where((predicted == target), 1, 10) # if correct, simply use confidence as measure of hardness
     # therefore if model can easily say yep this is object X, then hardness will be low. if it only just manages to identify
     # object X, hardness if higher
     # if object X is misclassified, hardness needs to be higher still.
     # assumes that it does not confidently misclassify.
-    hardness = [confidence[i][predicted[i]] * hardness_scaler[i] for i in range(output.size(0))]
-    raise AttributeError(hardness, confidence, predicted, hardness_scaler)
+    hardness = [(confidence[i][predicted[i]] * hardness_scaler[i])[0] for i in range(output.size(0))]
+    raise AttributeError(hardness)
     return hardness
 
 
@@ -269,8 +269,9 @@ def get_epoch_type(epoch, hardness):
 
 
 def get_mastered(hardness):
-    if np.sum(hardness==0.8) > len(hardness)-2:
+    if len(np.where(np.array(hardness) > 0.5)) > len(hardness)-2:
         # a lot of images still being misclassified
+        raise AttributeError(len(np.where(np.array(hardness) > 0.5)), np.where(np.array(hardness) > 0.5))
         return 0
     return 1
 

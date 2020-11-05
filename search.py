@@ -87,9 +87,7 @@ def main():
 
         model.print_alphas(logger)
 
-        epoch_type = 1
-        if config.dynamic:
-            epoch_type = get_epoch_type(epoch, hardness)
+        epoch_type = get_epoch_type(epoch, hardness)
 
         if epoch_type: # 1 is train, as normal (0 is dataset update)
             # training
@@ -259,15 +257,16 @@ def get_hardness(output, target, loss):
 
 def get_epoch_type(epoch, hardness):
     # naive alternate, starting with normal training
-    if not config.dynamic:# or epoch < config.init_train_epochs:
+    if not config.dynamic or epoch < 2:# or epoch < config.init_train_epochs:
         return 1
     is_mastered = get_mastered(hardness)
     if is_mastered:
-        return 1
-    return 0
+        return 0
+    return 1
 
 
 def get_mastered(hardness):
+    raise AttributeError(np.array(hardness), type(np.array(hardness)))
     if len(np.where(np.array(hardness) > 0.5)) > len(hardness)-2:
         # a lot of images still being misclassified
         raise AttributeError(len(np.where(np.array(hardness) > 0.5)), np.where(np.array(hardness) > 0.5))

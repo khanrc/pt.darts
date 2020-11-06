@@ -80,7 +80,9 @@ def main():
     # training loop
     best_top1 = 0.
     hardness = None
+    just_updated = True
     old_loss = 0
+
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
         print("grep here {} {} {}".format(epoch, config.epochs, config.init_train_epochs))
@@ -91,7 +93,8 @@ def main():
 
         epoch_type = get_epoch_type(epoch, hardness)
 
-        if epoch_type: # 1 is train, as normal (0 is dataset update)
+        if epoch_type or just_updated: # 1 is train, as normal (0 is dataset update)
+            just_updated = False
             # training
             hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
 
@@ -124,8 +127,10 @@ def main():
                 # break
             old_loss = new_loss
         else:
+            print("updating subset")
             try:
                 train_loader.dataset.update_subset(hardness, epoch)
+                just_updated = True
             except IndexError:
                 raise AttributeError(len(hardness), len(train_loader.dataset))
 
@@ -243,15 +248,16 @@ def train_hardness(train_loader, model):
     return hardness
 
 
-def get_hardness(output, target, loss):
+# low value for hardness means harder.
+def get_hardness(output, target):
     # currently a binary association between correct classication => 0.8
     # we want it to be a softmax representation. if we instead take crossentropy loss of each individual cf target
     _, predicted = torch.max(output.data, 1)
     confidence = F.softmax(output, dim=1)
-    hardness_scaler = np.where((predicted == target), 1, 10) # if correct, simply use confidence as measure of hardness
-    # therefore if model can easily say yep this is object X, then hardness will be low. if it only just manages to identify
-    # object X, hardness if higher
-    # if object X is misclassified, hardness needs to be higher still.
+    hardness_scaler = np.where((predicted == target), 1, 0.1) # if correct, simply use confidence as measure of hardness
+    # therefore if model can easily say yep this is object X, then confidence will be high. if it only just manages to identify
+    # object X, confidence if lower
+    # if object X is misclassified, hardness needs to be lower still.
     # assumes that it does not confidently misclassify.
     hardness = [(confidence[i][predicted[i]] * hardness_scaler[i]).item() for i in range(output.size(0))]
     return hardness
@@ -268,7 +274,7 @@ def get_epoch_type(epoch, hardness):
 
 
 def get_mastered(hardness):
-    if len(np.where(np.array(hardness) > 0.5)) > len(hardness)-2:
+    if len(np.where(np.array(hardness) < 0.5)) > len(hardness)-2:
         # a lot of images still being misclassified
         return 0
     return 1

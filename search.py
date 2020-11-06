@@ -85,7 +85,6 @@ def main():
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
-        print("grep here {} {} {}".format(epoch, config.epochs, config.init_train_epochs))
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 
@@ -128,11 +127,8 @@ def main():
             old_loss = new_loss
         else:
             print("updating subset")
-            try:
-                train_loader.dataset.update_subset(hardness, epoch)
-                just_updated = True
-            except IndexError:
-                raise AttributeError(len(hardness), len(train_loader.dataset))
+            train_loader.dataset.update_subset(hardness, epoch)
+            just_updated = True
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))

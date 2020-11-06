@@ -161,7 +161,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits = model(trn_X)
         loss = model.criterion(logits, trn_y)
-        new_hardness = get_hardness(logits.cpu(), trn_y.cpu(), loss)
+        new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 

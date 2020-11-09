@@ -67,6 +67,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
         parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
         parser.add_argument('--init_train_epochs', default=20, type=int, help="how many epochs before we start to (consider to) adjust dataset")
+        parser.add_argument('--subset_size', default=100, type=int, help="how many images in dataloader during epoch")
 
         return parser
 
@@ -109,6 +110,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--ncc', default=True, type=bool, help="use ncc or no?")
         parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
         parser.add_argument('--init_train_epochs', default=20, type=int, help="how many epochs before we start to (consider to) adjust dataset")
+        parser.add_argument('--subset_size', default=100, type=int, help="how many images in dataloader during epoch")
 
         return parser
 

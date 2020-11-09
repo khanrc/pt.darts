@@ -13,6 +13,7 @@ from architect import Architect
 from visualize import plot
 import torch.nn.functional as F
 import time
+import csv
 sys.path.insert(0, "./torchsample")
 
 config = SearchConfig()
@@ -130,9 +131,18 @@ def main():
             train_loader.dataset.update_subset(hardness, epoch)
             just_updated = True
 
+    save_indices(train_data.idx)
+
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))
+
+
+def save_indices(data):
+    with open("indices.csv") as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=' ')
+        csv_writer.writerow(data)
+
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch):

@@ -98,7 +98,6 @@ def main():
             # training
             hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
 
-            save_indices(train_loader.dataset.idx)
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
@@ -132,6 +131,8 @@ def main():
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
             just_updated = True
+
+    save_indices(train_loader.dataset.idx)
 
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))

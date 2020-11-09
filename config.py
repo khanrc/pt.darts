@@ -68,7 +68,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--isTree', default=True, type=bool, help="use kdtree or random sampling?")
         parser.add_argument('--init_train_epochs', default=20, type=int, help="how many epochs before we start to (consider to) adjust dataset")
         parser.add_argument('--subset_size', default=100, type=int, help="how many images in dataloader during epoch")
-        parser.add_argument('--isCsv', default=False, type=bool, help="load initial idx from csv file?")
+        parser.add_argument('--is_csv', default=False, type=bool, help="load initial idx from csv file?")
 
         return parser
 

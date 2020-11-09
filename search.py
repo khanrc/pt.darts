@@ -98,6 +98,8 @@ def main():
             # training
             hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
 
+            save_indices(train_loader.dataset.idx)
+
             # validation
             cur_step = (epoch+1) * len(train_loader)
             top1, new_loss = validate(valid_loader, model, epoch, cur_step)
@@ -131,7 +133,6 @@ def main():
             train_loader.dataset.update_subset(hardness, epoch)
             just_updated = True
 
-    save_indices(train_data.idx)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
@@ -140,6 +141,7 @@ def main():
 
 def save_indices(data):
     with open("indices.csv") as csv_file:
+        raise AttributeError("saving to csv")
         csv_writer = csv.writer(csv_file, delimiter=' ')
         csv_writer.writerow(data)
 

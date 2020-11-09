@@ -132,7 +132,7 @@ def main():
             train_loader.dataset.update_subset(hardness, epoch)
             just_updated = True
 
-    save_indices(train_loader.dataset.idx)
+    save_indices(train_loader.dataset.idx[0])
 
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
@@ -142,7 +142,7 @@ def main():
 
 def save_indices(data):
     with open('indices.csv', 'w') as csv_file:
-        raise AttributeError(len(data), "len data grep", data)
+        raise AttributeError("len data grep", data)
         csv_writer = csv.writer(csv_file, delimiter=' ')
         csv_writer.writerow(data)
 

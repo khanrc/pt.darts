@@ -123,9 +123,10 @@ def main():
                 is_best = False
             utils.save_checkpoint(model, config.path, is_best)
             print("")
-            if abs(old_loss - new_loss) < 0.0005:
-                print("stopping early")
-                break
+            if config.early_stopping:
+                if abs(old_loss - new_loss) < 0.0005:
+                    print("stopping early")
+                    break
             old_loss = new_loss
         else:
             print("updating subset")

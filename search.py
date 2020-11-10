@@ -146,7 +146,6 @@ def main():
 
 def save_indices(data):
     with open('indices.csv', 'w') as csv_file:
-        raise AttributeError("len data grep", data)
         csv_writer = csv.writer(csv_file, delimiter=' ')
         csv_writer.writerow(data)
 

@@ -68,7 +68,8 @@ def get_data(dataset, data_path, cutout_length, validation):
             isTsne=True,
             tree=config.isTree,
             subset_size=config.subset_size,
-            is_csv=config.is_csv)
+            # is_csv=config.is_csv)
+            is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:

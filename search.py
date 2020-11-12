@@ -133,11 +133,12 @@ def main():
             train_loader.dataset.update_subset(hardness, epoch)
             just_updated = True
 
-    if config.is_csv and top1 > 0.95:
-        # if len(train_loader.dataset.idx) == 1:
-        #     save_indices(train_loader.dataset.idx[0])
-        # else:
-        save_indices(train_loader.dataset.idx)
+        print ("grep {}".format(top1))
+        if config.is_csv and top1 > 0.95:
+            # if len(train_loader.dataset.idx) == 1:
+            #     save_indices(train_loader.dataset.idx[0])
+            # else:
+            save_indices(train_loader.dataset.idx)
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))

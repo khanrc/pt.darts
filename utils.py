@@ -30,7 +30,7 @@ def get_data(dataset, data_path, cutout_length, validation):
         n_classes = 10
         dynamic_name = "mnist"
         grayscale = True
-    elif dataset == 'fashionmnist':
+    elif dataset == 'fashion':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"

@@ -140,6 +140,8 @@ def main():
             # else:
             save_indices(train_loader.dataset.idx)
 
+        logger.info("Time after epoch {}: {}".format(epoch, time.time()-start_time))
+
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))

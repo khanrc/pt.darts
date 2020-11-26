@@ -96,8 +96,9 @@ def main():
         if epoch_type or just_updated: # 1 is train, as normal (0 is dataset update)
             just_updated = False
             # training
-            hardness = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
-
+            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
+            train_loader.dataset.update_correct(correct)
+            train_loader.dataset.visualize()
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
@@ -146,7 +147,6 @@ def main():
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))
 
-
 def save_indices(data):
     with open('indices.csv', 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=' ')
@@ -165,6 +165,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     model.train()
 
     hardness = [None for i in range(len(train_loader))]
+    correct = [None for i in range(len(train_loader))]
+
     batch_size = config.batch_size
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
@@ -180,10 +182,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits = model(trn_X)
         loss = model.criterion(logits, trn_y)
-        new_hardness = get_hardness(logits.cpu(), trn_y.cpu())
+        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu())
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
-
+        correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
@@ -207,7 +209,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
-    return hardness
+    return hardness, correct
 
 def validate(valid_loader, model, epoch, cur_step):
     top1 = utils.AverageMeter()
@@ -275,7 +277,7 @@ def get_hardness(output, target):
     # if object X is misclassified, hardness needs to be lower still.
     # assumes that it does not confidently misclassify.
     hardness = [(confidence[i][predicted[i]] * hardness_scaler[i]).item() for i in range(output.size(0))]
-    return hardness
+    return hardness, hardness_scaler
 
 
 def get_epoch_type(epoch, hardness):

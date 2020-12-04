@@ -23,11 +23,11 @@ def main():
                     acc = float(acc.replace("%\n", ""))
                     if "Train:" in tv:
                         train_accs.append(acc)
+                        count += 1
                     elif "Valid:" in tv:
                         val_accs.append(acc)
                     else:
                         print("neither")
-                    count += 1
                 except ValueError:
                     bars.append(count)
 

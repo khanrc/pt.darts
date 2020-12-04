@@ -70,8 +70,8 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--subset_size', default=100, type=int, help="how many images in dataloader during epoch")
         parser.add_argument('--is_csv', default=False, type=bool, help="load initial idx from csv file?")
         parser.add_argument('--early_stopping', default=False, type=bool, help="are we doing early stopping?")
-        parser.add_argument('--mastery', default=0.5, type=bool, help="mastery threshold")
-        parser.add_argument('--hardness', default=0.5, type=bool, help="hardness threshold")
+        parser.add_argument('--mastery', default=0.5, type=float, help="mastery threshold")
+        parser.add_argument('--hardness', default=0.5, type=float, help="hardness threshold")
 
         return parser
 

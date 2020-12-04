@@ -61,6 +61,7 @@ def get_data(dataset, data_path, cutout_length, validation):
             image_transforms=trn_transform, val=False,
             dataset_name=dynamic_name,
             auto_resume=auto_resume,
+            hardness=config.hardness,
             isize=isize,
             nz=nz,
             aisize=aisize,

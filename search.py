@@ -291,7 +291,7 @@ def get_epoch_type(epoch, hardness):
 
 
 def get_mastered(hardness):
-    if len(np.where(np.array(hardness) < 0.5)) > len(hardness)-2:
+    if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:
         # a lot of images still being misclassified
         return 0
     return 1

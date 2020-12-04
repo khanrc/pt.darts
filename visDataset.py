@@ -64,11 +64,28 @@ def processTxt():
             sets.append(my_set)
 
 
+    print("how many got changed on update:")
     for epoch in bars:
-        set1 = sets[epoch-1]
-        set2 = sets[epoch]
-        difference = len(set1-set2) + len(set2-set1)
-        print("difference after update at {} is {}".format(epoch, difference))
+        try:
+            set1 = sets[epoch-1]
+            set2 = sets[epoch]
+            difference = len(set1-set2) + len(set2-set1)
+            total = len(set1) + len(set2)
+            print("difference after update at {} is {} out of {}".format(epoch, difference, total))
+        except IndexError:
+            pass
+
+
+    print("how many flipflopped on update:")
+    for i in range(1, len(bars)):
+        try:
+            set1 = sets[bars[i-1]-1]
+            set2 = sets[bars[i]-1]
+            difference = len(set1-set2) + len(set2-set1)
+            total = len(set1) + len(set2)
+            print("difference after update at {} is {} out of {}".format(epoch, difference, total))
+        except IndexError as e:
+            print(e)
 
 
 if __name__ == "__main__":

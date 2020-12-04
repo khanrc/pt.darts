@@ -46,3 +46,11 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+
+# if not getting high val before a new bar, then mastery too low
+
+# if val lightning not shallow, then perhaps mastery marginally too high as overfitting to previous dataset
+
+# if train lightning shallow, then have already mastered. therefore should be switching out quickly.
+# if not switching out quickly, hardness might be too high, as it is retaining too many images

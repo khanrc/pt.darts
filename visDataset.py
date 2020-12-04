@@ -11,9 +11,9 @@ def main():
                 bar_idx = str(datum).index("|")
                 suffix = datum[bar_idx:]
                 spl = suffix.split(" ")
-                tv = spl[0]
+                tv = spl[1]
                 acc = spl[-1]
-                # acc = float(acc.replace("%\n", ""))
+                acc = float(acc.replace("%\n", ""))
                 accs.append([tv,acc])
             print(accs)
 

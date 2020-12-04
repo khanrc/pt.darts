@@ -52,7 +52,7 @@ def processTxt():
     temp_badpoints_files = sorted(Path(folder_name).iterdir(), key=os.path.getmtime)
     badpoints_files = []
     for file in temp_badpoints_files:
-        if "badpoints" in file:
+        if "badpoints" in str(file):
             badpoints_files.append(file)
 
     sets = []

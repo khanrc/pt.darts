@@ -2,7 +2,7 @@ import os
 
 
 def main():
-    path_name = "/home2/lgfm95/nas/darts/accuraciesFashion.out"
+    path_name = "/home2/lgfm95/nas/darts/accuracies.out"
     if os.path.isfile(path_name):
         with open(path_name, "r") as f:
             data = f.readlines()

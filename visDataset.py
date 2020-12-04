@@ -1,4 +1,7 @@
 import os
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 
 def main():
@@ -24,6 +27,13 @@ def main():
                         print("neither")
                 except ValueError:
                     pass
+
+            assert len(train_accs) == len(val_accs), "len of train and val accuracies should be same"
+            x_axis = [i for i in range(len(train_accs))]
+            fig, ax = plt.subplots()
+            ax.plot(x_axis, train_accs, color="green")
+            ax.plot(x_axis, val_accs, color="red")
+            fig.savefig("test.png")
             print(train_accs, val_accs)
 
 

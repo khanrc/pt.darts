@@ -37,12 +37,11 @@ def main():
             ax.plot(x_axis, train_accs, color="green")
             ax.plot(x_axis, val_accs, color="red")
 
-            xposition = [0.3, 0.4, 0.45]
-            for xc in xposition:
+            for xc in bars:
                 plt.axvline(x=xc, color='k', linestyle='--')
-                
+
             fig.savefig("test.png")
-            print(train_accs, val_accs)
+            print(train_accs, val_accs, bars)
 
 
 if __name__ == "__main__":

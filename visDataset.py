@@ -11,7 +11,7 @@ def main():
                 idx = str(datum).index("@")
                 suffix = datum[idx:]
                 spl = suffix.split(" ")
-                acc = int(spl[2].remove("\n"))
+                acc = int(spl[2].replace("\n", ""))
                 accs.append(acc)
             print(accs)
 

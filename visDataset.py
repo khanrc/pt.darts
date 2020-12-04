@@ -22,7 +22,7 @@ def main():
                         val_accs.append(acc)
                     else:
                         print("neither")
-                except AttributeError:
+                except ValueError:
                     pass
             print(train_accs, val_accs)
 

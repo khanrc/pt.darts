@@ -44,9 +44,18 @@ def main():
             print(train_accs, val_accs, bars)
 
 
-if __name__ == "__main__":
-    main()
+from pathlib import Path
 
+
+def processTxt():
+    folder_name = "/home2/lgfm95/hem/perceptual/tempSave/mnistclusters/"
+    badpoints_files = sorted(Path(folder_name).iterdir(), key=os.path.getmtime)
+    print(badpoints_files)
+
+
+if __name__ == "__main__":
+    # main()
+    processTxt()
 
 # if not getting high val before a new bar, then mastery too low
 

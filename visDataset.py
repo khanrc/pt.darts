@@ -8,11 +8,13 @@ def main():
             data = f.readlines()
             accs = []
             for datum in data:
-                idx = str(datum).index("@")
-                suffix = datum[idx:]
+                bar_idx = str(datum).index("|")
+                suffix = datum[bar_idx:]
                 spl = suffix.split(" ")
-                acc = float(spl[2].replace("\n", ""))
-                accs.append(acc)
+                tv = spl[0]
+                acc = spl[-1]
+                # acc = float(acc.replace("%\n", ""))
+                accs.append([tv,acc])
             print(accs)
 
 

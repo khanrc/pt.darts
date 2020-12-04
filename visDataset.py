@@ -60,7 +60,8 @@ def processTxt():
         with open(file, "r") as f:
             data = f.readlines()
             my_set = set(data)
-            print("num unique", len(my_set), len(data))
+            if len(my_set) != len(data):
+                print("num unique", len(my_set), len(data))
             sets.append(my_set)
 
 
@@ -84,6 +85,7 @@ def processTxt():
             difference = len(set1-set2) + len(set2-set1)
             total = len(set1) + len(set2)
             print("difference after update at {} is {} out of {}".format(epoch, difference, total))
+            print("that percentage is {}".format(difference/total))
         except IndexError as e:
             print(e)
 
@@ -98,3 +100,5 @@ if __name__ == "__main__":
 
 # if train lightning shallow, then have already mastered. therefore should be switching out quickly.
 # if not switching out quickly, hardness might be too high, as it is retaining too many images
+
+# if flipflopping difference/total is low, we have a lot of flipflops, implying hardness is too high

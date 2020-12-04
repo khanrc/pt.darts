@@ -3,15 +3,15 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
+bars = []
 
 def main():
-    path_name = "/home2/lgfm95/nas/darts/accuraciesFashion.out"
+    path_name = "/home2/lgfm95/nas/darts/accuraciesMnist.out"
     if os.path.isfile(path_name):
         with open(path_name, "r") as f:
             data = f.readlines()
             train_accs = []
             val_accs = []
-            bars = []
             count = 0
             for datum in data:
                 try:
@@ -49,12 +49,30 @@ from pathlib import Path
 
 def processTxt():
     folder_name = "/home2/lgfm95/hem/perceptual/tempSave/mnistclusters/"
-    badpoints_files = sorted(Path(folder_name).iterdir(), key=os.path.getmtime)
-    print(badpoints_files)
+    temp_badpoints_files = sorted(Path(folder_name).iterdir(), key=os.path.getmtime)
+    badpoints_files = []
+    for file in temp_badpoints_files:
+        if "badpoints" in file:
+            badpoints_files.append(file)
+
+    sets = []
+    for file in badpoints_files:
+        with open(file, "r") as f:
+            data = f.readlines()
+            my_set = set(data)
+            print("num unique", len(my_set), len(data))
+            sets.append(my_set)
+
+
+    for epoch in bars:
+        set1 = sets[epoch-1]
+        set2 = sets[epoch]
+        difference = len(set1-set2) + len(set2-set1)
+        print("difference after update at {} is {}".format(epoch, difference))
 
 
 if __name__ == "__main__":
-    # main()
+    main()
     processTxt()
 
 # if not getting high val before a new bar, then mastery too low

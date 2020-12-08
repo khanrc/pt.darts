@@ -2,11 +2,17 @@ import os
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
+import argparse
 
 bars = []
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--out_file', default="/home2/lgfm95/nas/darts/accuraciesMnist.out", type=str, help='create graph')
+parser.add_argument('--cluster_folder', default="/home2/lgfm95/hem/perceptual/tempSave/mnistclusters/", type=str, help='process text files')
+args = None
+
 def main():
-    path_name = "/home2/lgfm95/nas/darts/accuraciesMnist.out"
+    path_name = args.out_file
     if os.path.isfile(path_name):
         with open(path_name, "r") as f:
             data = f.readlines()
@@ -40,6 +46,8 @@ def main():
             for xc in bars:
                 plt.axvline(x=xc, color='k', linestyle='--')
 
+            legend = ax.legend(loc="best", title="train/val", bbox_to_anchor=(1.13, 1), ncol=1, fontsize='x-small')
+            ax.add_artist(legend)
             fig.savefig("test.png")
             print(train_accs, val_accs, bars)
 
@@ -48,7 +56,7 @@ from pathlib import Path
 
 
 def processTxt():
-    folder_name = "/home2/lgfm95/hem/perceptual/tempSave/mnistclusters/"
+    folder_name = args.cluster_folder
     temp_badpoints_files = sorted(Path(folder_name).iterdir(), key=os.path.getmtime)
     badpoints_files = []
     for file in temp_badpoints_files:
@@ -91,6 +99,7 @@ def processTxt():
 
 
 if __name__ == "__main__":
+    args = parser.parse_args()
     main()
     processTxt()
 

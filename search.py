@@ -286,17 +286,22 @@ def get_epoch_type(epoch, hardness):
         return 1
     is_mastered = get_mastered(hardness)
     if is_mastered:
+        print("mastered, therefore epoch type 0")
         return 0
+    print("not mastered, therefore epoch type 1")
     return 1
 
 
 def get_mastered(hardness):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
+    print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)), config.mastery)
     if (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)) < config.mastery:
+        print("therefore not mastered")
         return 0
     # if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:
         # a lot of images still being misclassified
         # return 0
+    print("therefore mastered")
     return 1
 
 

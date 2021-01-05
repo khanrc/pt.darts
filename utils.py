@@ -20,21 +20,25 @@ def get_data(dataset, data_path, cutout_length, validation):
     """ Get torchvision dataset """
     dataset = dataset.lower()
 
+    pretrain_resume = "/home2/lgfm95/hem/perceptual/good.pth.tar"
     grayscale = False
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"
         n_classes = 10
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar10Good.pth.tar"
     elif dataset == 'mnist':
         dset_cls = dset.MNIST
         n_classes = 10
         dynamic_name = "mnist"
         grayscale = True
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"
         grayscale = True
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -46,8 +50,6 @@ def get_data(dataset, data_path, cutout_length, validation):
         transforms.ToTensor(),
         normalize,
     ])
-    pretrain_resume = "/home2/lgfm95/hem/perceptual/good.pth.tar"
-    auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
     isize = 64
     nz = 8
     aisize = 256

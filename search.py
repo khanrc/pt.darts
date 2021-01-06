@@ -237,6 +237,8 @@ def validate(valid_loader, model, epoch, cur_step):
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
+            if step > 100:
+                break
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)
@@ -294,6 +296,8 @@ def get_epoch_type(epoch, hardness):
 
 def get_mastered(hardness):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
+    for aHard in hardness:
+        print("ahard", aHard)
     print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)), config.mastery)
     if (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)) < config.mastery:
         print("therefore not mastered")

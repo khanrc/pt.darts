@@ -296,8 +296,11 @@ def get_epoch_type(epoch, hardness):
 
 def get_mastered(hardness):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
+    print("ahard", "\n")
     for aHard in hardness:
         print("ahard", aHard)
+    print("len hardness", len(hardness))
+    print("len hard ones", np.where(np.array(hardness) > 0.5))
     print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)), config.mastery)
     if (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)) < config.mastery:
         print("therefore not mastered")

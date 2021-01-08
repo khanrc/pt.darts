@@ -303,7 +303,7 @@ def get_mastered(hardness):
     print("len hard ones", np.where(np.array(hardness) > 0.5))
     print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))
     print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)), config.mastery)
-    if (len(np.where(np.array(hardness) > config.hardness)) / len(hardness)) < config.mastery:
+    if (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)) < config.mastery:
         print("therefore not mastered")
         return 0
     # if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:

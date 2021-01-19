@@ -38,7 +38,7 @@ def main():
         ax.set_ylabel('hardness')
         ax.set_zticks(list(z))
         ax.set_zlabel('mastery')
-        fig.colorbar(cm.ScalarMappable(cmap=cmap), ax=ax)
+        fig.colorbar(cm.ScalarMappable(cmap=cmap), ax=ax, anchor=(0,0))
 
 
         plt.savefig("cube.png")

@@ -34,7 +34,7 @@ def main():
         ax.scatter(x, y, z, c=c, cmap='viridis', linewidth=0.5)
         plt.xticks(list(x))
         plt.yticks(list(y))
-        plt.zticks(list(z))
+        plt.set_zticks(list(z))
 
         plt.savefig("cube.png")
 

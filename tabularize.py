@@ -19,9 +19,9 @@ def main():
             digits = re.search(r'\d', headers[0])
             headers[0] = headers[0][digits.start():]
             print(headers, row[-1])
-            x.append(headers[0])
-            y.append(headers[1])
-            z.append(headers[2])
+            x.append(float(headers[0]))
+            y.append(float(headers[1]))
+            z.append(float(headers[2]))
             print(row[-1][:-2])
             c.append(cm.hot(float(row[-1][:-2])))
 

@@ -32,6 +32,10 @@ def main():
         fig = plt.figure()
         ax = fig.gca(projection='3d')
         ax.scatter(x, y, z, c=c, cmap='viridis', linewidth=0.5)
+        plt.xticks(list(x))
+        plt.yticks(list(y))
+        plt.zticks(list(z))
+
         plt.savefig("cube.png")
 
 if __name__ == '__main__':

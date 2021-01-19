@@ -33,8 +33,11 @@ def main():
         ax = fig.gca(projection='3d')
         ax.scatter(x, y, z, c=c, cmap='viridis', linewidth=0.5)
         ax.set_xticks(list(x))
+        ax.set_xlabel('subset size')
         ax.set_yticks(list(y))
+        ax.set_ylabel('hardness')
         ax.set_zticks(list(z))
+        ax.set_zlabel('mastery')
 
         plt.savefig("cube.png")
 

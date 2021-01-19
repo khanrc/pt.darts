@@ -8,14 +8,12 @@ def main():
         lines = fp.readlines()
         for line in lines:
             row = line.split(" ")
-            print(row[0])
             dotIdx = row[0].index(".out")
             row[0] = row[0][:dotIdx]
             headers = row[0].split("aa")
             digits = re.search(r'\d', headers[0])
             headers[0] = headers[0][digits.start():]
-            for header in headers:
-                print(header)
+            print(headers, row[-1])
 
 
 if __name__ == '__main__':

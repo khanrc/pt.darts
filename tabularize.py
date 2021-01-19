@@ -26,8 +26,8 @@ def main():
             x.append(float(headers[0]))
             y.append(float(headers[1]))
             z.append(float(headers[2]))
-            print(cmap(norm(offset_color(row[-1][:-2]))))
-            c.append(cmap(norm(offset_color(row[-1][:-2]))))
+            print(cmap(offset_color(row[-1][:-2])))
+            c.append(cmap(offset_color(row[-1][:-2])))
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -44,5 +44,7 @@ def main():
 
 def offset_color(num):
     return ((float(num)-80)*5)/100
+
+
 if __name__ == '__main__':
     main()

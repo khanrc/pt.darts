@@ -8,7 +8,8 @@ def main():
         lines = fp.readlines()
         for line in lines:
             row = line.split(" ")
-            dotIdx = row.index(".")
+            print(row[0])
+            dotIdx = row[0].index(".")
             row[0] = row[0][:dotIdx]
             headers = row[0].split("aa")
             digits = re.search(r'\d', headers[0])

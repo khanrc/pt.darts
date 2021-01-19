@@ -22,7 +22,8 @@ def main():
             x.append(headers[0])
             y.append(headers[1])
             z.append(headers[2])
-            c.append(cm.hot(row[-1][:-2]))
+            print(row[-1][:-2])
+            c.append(cm.hot(float(row[-1][:-2])))
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')

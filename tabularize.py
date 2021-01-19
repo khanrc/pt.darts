@@ -21,11 +21,11 @@ def main():
             x.append(headers[0])
             y.append(headers[1])
             z.append(headers[2])
-            c.append(row[-1])
+            c.append(row[-1].strip("%"))
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        ax.scatter(x, y, z, c=z, cmap='viridis', linewidth=0.5)
+        ax.scatter(x, y, z, c=c, cmap='viridis', linewidth=0.5)
         plt.savefig("cube.png")
 
 if __name__ == '__main__':

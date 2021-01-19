@@ -1,6 +1,7 @@
 import os
 import re
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 
 def main():
     if os.path.exists("./totab.out"):
@@ -21,7 +22,7 @@ def main():
             x.append(headers[0])
             y.append(headers[1])
             z.append(headers[2])
-            c.append(row[-1][:-3])
+            c.append(cm.hot(row[-1][:-2]))
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')

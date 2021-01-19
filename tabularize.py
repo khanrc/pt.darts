@@ -26,7 +26,7 @@ def main():
         fig = plt.figure()
         ax = fig.gca(projection='3d')
         ax.scatter(x, y, z, c=z, cmap='viridis', linewidth=0.5)
-        plt.savefig("cube.out")
+        plt.savefig("cube.png")
 
 if __name__ == '__main__':
     main()

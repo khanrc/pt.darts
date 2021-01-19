@@ -9,7 +9,7 @@ def main():
         for line in lines:
             row = line.split(" ")
             print(row[0])
-            dotIdx = row[0].index(".")
+            dotIdx = row[0].index(".out")
             row[0] = row[0][:dotIdx]
             headers = row[0].split("aa")
             digits = re.search(r'\d', headers[0])

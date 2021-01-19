@@ -21,7 +21,7 @@ def main():
             x.append(headers[0])
             y.append(headers[1])
             z.append(headers[2])
-            c.append(row[-1].strip("%"))
+            c.append(row[-1][:-3])
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')

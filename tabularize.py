@@ -26,8 +26,8 @@ def main():
             x.append(float(headers[0]))
             y.append(float(headers[1]))
             z.append(float(headers[2]))
-            print(cmap(norm(float(row[-1][:-2])/100)))
-            c.append(cmap(norm(float(row[-1][:-2])/100)))
+            print(cmap(norm(offset_color(row[-1][:-2]))))
+            c.append(cmap(norm(offset_color(row[-1][:-2]))))
 
         fig = plt.figure()
         ax = fig.gca(projection='3d')
@@ -41,5 +41,8 @@ def main():
 
         plt.savefig("cube.png")
 
+
+def offset_color(num):
+    return ((float(num)-80)*5)/100
 if __name__ == '__main__':
     main()

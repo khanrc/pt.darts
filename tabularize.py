@@ -12,7 +12,7 @@ def main():
         y = []
         z = []
         c = []
-        cmap = cm.winter
+        cmap = cm.inferno
         norm = Normalize(vmin=-20, vmax=10)
 
         for line in lines:

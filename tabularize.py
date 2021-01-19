@@ -18,11 +18,11 @@ def main():
             headers = row[0].split("aa")
             digits = re.search(r'\d', headers[0])
             headers[0] = headers[0][digits.start():]
-            print(headers, row[-1])
+            # print(headers, row[-1])
             x.append(float(headers[0]))
             y.append(float(headers[1]))
             z.append(float(headers[2]))
-            print(row[-1][:-2])
+            print(cm.hot(float(row[-1][:-2])))
             c.append(cm.hot(float(row[-1][:-2])))
 
         fig = plt.figure()

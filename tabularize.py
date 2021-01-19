@@ -4,7 +4,7 @@ import re
 
 def main():
     if os.path.exists("./totab.out"):
-        fp = open("./totab.out")
+        fp = open("./totab.out", "r")
         lines = fp.readlines()
         for line in lines:
             row = line.split(" ")

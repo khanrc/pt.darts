@@ -23,8 +23,10 @@ def main():
             z.append(headers[2])
             c.append(row[-1])
 
-        ax = plt.axes(projection='3d')
-        ax.scatter(x, y, z, c=z, cmap='viridis', linewidth=0.5);
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.scatter(x, y, z, c=z, cmap='viridis', linewidth=0.5)
+        plt.savefig("cube.out")
 
 if __name__ == '__main__':
     main()

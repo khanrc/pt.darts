@@ -86,8 +86,9 @@ def processTxt():
 
 
     print("how many flipflopped on update:")
-    for i in range(1, len(bars)):
+    for i in range(1, len(bars)-1):
         # try:
+        print(i)
         set1 = sets[bars[i-1]-1]
         set2 = sets[bars[i]-1]
         difference = len(set1-set2) + len(set2-set1)

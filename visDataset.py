@@ -87,15 +87,15 @@ def processTxt():
 
     print("how many flipflopped on update:")
     for i in range(1, len(bars)):
-        try:
-            set1 = sets[bars[i-1]-1]
-            set2 = sets[bars[i]-1]
-            difference = len(set1-set2) + len(set2-set1)
-            total = len(set1) + len(set2)
-            print("difference after update at {} is {} out of {}".format(epoch, difference, total))
-            print("that percentage is {}".format(difference/total))
-        except IndexError as e:
-            print(e)
+        # try:
+        set1 = sets[bars[i-1]-1]
+        set2 = sets[bars[i]-1]
+        difference = len(set1-set2) + len(set2-set1)
+        total = len(set1) + len(set2)
+        print("difference after update at {} is {} out of {}".format(epoch, difference, total))
+        print("that percentage is {}".format(difference/total))
+        # except IndexError as e:
+        #     print(e)
 
 
 if __name__ == "__main__":

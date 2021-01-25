@@ -132,6 +132,13 @@ def main():
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
+
+            # set lr_scheduler to same as when started.
+            # TODO configure such that does not necessarily start at "first epoch" -
+            # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want
+            # if it were to start at a 'later epoch' then we have fine tuning, which we don't necessarily want.
+            lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                w_optim, config.epochs, eta_min=config.w_lr_min)
             just_updated = True
 
         print ("grep {}".format(top1))

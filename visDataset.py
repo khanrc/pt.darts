@@ -19,7 +19,7 @@ def main():
             train_accs = []
             val_accs = []
             count = 0
-            for datum in data:
+            for d, datum in enumerate(data):
                 try:
                     bar_idx = str(datum).index("|")
                     suffix = datum[bar_idx:]
@@ -35,7 +35,8 @@ def main():
                     else:
                         print("neither")
                 except ValueError:
-                    bars.append(count)
+                    if d != len(data)-1:
+                        bars.append(count)
 
             assert len(train_accs) == len(val_accs), "len of train and val accuracies should be same"
             x_axis = [i for i in range(len(train_accs))]
@@ -88,7 +89,6 @@ def processTxt():
     print("how many flipflopped on update:")
     for i in range(1, len(bars)):
         try:
-            print(i)
             set1 = sets[bars[i-1]-1]
             set2 = sets[bars[i]-1]
             difference = len(set1-set2) + len(set2-set1)

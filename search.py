@@ -14,6 +14,7 @@ from visualize import plot
 import torch.nn.functional as F
 import time
 import csv
+from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 
 config = SearchConfig()
@@ -83,6 +84,7 @@ def main():
     hardness = None
     just_updated = True
     old_loss = 0
+    print_mode = False
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
@@ -102,8 +104,10 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode)
 
+            if print_mode:
+                print_mode = False
             # log
             # genotype
             genotype = model.genotype()
@@ -140,6 +144,7 @@ def main():
             lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
                 w_optim, config.epochs, eta_min=config.w_lr_min)
             just_updated = True
+            print_mode = True
 
         print ("grep {}".format(top1))
         if config.is_csv and top1 > 0.95:
@@ -218,7 +223,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     return hardness, correct
 
-def validate(valid_loader, model, epoch, cur_step):
+def validate(valid_loader, model, epoch, cur_step, print_mode):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -237,6 +242,13 @@ def validate(valid_loader, model, epoch, cur_step):
             losses.update(loss.item(), N)
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)
+
+            if print_mode:
+                if step < 5:
+                    for q, im in enumerate(X):
+                        toSave = transforms.ToPILImage()(im.cpu())
+                        savePath = "./tempSave/postupdate/{}-{}".format((step * 8) + q, y[q])
+                        toSave.save(savePath)
 
             if step % config.print_freq == 0 or step == len(valid_loader)-1:
                 logger.info(

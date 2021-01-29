@@ -247,7 +247,7 @@ def validate(valid_loader, model, epoch, cur_step, print_mode):
                 if step < 5:
                     for q, im in enumerate(X):
                         toSave = transforms.ToPILImage()(im.cpu())
-                        savePath = "./tempSave/postupdate/{}-{}".format((step * 8) + q, y[q])
+                        savePath = "./tempSave/postupdate/{}-{}.png".format((step * 8) + q, y[q])
                         toSave.save(savePath)
 
             if step % config.print_freq == 0 or step == len(valid_loader)-1:

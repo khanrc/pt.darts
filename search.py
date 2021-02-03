@@ -144,7 +144,7 @@ def main():
             # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             #     w_optim, config.epochs, eta_min=config.w_lr_min)
 
-            raise AttributeError(lr_scheduler.state_dict)
+            raise AttributeError(list(lr_scheduler.state_dict()))
             just_updated = True
             print_mode = True
 

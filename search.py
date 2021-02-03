@@ -141,10 +141,10 @@ def main():
             # TODO configure such that does not necessarily start at "first epoch" -
             # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want
             # if it were to start at a 'later epoch' then we have fine tuning, which we don't necessarily want.
-            # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-            #     w_optim, config.epochs, eta_min=config.w_lr_min)
+            lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+                w_optim, config.epochs, eta_min=config.w_lr_min)
 
-            raise AttributeError(list(lr_scheduler.state_dict()))
+            # raise AttributeError(list(lr_scheduler.state_dict()))
             just_updated = True
             print_mode = True
 
@@ -317,6 +317,7 @@ def get_epoch_type(epoch, hardness):
 
 def get_mastered(hardness):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
+    # TODO use hardness across history eg mean hardness over last 5
     print("ahard", "\n")
     for aHard in hardness:
         print("ahard", aHard)

@@ -77,7 +77,7 @@ def main():
                                                pin_memory=True)
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #     w_optim, config.epochs, eta_min=config.w_lr_min)
-    lr_scheduler = torch.optim.lr_scheduler.CyclicLR(0.001, 0.01, step_size_up=10, step_size_down=None) # step_size_down=None means same as _up
+    lr_scheduler = torch.optim.lr_scheduler.CyclicLR(w_optim, 0.001, 0.01, step_size_up=10, step_size_down=None) # step_size_down=None means same as _up
 
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
 

@@ -137,9 +137,6 @@ def main():
                     break
             old_loss = new_loss
             non_update_epochs += 1
-            raise AttributeError(lr_scheduler.get_last_lr()) # see if cycle starts at top or bottom peak.
-            # therefore whether to step to nearest 20 (if starts at top) or sth else (non_update_epochs % 20; if starts at bottom)
-
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
@@ -150,11 +147,11 @@ def main():
             # if it were to start at a 'later epoch' then we have fine tuning, which we don't necessarily want.
             # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
             #     w_optim, config.epochs, eta_min=config.w_lr_min)
-            # for i in range(non_update_epochs % 20):
-            #     lr_scheduler.step() # keep stepping until reach peak of cycle, where lr is highest
-            # step_size determines how many iterations between full half of a cycle.
-
-            # raise AttributeError(list(lr_scheduler.state_dict()))
+            for i in range((non_update_epochs+10) % 20):
+                lr_scheduler.step() # keep stepping until reach peak of cycle, where lr is highest
+                # step_size determines how many iterations between full half of a cycle.
+            # %20 would represent distance to troughs, so add 10 to find distance to peaks. therefore, highest lr
+            # just after update.
             just_updated = True
             print_mode = True
 

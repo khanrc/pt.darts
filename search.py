@@ -75,8 +75,10 @@ def main():
                                                # sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True)
-    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        w_optim, config.epochs, eta_min=config.w_lr_min)
+    # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+    #     w_optim, config.epochs, eta_min=config.w_lr_min)
+    lr_scheduler = torch.optim.lr_scheduler.CyclicLR(0.001, 0.01, step_size_up=10, step_size_down=None) # step_size_down=None means same as _up
+
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
 
     # training loop
@@ -85,6 +87,7 @@ def main():
     just_updated = True
     old_loss = 0
     print_mode = False
+    non_update_epochs = 0
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
@@ -133,6 +136,10 @@ def main():
                     print("stopping early")
                     break
             old_loss = new_loss
+            non_update_epochs += 1
+            raise AttributeError(lr_scheduler.get_last_lr()) # see if cycle starts at top or bottom peak.
+            # therefore whether to step to nearest 20 (if starts at top) or sth else (non_update_epochs % 20; if starts at bottom)
+    
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
@@ -141,8 +148,11 @@ def main():
             # TODO configure such that does not necessarily start at "first epoch" -
             # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want
             # if it were to start at a 'later epoch' then we have fine tuning, which we don't necessarily want.
-            lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-                w_optim, config.epochs, eta_min=config.w_lr_min)
+            # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            #     w_optim, config.epochs, eta_min=config.w_lr_min)
+            for i in range(non_update_epochs % 20):
+                lr_scheduler.step() # keep stepping until reach peak of cycle, where lr is highest
+            # step_size determines how many iterations between full half of a cycle.
 
             # raise AttributeError(list(lr_scheduler.state_dict()))
             just_updated = True

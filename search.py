@@ -88,6 +88,7 @@ def main():
     old_loss = 0
     print_mode = False
     non_update_epochs = 0
+    top1 = None
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
@@ -96,7 +97,7 @@ def main():
 
         model.print_alphas(logger)
 
-        epoch_type = get_epoch_type(epoch, hardness)
+        epoch_type = get_epoch_type(epoch, hardness, top1)
 
         if epoch_type or just_updated: # 1 is train, as normal (0 is dataset update)
             just_updated = False
@@ -310,11 +311,11 @@ def get_hardness(output, target):
     return hardness, hardness_scaler
 
 
-def get_epoch_type(epoch, hardness):
+def get_epoch_type(epoch, hardness, top1):
     # naive alternate, starting with normal training
     if not config.dynamic or epoch < config.init_train_epochs:
         return 1
-    is_mastered = get_mastered(hardness)
+    is_mastered = get_mastered(hardness, top1)
     if is_mastered:
         print("mastered, therefore epoch type 0")
         return 0
@@ -322,7 +323,7 @@ def get_epoch_type(epoch, hardness):
     return 1
 
 
-def get_mastered(hardness):
+def get_mastered(hardness, top1):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
     # TODO use hardness across history eg mean hardness over last 5
     print("ahard", "\n")
@@ -332,9 +333,13 @@ def get_mastered(hardness):
     print("len hard ones", np.where(np.array(hardness) > 0.5))
     print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))
     print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)), config.mastery)
-    if (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)) < config.mastery:
-        print("therefore not mastered")
-        return 0
+    if top1 is None:
+        if (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)) < config.mastery:
+            print("therefore not mastered")
+            return 0
+    else:
+        if top1 < config.mastery:
+            return 0
     # if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:
         # a lot of images still being misclassified
         # return 0

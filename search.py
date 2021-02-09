@@ -338,6 +338,7 @@ def get_mastered(hardness, top1):
             print("therefore not mastered")
             return 0
     else:
+        print("grep working", top1)
         if top1 < config.mastery:
             return 0
     # if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:

@@ -8,15 +8,19 @@ import torchvision.datasets as dset
 from torchvision import transforms
 import numpy as np
 import preproc
-from config import SearchConfig
+from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
+sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 from dataloader import DynamicDataset
 sys.argv.insert(1, "cifar10")
 sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
-config = SearchConfig()
 
 
-def get_data(dataset, data_path, cutout_length, validation):
+def get_data(dataset, data_path, cutout_length, validation, search):
+    if search:
+        config = SearchConfig()
+    else:
+        config = AugmentConfig()
     """ Get torchvision dataset """
     dataset = dataset.lower()
 

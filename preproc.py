@@ -50,6 +50,13 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1),
             transforms.RandomVerticalFlip()
         ]
+    elif dataset == 'planes':
+        MEAN = [0.4791, 0.5107, 0.5351]
+        STD = [0.1704, 0.1696, 0.1942]
+        transf = [
+            transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1),
+            transforms.RandomVerticalFlip()
+        ]
     else:
         raise ValueError('not expected dataset = {}'.format(dataset))
 

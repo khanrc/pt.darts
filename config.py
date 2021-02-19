@@ -40,7 +40,6 @@ class BaseConfig(argparse.Namespace):
 
 
 class SearchConfig(BaseConfig):
-    print (sys._getframe().f_back.f_code.co_name)
     def build_parser(self):
         parser = get_parser("Search config")
         parser.add_argument('--name', required=True)

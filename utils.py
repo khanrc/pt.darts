@@ -12,6 +12,7 @@ from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 from dataloader import DynamicDataset
+from subloader import SubDataset
 sys.argv.insert(1, "cifar10")
 sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
 
@@ -43,6 +44,12 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "fashion"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
+    elif dataset == 'planes':
+        dset_cls = dset.FashionMNIST
+        n_classes = 55
+        dynamic_name = "planes"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercPlaneGood.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -80,7 +87,10 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
-        trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
+        if dataset == 'planes':
+            trn_data = SubDataset(transforms=val_transform, val=True, dataset_name="planes")
+        else:
+            trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 
         # assuming shape is NHW or NHWC
         shape = trn_data.data.shape
@@ -105,7 +115,10 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         #         tree=config.isTree)
         #     ret.append(val_dataset)
         # else:
-        ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
+        if dataset == 'planes':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
+        else:
+            ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 
     return ret
 

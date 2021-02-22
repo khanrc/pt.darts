@@ -90,7 +90,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         if dataset == 'planes':
             trn_data = SubDataset(transforms=val_transform, val=False, dataset_name="planes")
         else:
-            trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
+            trn_data = SubDataset(transforms=val_transform, val=False, dataset_name="planes", subset_size=100)
+            # trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 
         # assuming shape is NHW or NHWC
         shape = trn_data.data.shape

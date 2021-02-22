@@ -99,12 +99,13 @@ def main():
 
         epoch_type = get_epoch_type(epoch, hardness, top1)
 
-        if epoch_type or just_updated: # 1 is train, as normal (0 is dataset update)
+        if epoch_type or just_updated or not config.dynamic: # 1 is train, as normal (0 is dataset update)
             just_updated = False
             # training
             hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
-            train_loader.dataset.update_correct(correct)
-            train_loader.dataset.visualize()
+            if config.dynamic:
+                train_loader.dataset.update_correct(correct)
+                train_loader.dataset.visualize()
 
             # validation
             cur_step = (epoch+1) * len(train_loader)

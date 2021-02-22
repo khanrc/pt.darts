@@ -94,7 +94,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             # trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 
         input_size = len(trn_data)
-        input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+        input_channels = 3 if len(trn_data.data[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
         # # assuming shape is NHW or NHWC
         # shape = trn_data.data.shape
         # input_channels = 3 if len(shape) == 4 else 1

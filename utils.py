@@ -88,7 +88,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         input_channels = 3 if len(trn_data.cur_set[0].getbands()) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
         if dataset == 'planes':
-            trn_data = SubDataset(transforms=val_transform, val=True, dataset_name="planes")
+            trn_data = SubDataset(transforms=val_transform, val=False, dataset_name="planes")
         else:
             trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 

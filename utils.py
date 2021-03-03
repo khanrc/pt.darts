@@ -45,11 +45,17 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
     elif dataset == 'planes':
-        dset_cls = dset.FashionMNIST
+        # dset_cls = dset.FashionMNIST
         n_classes = 70
         dynamic_name = "planes"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercPlaneGood.pth.tar"
+    elif dataset == 'cityscapes':
+        # dset_cls = dset.FashionMNIST
+        n_classes = 30
+        dynamic_name = "cityscapes"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCityscapesGood.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -116,6 +122,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         #     ret.append(val_dataset)
         # else:
         if dataset == 'planes':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
+        if dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))

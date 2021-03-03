@@ -57,6 +57,13 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1),
             transforms.RandomVerticalFlip()
         ]
+    elif dataset == 'cityscapes':
+        MEAN = [0.2807, 0.3216, 0.2829]
+        STD = [0.1765, 0.1800, 0.1748]
+        transf = [
+            transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1),
+            transforms.RandomVerticalFlip()
+        ]
     else:
         raise ValueError('not expected dataset = {}'.format(dataset))
 

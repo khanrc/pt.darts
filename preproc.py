@@ -76,7 +76,7 @@ def data_transforms(dataset, cutout_length):
     ]
 
     train_transform = transforms.Compose(transf + normalize)
-    if dataset == "cityscape":
+    if dataset == "cityscapes":
         normalize = [
             transforms.ToTensor(),
             transforms.Normalize(MEAN_lbl, STD_lbl)

@@ -60,6 +60,8 @@ def data_transforms(dataset, cutout_length):
     elif dataset == 'cityscapes':
         MEAN = [0.2807, 0.3216, 0.2829]
         STD = [0.1765, 0.1800, 0.1748]
+        MEAN_lbl = [0.2807]
+        STD_lbl = [0.1765]
         transf = [
             transforms.Resize((64, 64)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1),
@@ -74,7 +76,14 @@ def data_transforms(dataset, cutout_length):
     ]
 
     train_transform = transforms.Compose(transf + normalize)
-    valid_transform = transforms.Compose(normalize)
+    if dataset == "cityscape":
+        normalize = [
+            transforms.ToTensor(),
+            transforms.Normalize(MEAN_lbl, STD_lbl)
+        ]
+        valid_transform = transforms.Compose(transf + normalize)
+    else:
+        valid_transform = transforms.Compose(normalize)
 
     if cutout_length > 0:
         train_transform.transforms.append(Cutout(cutout_length))

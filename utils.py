@@ -72,7 +72,6 @@ def get_data(dataset, data_path, cutout_length, validation, search):
     aisize = 256
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
-    raise AttributeError(val_transform)
     if config.dynamic:
         # print(perc_transforms)
         trn_data = DynamicDataset(

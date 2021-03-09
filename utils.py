@@ -77,7 +77,9 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         trn_data = DynamicDataset(
             perc_transforms=perc_transforms,
             pretrain_resume=pretrain_resume,
-            image_transforms=trn_transform, val=False,
+            image_transforms=trn_transform,
+            val_transforms=val_transform,
+            val=False,
             dataset_name=dynamic_name,
             auto_resume=auto_resume,
             hardness=config.hardness,

@@ -56,6 +56,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercPlaneGood.pth.tar"
     elif dataset == 'cityscapes':
+        raise AttributeError("wtf")
         # dset_cls = dset.FashionMNIST
         n_classes = 30
         dynamic_name = "cityscapes"

@@ -132,6 +132,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         if dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
+        if dataset == 'imagenet':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

@@ -29,9 +29,11 @@ class Cutout(object):
 
 def data_transforms(dataset, cutout_length):
     dataset = dataset.lower()
+    resize_transform = None
     if dataset == 'cifar10':
         MEAN = [0.485, 0.456, 0.406]
         STD = [0.229, 0.224, 0.225]
+        resize_transform = [transforms.Resize(64)]
         transf = [
             transforms.Resize(64),
             transforms.RandomCrop(64, padding=4),
@@ -40,6 +42,7 @@ def data_transforms(dataset, cutout_length):
     elif dataset == 'imagenet':
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]
+        resize_transform = [transforms.Resize((224,224))]
         transf = [
             transforms.Resize((224,224)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
@@ -90,7 +93,10 @@ def data_transforms(dataset, cutout_length):
         ]
         valid_transform = transforms.Compose(transf + normalize)
     else:
-        valid_transform = transforms.Compose(normalize)
+        if resize_transform is not None:
+            valid_transform = transforms.Compose(resize_transform + normalize)
+        else:
+            valid_transform = transforms.Compose(normalize)
 
     if cutout_length > 0:
         train_transform.transforms.append(Cutout(cutout_length))

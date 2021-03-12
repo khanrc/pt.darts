@@ -6,7 +6,7 @@ from models.search_cells import SearchCell
 import genotypes as gt
 from torch.nn.parallel._functions import Broadcast
 import logging
-
+import sys
 
 def broadcast_list(l, device_ids):
     """ Broadcasting list """
@@ -133,6 +133,7 @@ class SearchCNNController(nn.Module):
         except RuntimeError as e:
             print(e)
             raise AttributeError(y.shape, logits.shape)
+            sys.exit()
 
     def print_alphas(self, logger):
         # remove formats

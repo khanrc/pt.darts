@@ -56,7 +56,6 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercPlaneGood.pth.tar"
     elif dataset == 'cityscapes':
-        raise AttributeError("wtf")
         # dset_cls = dset.FashionMNIST
         n_classes = 30
         dynamic_name = "cityscapes"
@@ -131,9 +130,9 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         # else:
         if dataset == 'planes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        if dataset == 'cityscapes':
+        elif dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        if dataset == 'imagenet':
+        elif dataset == 'imagenet':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))

@@ -197,6 +197,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
         trn_y, val_y = trn_y.squeeze(0), val_y.squeeze(0)
+        print("grep shape", trn_y.shape)
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()

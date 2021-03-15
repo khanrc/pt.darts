@@ -42,7 +42,7 @@ def data_transforms(dataset, cutout_length):
     elif dataset == 'imagenet':
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]
-        resize_transform = [transforms.Resize((224,224))]
+        resize_transform = [transforms.Resize((128,128))]
         transf = [
             transforms.Resize((224,224)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)

@@ -196,7 +196,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
-        raise AttributeError(trn_y.shape, trn_y)
+        trn_y, val_y = trn_y.item(), val_y.item()
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()

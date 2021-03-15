@@ -196,6 +196,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
+        print("grep label shape", trn_y.shape)
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()

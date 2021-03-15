@@ -128,7 +128,7 @@ class SearchCNNController(nn.Module):
     def loss(self, X, y):
         logits = self.forward(X)
         try:
-            raise AttributeError(y.shape, logits.shape, y)
+            # raise AttributeError(y.shape, logits.shape, y)
             return self.criterion(logits, y)
         except RuntimeError as e:
             print(e)

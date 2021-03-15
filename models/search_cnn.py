@@ -128,14 +128,12 @@ class SearchCNNController(nn.Module):
     def loss(self, X, y):
         logits = self.forward(X)
         try:
-            # raise AttributeError(y.shape, logits.shape)
+            raise AttributeError(y.shape, logits.shape, y)
             return self.criterion(logits, y)
         except RuntimeError as e:
             print(e)
             raise AttributeError(y.shape, logits.shape, y)
             sys.exit()
-        else:
-            raise AttributeError(y.shape, logits.shape, y)
 
     def print_alphas(self, logger):
         # remove formats

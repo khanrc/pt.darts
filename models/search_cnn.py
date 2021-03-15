@@ -134,6 +134,8 @@ class SearchCNNController(nn.Module):
             print(e)
             raise AttributeError(y.shape, logits.shape, y)
             sys.exit()
+        else:
+            raise AttributeError(y.shape, logits.shape, y)
 
     def print_alphas(self, logger):
         # remove formats

@@ -43,6 +43,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "mnist"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
+        auto_resume = "badpath"
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10

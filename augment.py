@@ -109,7 +109,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
         N = X.size(0)
 
         optimizer.zero_grad()
-        raise AttributeError(X.size()[1:])
+        raise AttributeError(X.size()[1:].item())
         summ = summary(model, input_size=X.size()[1:])
         logits, aux_logits = model(X)
         loss = criterion(logits, y)

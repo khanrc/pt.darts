@@ -109,8 +109,8 @@ def train(train_loader, model, optimizer, criterion, epoch):
         N = X.size(0)
 
         optimizer.zero_grad()
-        raise AttributeError(list(X.size()[1:]))
-        summ = summary(model, input_size=X.size()[1:])
+        summ = summary(model, input_size=list(X.size()[1:]))
+        raise AttributeError(summ)
         logits, aux_logits = model(X)
         loss = criterion(logits, y)
         if config.aux_weight > 0.:

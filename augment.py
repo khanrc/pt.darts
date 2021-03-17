@@ -112,6 +112,12 @@ def train(train_loader, model, optimizer, criterion, epoch):
         if step == 0:
             summ = summary(model, input_size=list(X.size()))
             print("grep summ", summ)
+            total_params = 0
+            for name, parameter in model.named_parameters():
+                if not parameter.requires_grad: continue
+                param = parameter.numel()
+                total_params+=param
+            print("grep params", total_params)
         logits, aux_logits = model(X)
         loss = criterion(logits, y)
         if config.aux_weight > 0.:

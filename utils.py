@@ -32,7 +32,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "cifar10"
         n_classes = 10
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar10Good.pth.tar"
-        auto_resume = "badpath"
+        # auto_resume = "badpath"
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"

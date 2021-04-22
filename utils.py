@@ -39,7 +39,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "imagenet"
         n_classes = 10
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetFull.pth.tar"
-        isize = 256
+        isize = 224
     elif dataset == 'mnist':
         dset_cls = dset.MNIST
         n_classes = 10

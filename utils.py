@@ -73,7 +73,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         mean=[0.13066051707548254],
         std=[0.30810780244715075])
     perc_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(64),
+        transforms.RandomResizedCrop(isize),
         transforms.ToTensor(),
         normalize,
     ])

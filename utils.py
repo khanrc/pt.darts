@@ -11,6 +11,7 @@ import preproc
 from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
+sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from dataloader import DynamicDataset
 from subloader import SubDataset
 sys.argv.insert(1, "cifar10")
@@ -38,7 +39,10 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"
         n_classes = 10
-        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
+        if config.ncc:
+            auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
+        else:
+            auto_resume = "/hdd/PhD/hem/perceptual/ganPercImagenetGood.pth.tar"
         isize = 256
     elif dataset == 'mnist':
         dset_cls = dset.MNIST

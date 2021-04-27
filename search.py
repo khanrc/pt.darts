@@ -106,7 +106,8 @@ def main():
             hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
             if config.dynamic:
                 train_loader.dataset.update_correct(correct)
-                train_loader.dataset.visualize()
+                if config.ncc:
+                    train_loader.dataset.visualize()
 
             # validation
             cur_step = (epoch+1) * len(train_loader)

@@ -72,6 +72,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--early_stopping', default=False, type=bool, help="are we doing early stopping?")
         parser.add_argument('--mastery', default=0.5, type=float, help="mastery threshold")
         parser.add_argument('--hardness', default=0.5, type=float, help="hardness threshold")
+        parser.add_argument('--visualize', default=False, type=bool, help="are we visualizing?")
 
         return parser
 

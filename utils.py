@@ -29,11 +29,14 @@ def get_data(dataset, data_path, cutout_length, validation, search):
     pretrain_resume = "/home2/lgfm95/hem/perceptual/good.pth.tar"
     grayscale = False
     isize = 64
+    nz = 8
+    aisize = 256
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"
         n_classes = 10
-        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar10Good.pth.tar"
+        nz = 32
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar1032Good.pth.tar"
         # auto_resume = "badpath"
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
@@ -81,8 +84,6 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         transforms.ToTensor(),
         normalize,
     ])
-    nz = 8
-    aisize = 256
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     if config.dynamic:

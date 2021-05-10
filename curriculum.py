@@ -7,8 +7,7 @@ def load_csv(dataset, epoch):
     file_name = f"/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{dataset}_{epoch}.csv"
     with open(file_name, "r") as fp:
         elems = fp.readlines()[0]
-        for elem in elems:
-            print(elem)
+        print(list(elems))
         return elems
 
 

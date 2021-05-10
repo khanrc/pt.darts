@@ -14,10 +14,8 @@ def load_all(dataset):
     epoch_dict = {}
     for file in tqdm.tqdm([f for f in os.listdir("/home2/lgfm95/nas/darts/tempSave/curriculums/") if f.endswith(".csv")]):
         print(file)
-        slashIdx = file.rfind("/")
-        suffix = file[slashIdx:][:-4]
-        print(suffix)
-        elems = suffix.split("_")
+        elems = file[:-4].split("_")
+        print(elems)
         epoch = elems[2]
         print(epoch)
         epoch_dict[epoch] = load_csv(dataset, epoch)

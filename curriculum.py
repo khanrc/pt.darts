@@ -7,7 +7,10 @@ def load_csv(dataset, epoch):
     file_name = f"/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{dataset}_{epoch}.csv"
     with open(file_name, "r") as fp:
         csvreader = csv.reader(fp, delimiter=' ')
-        return csvreader[0]
+        to_return = None
+        for idx in csvreader: # trash method to get last + only elem
+            to_return = idx
+        return to_return
 
 
 def load_all(dataset):

@@ -7,6 +7,8 @@ def load_csv(dataset, epoch):
     file_name = f"/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{dataset}_{epoch}.csv"
     with open(file_name, "r") as fp:
         csvreader = csv.reader(fp, delimiter=' ')
+        for idx in csvreader:
+            print(idx)
         return [idx for idx in csvreader]
 
 

@@ -19,6 +19,7 @@ def load_all(dataset):
         epoch = elems[2]
         print(epoch)
         epoch_dict[epoch] = load_csv(dataset, epoch)
+        print(epoch_dict[epoch])
 
     return epoch_dict
 

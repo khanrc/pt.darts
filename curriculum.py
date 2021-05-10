@@ -1,5 +1,6 @@
 import csv
 import os
+import tqdm
 
 
 def load_csv(dataset, epoch):
@@ -11,7 +12,7 @@ def load_csv(dataset, epoch):
 
 def load_all(dataset):
     epoch_dict = {}
-    for file in [file for file in os.listdir(f"/home2/lgfm95/nas/darts/tempSave/") if file.endswith(".csv")]:
+    for file in tqdm.tqdm([f for f in os.listdir("/home2/lgfm95/nas/darts/tempSave/curriculums/") if f.endswith(".csv")]):
         print(file)
         slashIdx = file.rfind("/")
         suffix = file[slashIdx:][:-4]

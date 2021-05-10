@@ -6,7 +6,7 @@ import tqdm
 def load_csv(dataset, epoch):
     file_name = f"/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{dataset}_{epoch}.csv"
     with open(file_name, "r") as fp:
-        csvreader = csv.reader(fp, delimiter=' ')
+        csvreader = csv.reader(fp, delimiter=',')
         to_return = None
         for idx in csvreader: # trash method to get last + only elem
             to_return = idx

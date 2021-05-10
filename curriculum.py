@@ -11,7 +11,7 @@ def load_csv(dataset, epoch):
 
 def load_all(dataset):
     epoch_dict = {}
-    for file in os.listdir(f"/home2/lgfm95/nas/darts/tempSave/curriculums_{dataset}*.csv"):
+    for file in [file for file in os.listdir(f"/home2/lgfm95/nas/darts/tempSave/") if file.endswith(".csv")]:
         print(file)
         slashIdx = file.rfind("/")
         suffix = file[slashIdx:][:-4]

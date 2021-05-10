@@ -90,6 +90,7 @@ def main():
     print_mode = False
     non_update_epochs = 0
     top1 = None
+    save_indices(train_loader.dataset.get_printable(), 0)
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(config.epochs):
@@ -144,6 +145,7 @@ def main():
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
+            save_indices(train_loader.dataset.get_printable(), epoch)
 
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
@@ -164,7 +166,7 @@ def main():
             # if len(train_loader.dataset.idx) == 1:
             #     save_indices(train_loader.dataset.idx[0])
             # else:
-            save_indices(train_loader.dataset.idx)
+            save_indices(train_loader.dataset.get_printable())
 
         logger.info("Time after epoch {}: {} @ accuracy {}".format(epoch, time.time()-start_time, best_top1))
 
@@ -172,8 +174,8 @@ def main():
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))
 
-def save_indices(data):
-    with open('indices.csv', 'w') as csv_file:
+def save_indices(data, epoch):
+    with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
         csv_writer = csv.writer(csv_file, delimiter=' ')
         csv_writer.writerow(data)
 

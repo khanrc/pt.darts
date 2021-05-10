@@ -8,6 +8,7 @@ from config import AugmentConfig
 import utils
 from models.augment_cnn import AugmentCNN
 from torchinfo import summary
+from curriculum import Curriculum_loader
 
 
 config = AugmentConfig()
@@ -53,11 +54,14 @@ def main():
     optimizer = torch.optim.SGD(model.parameters(), config.lr, momentum=config.momentum,
                                 weight_decay=config.weight_decay)
 
-    train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=config.batch_size,
-                                               shuffle=True,
-                                               num_workers=config.workers,
-                                               pin_memory=True)
+    if config.use_curriculum:
+        train_loader = Curriculum_loader("mnist")
+    else:
+        train_loader = torch.utils.data.DataLoader(train_data,
+                                                   batch_size=config.batch_size,
+                                                   shuffle=True,
+                                                   num_workers=config.workers,
+                                                   pin_memory=True)
     valid_loader = torch.utils.data.DataLoader(valid_data,
                                                batch_size=config.batch_size,
                                                shuffle=False,
@@ -66,8 +70,16 @@ def main():
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, config.epochs)
 
     best_top1 = 0.
+
+    if config.use_curriculum:
+        update_epochs = train_loader.update_epochs
+
     # training loop
     for epoch in range(config.epochs):
+        if config.use_curriculum:
+            if epoch in update_epochs:
+                train_loader.generate_cur_set(epoch)
+
         lr_scheduler.step()
         drop_prob = config.drop_path_prob * epoch / config.epochs
         model.module.drop_path_prob(drop_prob)

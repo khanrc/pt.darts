@@ -9,6 +9,7 @@ def load_csv(dataset, epoch):
         csvreader = csv.reader(fp, delimiter=' ')
         for idx in csvreader:
             print(idx)
+        fp.seek(0)
         return [idx for idx in csvreader]
 
 

@@ -40,7 +40,6 @@ class Curriculum_loader():
         self.dataset = dataset
         self.epoch_dict = load_all(dataset)
         self.update_epochs = self.epoch_dict.keys()
-        raise AttributeError(self.update_epochs)
         self.len = len(self.epoch_dict[list(self.update_epochs)[0]])
         tensor_transform = transforms.Compose([transforms.ToTensor()])
 
@@ -85,6 +84,7 @@ class Curriculum_loader():
         self.cur_set = []
         for idx in self.epoch_dict[epoch]:
             self.cur_set.append(self.data[idx])
+            raise AttributeError(idx)
         # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
         self.fine_set = [self.fine[idx] for idx in self.epoch_dict[epoch]]
 

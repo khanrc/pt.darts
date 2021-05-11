@@ -20,7 +20,7 @@ def load_all(dataset):
         print(file)
         elems = file[:-4].split("_")
         print(elems)
-        epoch = elems[2]
+        epoch = int(elems[2])
         print(epoch)
         epoch_dict[epoch] = load_csv(dataset, epoch)
         print(epoch_dict[epoch])

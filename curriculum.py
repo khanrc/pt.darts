@@ -86,7 +86,7 @@ class Curriculum_loader():
             try:
                 self.cur_set.append(self.data[int(idx)])
             except ValueError:
-                raise AttributeError(self.epoch_dict[epoch])
+                raise AttributeError(f"guilty_{idx}_")
         # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
         self.fine_set = [self.fine[int(idx)] for idx in self.epoch_dict[epoch]]
 

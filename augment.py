@@ -7,7 +7,6 @@ from tensorboardX import SummaryWriter
 from config import AugmentConfig
 import utils
 from models.augment_cnn import AugmentCNN
-from torchinfo import summary
 from curriculum import Curriculum_loader
 
 
@@ -78,8 +77,10 @@ def main():
     for epoch in range(config.epochs):
         if config.use_curriculum:
             if epoch in update_epochs:
-                # train_loader.generate_cur_set(epoch)
-                train_loader.generate_cur_set(update_epochs[-1])
+                if config.final_mined:
+                    train_loader.generate_cur_set(update_epochs[-1])
+                else:
+                    train_loader.generate_cur_set(epoch)
 
         lr_scheduler.step()
         drop_prob = config.drop_path_prob * epoch / config.epochs
@@ -123,8 +124,8 @@ def train(train_loader, model, optimizer, criterion, epoch):
 
         optimizer.zero_grad()
         if step == 0:
-            summ = summary(model, input_size=list(X.size()))
-            print("grep summ", summ)
+            # summ = summary(model, input_size=list(X.size()))
+            # print("grep summ", summ)
             total_params = 0
             for name, parameter in model.named_parameters():
                 if not parameter.requires_grad: continue

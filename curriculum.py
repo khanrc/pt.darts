@@ -17,13 +17,13 @@ def load_csv(dataset, epoch):
 def load_all(dataset):
     epoch_dict = {}
     for file in tqdm.tqdm([f for f in os.listdir("/home2/lgfm95/nas/darts/tempSave/curriculums/") if f.endswith(".csv")]):
-        print(file)
+        # print(file)
         elems = file[:-4].split("_")
-        print(elems)
+        # print(elems)
         epoch = int(elems[2])
-        print(epoch)
+        # print(epoch)
         epoch_dict[epoch] = load_csv(dataset, epoch)
-        print(epoch_dict[epoch])
+        # print(epoch_dict[epoch])
 
     return epoch_dict
 
@@ -83,7 +83,10 @@ class Curriculum_loader():
     def generate_cur_set(self, epoch):
         self.cur_set = []
         for idx in self.epoch_dict[epoch]:
-            self.cur_set.append(self.data[int(idx)])
+            try:
+                self.cur_set.append(self.data[int(idx)])
+            except ValueError:
+                raise AttributeError(self.epoch_dict[epoch])
         # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
         self.fine_set = [self.fine[int(idx)] for idx in self.epoch_dict[epoch]]
 

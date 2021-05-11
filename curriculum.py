@@ -72,7 +72,6 @@ class Curriculum_loader():
 
         self.generate_cur_set(0)
         self.len = len(self.cur_set)
-        raise AttributeError(self.len)
 
     def __len__(self):
         if self.dataset == "mnist":

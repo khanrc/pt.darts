@@ -82,14 +82,16 @@ class Curriculum_loader():
 
     def generate_cur_set(self, epoch):
         self.cur_set = []
+        self.fine_set = []
         for idx in self.epoch_dict[epoch]:
             try:
                 self.cur_set.append(self.data[int(idx)])
+                self.fine_set.append(self.fine[int(idx)])
             except ValueError:
                 print(f"guilty_{idx}_")
                 continue
         # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
-        self.fine_set = [self.fine[int(idx)] for idx in self.epoch_dict[epoch]]
+        # self.fine_set = [self.fine[int(idx)] for idx in self.epoch_dict[epoch]]
 
 
 if __name__ == "__main__":

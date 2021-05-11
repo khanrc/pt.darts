@@ -78,7 +78,8 @@ def main():
     for epoch in range(config.epochs):
         if config.use_curriculum:
             if epoch in update_epochs:
-                train_loader.generate_cur_set(epoch)
+                # train_loader.generate_cur_set(epoch)
+                train_loader.generate_cur_set(update_epochs[-1])
 
         lr_scheduler.step()
         drop_prob = config.drop_path_prob * epoch / config.epochs

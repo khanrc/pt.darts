@@ -40,7 +40,7 @@ class Curriculum_loader():
         self.dataset = dataset
         self.epoch_dict = load_all(dataset)
         self.update_epochs = self.epoch_dict.keys()
-        self.len = self.epoch_dict[self.update_epochs[0]]
+        self.len = len(self.epoch_dict[list(self.update_epochs)[0]])
         tensor_transform = transforms.Compose([transforms.ToTensor()])
 
         if dataset == "mnist":

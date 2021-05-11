@@ -40,8 +40,6 @@ class Curriculum_loader():
         self.dataset = dataset
         self.epoch_dict = load_all(dataset)
         self.update_epochs = self.epoch_dict.keys()
-        self.len = len(self.epoch_dict[list(self.update_epochs)[0]])
-        raise AttributeError(self.len)
         tensor_transform = transforms.Compose([transforms.ToTensor()])
 
         if dataset == "mnist":
@@ -72,6 +70,8 @@ class Curriculum_loader():
         self.data, self.fine = zip(*list(self.split_loader))
 
         self.generate_cur_set(0)
+        self.len = len(self.cur_set)
+        raise AttributeError(self.len)
 
     def __len__(self):
         if self.dataset == "mnist":

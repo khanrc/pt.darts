@@ -12,8 +12,7 @@ def load_csv(dataset, epoch):
     with open(file_name, "r") as fp:
         elems = fp.readlines()[0]
         elems = elems.split(" ")
-        raise AttributeError([int(elem) for elem in elems])
-        return elems
+        return [int(elem) for elem in elems]
 
 
 def load_all(dataset):
@@ -84,17 +83,17 @@ class Curriculum_loader():
         return self.cur_set[item], self.fine_set[item]
 
     def generate_cur_set(self, epoch):
-        self.cur_set = []
-        self.fine_set = []
-        for idx in self.epoch_dict[epoch]:
-            try:
-                self.cur_set.append(self.data[int(idx)])
-                self.fine_set.append(self.fine[int(idx)])
-            except ValueError:
-                print(f"guilty_{idx}_")
-                continue
-        # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
-        # self.fine_set = [self.fine[int(idx)] for idx in self.epoch_dict[epoch]]
+        # self.cur_set = []
+        # self.fine_set = []
+        # for idx in self.epoch_dict[epoch]:
+        #     try:
+        #         self.cur_set.append(self.data[int(idx)])
+        #         self.fine_set.append(self.fine[int(idx)])
+        #     except ValueError:
+        #         print(f"guilty_{idx}_")
+        #         continue
+        self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
+        self.fine_set = [self.fine[idx] for idx in self.epoch_dict[epoch]]
 
 
 if __name__ == "__main__":

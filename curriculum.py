@@ -76,7 +76,7 @@ class Curriculum_loader():
     def __len__(self):
         if self.dataset == "mnist":
             assert self.len == 100
-        return len(self.len)
+        return self.len
 
     def __getitem__(self, item):
         return self.cur_set[item], self.fine_set[item]

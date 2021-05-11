@@ -12,7 +12,7 @@ def load_csv(dataset, epoch):
     with open(file_name, "r") as fp:
         elems = fp.readlines()[0]
         elems = elems.split(" ")
-        raise AttributeError(elems)
+        raise AttributeError([int(elem) for elem in elems])
         return elems
 
 

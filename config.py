@@ -121,6 +121,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--mastery', default=0.5, type=float, help="mastery threshold")
         parser.add_argument('--hardness', default=0.5, type=float, help="hardness threshold")
         parser.add_argument('--use_curriculum', default=False, type=bool, help="use learned curriculum")
+        parser.add_argument('--final_mined', default=False, type=bool, help="use final mined curriculum only")
 
         return parser
 

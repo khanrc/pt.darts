@@ -81,7 +81,10 @@ class Curriculum_loader():
         return self.cur_set[item], self.fine_set[item]
 
     def generate_cur_set(self, epoch):
-        self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
+        self.cur_set = []
+        for idx in self.epoch_dict[epoch]:
+            self.cur_set.append(self.data[idx])
+        # self.cur_set = [self.data[idx] for idx in self.epoch_dict[epoch]]
         self.fine_set = [self.fine[idx] for idx in self.epoch_dict[epoch]]
 
 

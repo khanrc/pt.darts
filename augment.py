@@ -78,7 +78,7 @@ def main():
         if config.use_curriculum:
             if epoch in update_epochs:
                 if config.final_mined:
-                    train_loader.generate_cur_set(max(update_epochs.keys()))
+                    train_loader.generate_cur_set(max(update_epochs))
                 else:
                     train_loader.generate_cur_set(epoch)
 

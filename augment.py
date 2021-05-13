@@ -54,7 +54,7 @@ def main():
                                 weight_decay=config.weight_decay)
 
     if config.use_curriculum:
-        train_loader = Curriculum_loader("mnist", val=False)
+        train_loader = Curriculum_loader("config.dataset", val=False)
     else:
         train_loader = torch.utils.data.DataLoader(train_data,
                                                    batch_size=config.batch_size,

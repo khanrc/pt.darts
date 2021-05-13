@@ -50,7 +50,8 @@ class Curriculum_loader():
         elif dataset == "cifar10":
             print("using cifar10 in subloader")
             self.full_set = list(datasets.CIFAR10("/home2/lgfm95/cifar10/", train=True, transform=tensor_transform, target_transform=None,download=False))
-
+        else:
+            raise AttributeError("not mnist or cifar10")
         split = get_split(self.full_set)
         indices = list(range(len(self.full_set)))
         random.seed(1337)  # note must use same random seed as subloader (and thus process same images as subloader)

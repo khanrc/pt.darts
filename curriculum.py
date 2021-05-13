@@ -47,6 +47,9 @@ class Curriculum_loader():
             print ("using mnist in subloader")
             train_path = "/home2/lgfm95/mnist/"
             self.full_set = list(datasets.MNIST(train_path, train=True, transform=tensor_transform, target_transform=None, download=False))
+        elif dataset == "cifar10":
+            print("using cifar10 in subloader")
+            self.full_set = list(datasets.CIFAR10("/home2/lgfm95/cifar10/", train=True, transform=tensor_transform, target_transform=None,download=False))
 
         split = get_split(self.full_set)
         indices = list(range(len(self.full_set)))
@@ -76,6 +79,8 @@ class Curriculum_loader():
     def __len__(self):
         if self.dataset == "mnist":
             assert self.len == 100
+        elif self.dataset == "cifar10":
+            assert self.len == 1000
         return self.len
 
     def __getitem__(self, item):

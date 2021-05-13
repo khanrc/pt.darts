@@ -73,6 +73,11 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "cityscapes"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCityscapesGood.pth.tar"
+    elif dataset == "imageobj":
+        n_classes = 200
+        dynamic_name = "imageobj"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
     else:
         raise ValueError(dataset)
 

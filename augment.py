@@ -119,6 +119,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
     model.train()
 
     for step, (X, y) in enumerate(train_loader):
+        raise AttributeError(X.shape)
         X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
         N = X.size(0)
 

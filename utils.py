@@ -28,6 +28,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
 
     pretrain_resume = "/home2/lgfm95/hem/perceptual/good.pth.tar"
     grayscale = False
+    is_detection = False
     isize = 64
     nz = 8
     aisize = 256
@@ -78,6 +79,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         dynamic_name = "imageobj"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
+        is_detection = True
     else:
         raise ValueError(dataset)
 
@@ -109,7 +111,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             isTsne=True,
             tree=config.isTree,
             subset_size=config.subset_size,
-            is_csv=config.is_csv)
+            is_csv=config.is_csv,
+            is_detection=is_detection)
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale

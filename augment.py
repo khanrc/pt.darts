@@ -34,7 +34,6 @@ def main():
     torch.cuda.manual_seed_all(config.seed)
 
     torch.backends.cudnn.benchmark = True
-    raise AttributeError(config.dataset)
 
     # get data with meta info
     input_size, input_channels, n_classes, train_data, valid_data = utils.get_data(
@@ -55,7 +54,7 @@ def main():
                                 weight_decay=config.weight_decay)
 
     if config.use_curriculum:
-        train_loader = Curriculum_loader("config.dataset", val=False)
+        train_loader = Curriculum_loader(config.dataset, val=False)
     else:
         train_loader = torch.utils.data.DataLoader(train_data,
                                                    batch_size=config.batch_size,

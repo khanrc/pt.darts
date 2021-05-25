@@ -42,7 +42,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"
-        n_classes = 10
+        n_classes = 1000
         if config.ncc:
             auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
         else:

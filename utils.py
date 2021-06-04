@@ -78,7 +78,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         n_classes = 200
         dynamic_name = "imageobj"
         grayscale = False
-        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercImagenetGood.pth.tar"
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"
         is_detection = True
     else:
         raise ValueError(dataset)

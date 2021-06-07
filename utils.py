@@ -83,6 +83,13 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"
         is_detection = True
         convert_to_paths = True
+    elif dataset == "cocomask":
+        n_classes = 200
+        dynamic_name = "cocomask"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMaskGood.pth.tar"
+        is_detection = True
+        convert_to_paths = True
     else:
         raise ValueError(dataset)
 

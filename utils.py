@@ -151,6 +151,10 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         elif dataset == 'imagenet':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
+        elif dataset == 'imageobj':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
+        elif dataset == 'cocomask':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask"))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

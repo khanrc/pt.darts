@@ -39,7 +39,7 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomCrop(64, padding=4),
             transforms.RandomHorizontalFlip()
         ]
-    elif dataset == 'imagenet' or dataset == 'imageobj':
+    elif dataset == 'imagenet' or dataset == 'imageobj' or dataset == "cocomask":
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]
         resize_transform = [transforms.Resize((128,128))]
@@ -88,7 +88,7 @@ def data_transforms(dataset, cutout_length):
     ]
 
     train_transform = transforms.Compose(transf + normalize)
-    if dataset == "cityscapes":
+    if dataset == "cityscapes" or dataset == "cocomask":
         normalize = [
             transforms.ToTensor(),
             transforms.Normalize(MEAN_lbl, STD_lbl)

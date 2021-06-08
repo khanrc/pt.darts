@@ -47,6 +47,8 @@ def data_transforms(dataset, cutout_length):
             transforms.Resize((224,224)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
         ]
+        MEAN_lbl = 0.2807
+        STD_lbl = 0.1765
     elif dataset == 'mnist':
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]

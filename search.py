@@ -48,6 +48,8 @@ def main():
         config.dataset, config.data_path, cutout_length=0, validation=True, search=True)
 
     net_crit = nn.CrossEntropyLoss().to(device)
+    if config.dataset == "imageobj":
+        net_crit = nn.BCEWithLogitsLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus)
     model = model.to(device)

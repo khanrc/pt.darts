@@ -223,7 +223,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             loss = model.criterion(logits, trn_y.float())
         else:
             loss = model.criterion(logits, trn_y)
-        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu())
+        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
         correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
@@ -322,14 +322,25 @@ def get_hardness(output, target, is_multi):
     _, predicted = torch.max(output.data, 1)
     confidence = F.softmax(output, dim=1)
     raise AttributeError(output, predicted, confidence)
-    # if not is_multi:
-    hardness_scaler = np.where((predicted == target), 1, 0.1) # if correct, simply use confidence as measure of hardness
+    if not is_multi:
+        hardness_scaler = np.where((predicted == target), 1, 0.1) # if correct, simply use confidence as measure of hardness
     # therefore if model can easily say yep this is object X, then confidence will be high. if it only just manages to identify
     # object X, confidence if lower
     # if object X is misclassified, hardness needs to be lower still.
     # assumes that it does not confidently misclassify.
-    # else:
-    #     for item in
+    else:
+        hardness_scalar = []
+        for q, item in enumerate(output): # len output should be batch size
+            correct_classification = 0
+            for r, lbl in enumerate(item): # how many classes per item, e.g. 184
+                if target[q][r] == lbl:
+                    correct_classification += 1
+            correct_avg = correct_classification / r
+            if correct_avg > 0.5: # this could be another threshold we change, or have it == hardness threshold
+                hardness_scalar.append(1)
+            else:
+                hardness_scalar.append(0.1)
+        hardness_scalar = np.array(hardness_scalar)
     hardness = [(confidence[i][predicted[i]] * hardness_scaler[i]).item() for i in range(output.size(0))]
     return hardness, hardness_scaler
 

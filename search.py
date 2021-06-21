@@ -214,7 +214,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # phase 1. child network step (w)
         w_optim.zero_grad()
         logits = model(trn_X)
-        loss = model.criterion(logits, trn_y)
+        if is_multi:
+            raise AttributeError(type(logits), type(trn_y))
+            loss = model.criterion(logits.float(), trn_y.float())
+        else:
+            loss = model.criterion(logits, trn_y)
         new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu())
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.

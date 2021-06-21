@@ -131,6 +131,7 @@ class SearchCNNController(nn.Module):
             # raise AttributeError(y.shape, logits.shape, y)
             if is_multi:
                 y = y.float()
+                logits = logits.float()
             return self.criterion(logits, y)
         except RuntimeError as e:
             print(e)

@@ -93,7 +93,7 @@ def main():
     non_update_epochs = 0
     top1 = None
     is_multi = False
-    if config.dataset == "imageobj":
+    if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
     save_indices(train_loader.dataset.get_printable(), 0)
 
@@ -205,13 +205,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
         print("grep label shape", trn_y)
-        if step < 200:
+        if step < 200 and is_multi:
             for q, im in enumerate(trn_X):
                 toSave = transforms.ToPILImage()(im.cpu())
-                savePath = "./tempSave/gt/{}.png".format((step * batch_size) + q)
-                toSave.save(savePath)
-                toSave = transforms.ToPILImage()(trn_y[q].cpu())
-                savePath = "./tempSave/pred/{}.png".format((step * batch_size) + q)
+                savePath = "./tempSave/gt/{}-{}.png".format((step * batch_size) + q, trn_y[q])
                 toSave.save(savePath)
 
         # phase 2. architect step (alpha)

@@ -215,7 +215,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits = model(trn_X)
         if is_multi:
-            raise AttributeError(type(logits), type(trn_y))
+            raise AttributeError(logits.dtype, trn_y.dtype)
             loss = model.criterion(logits.float(), trn_y.float())
         else:
             loss = model.criterion(logits, trn_y)

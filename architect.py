@@ -49,7 +49,7 @@ class Architect():
             for a, va in zip(self.net.alphas(), self.v_net.alphas()):
                 va.copy_(a)
 
-    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim):
+    def unrolled_backward(self, trn_X, trn_y, val_X, val_y, xi, w_optim, is_multi):
         """ Compute unrolled loss and backward its gradients
         Args:
             xi: learning rate for virtual gradient step (same as net lr)
@@ -68,14 +68,14 @@ class Architect():
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
 
-        hessian = self.compute_hessian(dw, trn_X, trn_y)
+        hessian = self.compute_hessian(dw, trn_X, trn_y, is_multi)
 
         # update final gradient = dalpha - xi*hessian
         with torch.no_grad():
             for alpha, da, h in zip(self.net.alphas(), dalpha, hessian):
                 alpha.grad = da - xi*h
 
-    def compute_hessian(self, dw, trn_X, trn_y):
+    def compute_hessian(self, dw, trn_X, trn_y, is_multi):
         """
         dw = dw` { L_val(w`, alpha) }
         w+ = w + eps * dw
@@ -90,7 +90,7 @@ class Architect():
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p += eps * d
-        loss = self.net.loss(trn_X, trn_y)
+        loss = self.net.loss(trn_X, trn_y, is_multi)
         dalpha_pos = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w+) }
 
         # w- = w - eps*dw`

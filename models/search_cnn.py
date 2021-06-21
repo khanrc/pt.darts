@@ -125,10 +125,12 @@ class SearchCNNController(nn.Module):
                                              devices=self.device_ids)
         return nn.parallel.gather(outputs, self.device_ids[0])
 
-    def loss(self, X, y):
+    def loss(self, X, y, is_multi):
         logits = self.forward(X)
         try:
             # raise AttributeError(y.shape, logits.shape, y)
+            if is_multi:
+                y = y.float()
             return self.criterion(logits, y)
         except RuntimeError as e:
             print(e)

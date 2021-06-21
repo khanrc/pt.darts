@@ -92,6 +92,9 @@ def main():
     print_mode = False
     non_update_epochs = 0
     top1 = None
+    is_multi = False
+    if config.dataset == "imageobj":
+        is_multi = True
     save_indices(train_loader.dataset.get_printable(), 0)
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
@@ -106,7 +109,7 @@ def main():
         if epoch_type or just_updated or not config.dynamic: # 1 is train, as normal (0 is dataset update)
             just_updated = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch)
+            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
             if config.dynamic:
                 train_loader.dataset.update_correct(correct)
                 if config.ncc and config.visualize:
@@ -183,7 +186,7 @@ def save_indices(data, epoch):
 
 
 
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -205,7 +208,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim)
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
         alpha_optim.step()
 
         # phase 1. child network step (w)

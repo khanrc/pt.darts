@@ -16,7 +16,7 @@ class Architect():
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
 
-    def virtual_step(self, trn_X, trn_y, xi, w_optim):
+    def virtual_step(self, trn_X, trn_y, xi, w_optim, is_multi):
         """
         Compute unrolled weight w' (virtual step)
 
@@ -31,7 +31,7 @@ class Architect():
             w_optim: weights optimizer
         """
         # forward & calc loss
-        loss = self.net.loss(trn_X, trn_y) # L_trn(w)
+        loss = self.net.loss(trn_X, trn_y, is_multi) # L_trn(w)
 
         # compute gradient
         gradients = torch.autograd.grad(loss, self.net.weights())
@@ -56,10 +56,10 @@ class Architect():
             w_optim: weights optimizer - for virtual step
         """
         # do virtual step (calc w`)
-        self.virtual_step(trn_X, trn_y, xi, w_optim)
+        self.virtual_step(trn_X, trn_y, xi, w_optim, is_multi)
 
         # calc unrolled loss
-        loss = self.v_net.loss(val_X, val_y) # L_val(w`)
+        loss = self.v_net.loss(val_X, val_y, is_multi) # L_val(w`)
 
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
@@ -97,7 +97,7 @@ class Architect():
         with torch.no_grad():
             for p, d in zip(self.net.weights(), dw):
                 p -= 2. * eps * d
-        loss = self.net.loss(trn_X, trn_y)
+        loss = self.net.loss(trn_X, trn_y, is_multi)
         dalpha_neg = torch.autograd.grad(loss, self.net.alphas()) # dalpha { L_trn(w-) }
 
         # recover w

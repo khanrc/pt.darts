@@ -217,6 +217,16 @@ class AverageMeter():
         self.avg = self.sum / self.count
 
 
+def accuracy_multilabel(output, target, topk=(1,)):
+    assert max(topk) == 1 # topk doesn't make sense for multilabel
+    batch_size = target.size(0)
+    num_labels = target.size(1)
+
+    sigmoid = torch.sigmoid(output)
+
+    return [(sigmoid == target).sum().float() / (batch_size * num_labels)]
+
+
 def accuracy(output, target, topk=(1,)):
     """ Computes the precision@k for the specified values of k """
     maxk = max(topk)

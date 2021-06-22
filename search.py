@@ -117,7 +117,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi)
 
             if print_mode:
                 print_mode = False
@@ -231,7 +231,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
-        prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        if is_multi:
+            prec1, prec5 = utils.accuracy_multilabel(logits, trn_y), 0 # top5 doesnt apply
+        else:
+            prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
@@ -252,7 +255,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     return hardness, correct
 
-def validate(valid_loader, model, epoch, cur_step, print_mode):
+def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -267,7 +270,10 @@ def validate(valid_loader, model, epoch, cur_step, print_mode):
             logits = model(X)
             loss = model.criterion(logits.float(), y.float())
 
-            prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
+            if is_multi:
+                prec1, prec5 = utils.accuracy_multilabel(logits, y), 0  # top5 doesnt apply
+            else:
+                prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)

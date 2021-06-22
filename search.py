@@ -345,11 +345,11 @@ def get_hardness(output, target, is_multi):
             else:
                 hardness_scaler.append(0.1)
 
-            confidence_avg = confidence[q] / len(output[q])
-            hardness.append(confidence_avg*hardness_scaler[q])
-            # TODO this is average confidence multiplied
-            # by average scaler across all labels in an image
-            # is this equivalent to confidence * scaler across all labels, then averaged?
+            correct = np.where(np.array(output[q]) == np.array(target[q]))[0]
+            hardness_value = [confidence[q][i] * 1 if i in correct else confidence[q][i] * 0.1 for i in range(len(output[q]))]
+            hardness.append(sum(hardness_value) / len(output[q]))
+
+
         hardness_scaler = np.array(hardness_scaler)
         hardness = np.array(hardness)
         raise AttributeError(output, target, hardness_scaler, hardness)

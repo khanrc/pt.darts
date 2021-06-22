@@ -352,7 +352,7 @@ def get_hardness(output, target, is_multi):
 
         hardness_scaler = np.array(hardness_scaler)
         hardness = np.array(hardness)
-        raise AttributeError(output, target, hardness_scaler, hardness)
+        # raise AttributeError(output, target, hardness_scaler, hardness)
 
     return hardness, hardness_scaler
 

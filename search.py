@@ -329,7 +329,7 @@ def get_hardness(output, target, is_multi):
         # assumes that it does not confidently misclassify.
         hardness = [(confidence[i][predicted[i]] * hardness_scaler[i]).item() for i in range(output.size(0))]
     else:
-        output = torch.sigmoid(output.float())
+        output = torch.sigmoid(output.float()).detach()
         output[output>0.5] = 1
         output[output<=0.5] = 0
         confidence = F.softmax(output, dim=1)

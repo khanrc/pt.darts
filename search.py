@@ -265,7 +265,7 @@ def validate(valid_loader, model, epoch, cur_step, print_mode):
             N = X.size(0)
 
             logits = model(X)
-            loss = model.criterion(logits.float(), y)
+            loss = model.criterion(logits.float(), y.float())
 
             prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)

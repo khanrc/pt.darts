@@ -268,7 +268,11 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi):
             N = X.size(0)
 
             logits = model(X)
-            loss = model.criterion(logits.float(), y.float())
+            if is_multi:
+                loss = model.criterion(logits, y.float())
+            else:
+                loss = model.criterion(logits, y)
+                
 
             if is_multi:
                 prec1, prec5 = utils.accuracy_multilabel(logits, y), 0  # top5 doesnt apply

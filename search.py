@@ -275,7 +275,7 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi):
                 
 
             if is_multi:
-                prec1, prec5 = utils.accuracy_multilabel(logits, y), 0  # top5 doesnt apply
+                prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
             else:
                 prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)

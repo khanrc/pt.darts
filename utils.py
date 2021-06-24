@@ -30,6 +30,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
     grayscale = False
     is_detection = False
     convert_to_paths = False
+    convert_to_lbl_paths = False
     isize = 64
     nz = 8
     aisize = 256
@@ -90,6 +91,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMaskGood.pth.tar"
         is_detection = True
         convert_to_paths = True
+        convert_to_lbl_paths = True
     else:
         raise ValueError(dataset)
 
@@ -123,7 +125,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             subset_size=config.subset_size,
             is_csv=config.is_csv,
             is_detection=is_detection,
-            convert_to_paths=convert_to_paths)
+            convert_to_paths=convert_to_paths,
+            convert_to_lbl_paths=convert_to_lbl_paths)
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale

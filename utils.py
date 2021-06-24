@@ -224,7 +224,9 @@ def accuracy_multilabel(output, target, topk=(1,)):
 
     sigmoid = torch.sigmoid(output)
 
-    return [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
+    ret =  [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
+    raise AttributeError(ret, sigmoid, (sigmoid==target).sum().float(), target)
+    return ret
 
 
 def accuracy(output, target, topk=(1,)):

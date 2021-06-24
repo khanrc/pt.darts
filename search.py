@@ -282,7 +282,7 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi):
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)
 
-            if print_mode:
+            if print_mode and not is_multi:
                 if step < 5:
                     for q, im in enumerate(X):
                         toSave = transforms.ToPILImage()(im.cpu())

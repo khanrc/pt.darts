@@ -226,9 +226,9 @@ def accuracy_multilabel(output, target, topk=(1,)):
     sigmoid[output>0.5] = 1
     sigmoid[output<=0.5] = 0
 
-    ret =  [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
-    raise AttributeError(ret, sigmoid, (sigmoid==target).sum().float(), target)
-    return ret
+    return [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
+    # raise AttributeError(ret, sigmoid, (sigmoid==target).sum().float(), target)
+    # return ret
 
 
 def accuracy(output, target, topk=(1,)):

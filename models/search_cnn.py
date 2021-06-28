@@ -134,7 +134,7 @@ class SearchCNNController(nn.Module):
             return self.criterion(logits, y)
         except RuntimeError as e:
             print(e)
-            raise AttributeError(y.shape, logits.shape, y)
+            raise AttributeError(y.shape, logits.shape, y, self.criterion, logits)
             sys.exit()
 
     def print_alphas(self, logger):

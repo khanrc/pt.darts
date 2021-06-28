@@ -16,6 +16,7 @@ from dataloader import DynamicDataset
 from subloader import SubDataset
 sys.argv.insert(1, "cifar10")
 sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
+from sklearn.metrics import average_precision_score as ap
 
 
 def get_data(dataset, data_path, cutout_length, validation, search):
@@ -220,18 +221,47 @@ class AverageMeter():
         self.avg = self.sum / self.count
 
 
-def accuracy_multilabel(output, target, topk=(1,)):
+# def accuracy_multilabel(output, target, topk=(1,)):
+#     assert max(topk) == 1 # topk doesn't make sense for multilabel
+#
+#     sigmoid = torch.sigmoid(output)
+#
+#     avp = ap(target, sigmoid)
+def accuracy_multilabel(output, target, topk=(1,), thr=None):
     assert max(topk) == 1 # topk doesn't make sense for multilabel
-    batch_size = target.size(0)
-    num_labels = target.size(1)
 
-    sigmoid = torch.sigmoid(output)
-    sigmoid[output>0.5] = 1
-    sigmoid[output<=0.5] = 0
+    if thr is None:
+        sigmoid = torch.sigmoid(output)
+        sigmoid[output>0.5] = 1
+        sigmoid[output<=0.5] = 0
+        avg = 0
+        for a_thr in np.arange(0.5,1,0.05):
+            avg += accuracy_multilabel(sigmoid, target, topk, a_thr)
+        return avg / 10
+    else:
+        avg = 0
+        samples = (output == target)
+        batch_size = samples.size(1)
+        for sample in samples:
+            if sample.sum().float() / batch_size > thr:
+                avg += 1
+        ret = avg / samples.size(0)
+        print(f"ret at threshold {thr} is {ret}")
+        return ret
 
-    return [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
-    # raise AttributeError(ret, sigmoid, (sigmoid==target).sum().float(), target)
-    # return ret
+
+# def accuracy_multilabel(output, target, topk=(1,)):
+#     assert max(topk) == 1 # topk doesn't make sense for multilabel
+#     batch_size = target.size(0)
+#     num_labels = target.size(1)
+#
+#     sigmoid = torch.sigmoid(output)
+#     sigmoid[output>0.5] = 1
+#     sigmoid[output<=0.5] = 0
+#
+#     return [(sigmoid == target).sum().float() / (batch_size * num_labels), np.array(0)] # return 0 for top5
+#     raise AttributeError(ret, sigmoid, (sigmoid==target).sum().float(), target)
+#     return ret
 
 
 def accuracy(output, target, topk=(1,)):

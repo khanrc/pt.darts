@@ -79,7 +79,7 @@ def main():
                                                pin_memory=True)
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #     w_optim, config.epochs, eta_min=config.w_lr_min)
-    print ("grep", config.workers, config.batch_size, config.name)
+    # print ("grep", config.workers, config.batch_size, config.name)
     lr_scheduler = torch.optim.lr_scheduler.CyclicLR(w_optim, 0.001, 0.01, step_size_up=10, step_size_down=None) # step_size_down=None means same as _up
 
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
@@ -166,7 +166,7 @@ def main():
             just_updated = True
             print_mode = True
 
-        print ("grep {}".format(top1))
+        # print ("grep {}".format(top1))
         if config.is_csv and top1 > 0.95:
             # if len(train_loader.dataset.idx) == 1:
             #     save_indices(train_loader.dataset.idx[0])
@@ -204,7 +204,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
-        print("grep label shape", trn_y)
+        # print("grep label shape", trn_y)
         if step < 200 and not is_multi:
             for q, im in enumerate(trn_X):
                 toSave = transforms.ToPILImage()(im.cpu())
@@ -312,8 +312,8 @@ def train_hardness(train_loader, model):
     len_hard = len(hardness)
 
     for step, (trn_X, trn_y) in enumerate(train_loader.dataset):
-        print("step", step)
-        print("len trnX", len(trn_X), trn_X[0])
+        # print("step", step)
+        # print("len trnX", len(trn_X), trn_X[0])
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         N = trn_X.size(0)
 
@@ -382,19 +382,19 @@ def get_epoch_type(epoch, hardness, top1):
 def get_mastered(hardness, top1):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
     # TODO use hardness across history eg mean hardness over last 5
-    print("ahard", "\n")
+    # print("ahard", "\n")
     for aHard in hardness:
         print("ahard", aHard)
-    print("len hardness", len(hardness))
-    print("len hard ones", np.where(np.array(hardness) > 0.5))
-    print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))
-    print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)), config.mastery)
+    # print("len hardness", len(hardness))
+    # print("len hard ones", np.where(np.array(hardness) > 0.5))
+    # print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))
+    # print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)), config.mastery)
     if top1 is None:
         if (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)) < config.mastery:
             print("therefore not mastered")
             return 0
     else:
-        print("grep working", top1)
+        # print("grep working", top1)
         if top1 < config.mastery:
             return 0
     # if len(np.where(np.array(hardness) < config.mastery)) > len(hardness)-2:

@@ -247,7 +247,7 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
                 avg += 1
         ret = avg / samples.size(0)
         print(f"ret at threshold {thr} is {ret}")
-        return ret
+        return ret, 0
 
 
 # def accuracy_multilabel(output, target, topk=(1,)):

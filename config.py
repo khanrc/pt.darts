@@ -73,6 +73,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--mastery', default=0.5, type=float, help="mastery threshold")
         parser.add_argument('--hardness', default=0.5, type=float, help="hardness threshold")
         parser.add_argument('--visualize', default=False, type=bool, help="are we visualizing?")
+        parser.add_argument('--bede', default=False, type=bool, help="are we using bede server?")
 
         return parser
 

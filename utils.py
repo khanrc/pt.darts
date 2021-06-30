@@ -19,7 +19,7 @@ sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
 from sklearn.metrics import average_precision_score as ap
 
 
-def get_data(dataset, data_path, cutout_length, validation, search):
+def get_data(dataset, data_path, cutout_length, validation, search, bede):
     if search:
         config = SearchConfig()
     else:
@@ -127,7 +127,8 @@ def get_data(dataset, data_path, cutout_length, validation, search):
             is_csv=config.is_csv,
             is_detection=is_detection,
             convert_to_paths=convert_to_paths,
-            convert_to_lbl_paths=convert_to_lbl_paths)
+            convert_to_lbl_paths=convert_to_lbl_paths,
+            bede=bede)
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
@@ -169,7 +170,7 @@ def get_data(dataset, data_path, cutout_length, validation, search):
         elif dataset == 'imageobj':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
         elif dataset == 'cocomask':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask"))
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

@@ -237,7 +237,7 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
         avg = 0
         for a_thr in np.arange(0.5,1,0.05):
             avg += accuracy_multilabel(sigmoid, target, topk, a_thr)
-        return avg / 10
+        return avg / 10, 0
     else:
         avg = 0
         samples = (output == target)
@@ -247,7 +247,7 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
                 avg += 1
         ret = avg / samples.size(0)
         print(f"ret at threshold {thr} is {ret}")
-        return ret, 0
+        return ret
 
 
 # def accuracy_multilabel(output, target, topk=(1,)):

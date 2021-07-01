@@ -191,9 +191,9 @@ def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
                 loss = criterion(logits, y)
             for q, im in enumerate(X):
                 toSave = transforms.ToPILImage()(im.cpu())
-                savePath = "./tempSave/gt/{}-{}.png".format((step * N) + q, y[q])
+                savePath = "./tempSave/gt/{}.png".format((step * N) + q)
                 toSave.save(savePath)
-                with open(f"./tempSave/gt/{(step*N)+q}-{y[q]}.txt", "w") as txtfile:
+                with open(f"./tempSave/gt/{(step*N)+q}.txt", "w") as txtfile:
                     txtfile.write(logits)
 
             if is_multi:

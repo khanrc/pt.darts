@@ -92,11 +92,11 @@ def main():
         model.module.drop_path_prob(drop_prob)
 
         # training
-        train(train_loader, model, optimizer, criterion, epoch)
+        train(train_loader, model, optimizer, criterion, epoch, is_multi)
 
         # validation
         cur_step = (epoch+1) * len(train_loader)
-        top1 = validate(valid_loader, model, criterion, epoch, cur_step)
+        top1 = validate(valid_loader, model, criterion, epoch, cur_step, is_multi)
 
         # save
         if best_top1 < top1:

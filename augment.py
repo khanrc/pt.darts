@@ -40,6 +40,8 @@ def main():
         config.dataset, config.data_path, config.cutout_length, validation=True, search=False, bede=config.bede)
 
     criterion = nn.CrossEntropyLoss().to(device)
+    if config.dataset == "imageobj":
+        net_crit = nn.BCEWithLogitsLoss().to(device)
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
                        use_aux, config.genotype)
@@ -69,6 +71,9 @@ def main():
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, config.epochs)
 
     best_top1 = 0.
+    is_multi = False
+    if config.dataset == "imageobj" or config.dataset == "cocomask":
+        is_multi = True
 
     if config.use_curriculum:
         update_epochs = train_loader.update_epochs
@@ -106,7 +111,7 @@ def main():
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
 
 
-def train(train_loader, model, optimizer, criterion, epoch):
+def train(train_loader, model, optimizer, criterion, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -141,7 +146,10 @@ def train(train_loader, model, optimizer, criterion, epoch):
         nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)
         optimizer.step()
 
-        prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
+        if is_multi:
+            prec1, prec5 = utils.accuracy_multilabel(logits, y) # top5 doesnt apply
+        else:
+            prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
         losses.update(loss.item(), N)
         top1.update(prec1.item(), N)
         top5.update(prec5.item(), N)
@@ -161,7 +169,7 @@ def train(train_loader, model, optimizer, criterion, epoch):
     logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
-def validate(valid_loader, model, criterion, epoch, cur_step):
+def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -176,7 +184,10 @@ def validate(valid_loader, model, criterion, epoch, cur_step):
             logits, _ = model(X)
             loss = criterion(logits, y)
 
-            prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
+            if is_multi:
+                prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
+            else:
+                prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))
             losses.update(loss.item(), N)
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)

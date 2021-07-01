@@ -41,7 +41,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss().to(device)
     if config.dataset == "imageobj":
-        net_crit = nn.BCEWithLogitsLoss().to(device)
+        criterion = nn.BCEWithLogitsLoss().to(device)
     use_aux = config.aux_weight > 0.
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
                        use_aux, config.genotype)
@@ -138,7 +138,6 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
                 total_params+=param
             print("grep params", total_params)
         logits, aux_logits = model(X)
-        raise AttributeError(logits.shape, y.shape, criterion)
         loss = criterion(logits, y)
         if config.aux_weight > 0.:
             loss += config.aux_weight * criterion(aux_logits, y)

@@ -8,7 +8,7 @@ from config import AugmentConfig
 import utils
 from models.augment_cnn import AugmentCNN
 from curriculum import Curriculum_loader
-
+from torchvision import transforms
 
 config = AugmentConfig()
 
@@ -138,7 +138,10 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
                 total_params+=param
             print("grep params", total_params)
         logits, aux_logits = model(X)
-        loss = criterion(logits, y)
+        if is_multi:
+            loss = criterion(logits, y.float())
+        else:
+            loss = criterion(logits, y)
         if config.aux_weight > 0.:
             loss += config.aux_weight * criterion(aux_logits, y)
         loss.backward()
@@ -182,7 +185,16 @@ def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
             N = X.size(0)
 
             logits, _ = model(X)
-            loss = criterion(logits, y)
+            if is_multi:
+                loss = criterion(logits, y.float())
+            else:
+                loss = criterion(logits, y)
+            for q, im in enumerate(X):
+                toSave = transforms.ToPILImage()(im.cpu())
+                savePath = "./tempSave/gt/{}-{}.png".format((step * N) + q, y[q])
+                toSave.save(savePath)
+                with open(f"./tempSave/gt/{(step*N)+q}-{y[q]}.txt", "w") as txtfile:
+                    txtfile.write(logits)
 
             if is_multi:
                 prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply

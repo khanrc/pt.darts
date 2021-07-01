@@ -383,8 +383,8 @@ def get_mastered(hardness, top1):
     # if fraction of times where image is unconfidently/mis-classified is less than mastery threshold
     # TODO use hardness across history eg mean hardness over last 5
     # print("ahard", "\n")
-    for aHard in hardness:
-        print("ahard", aHard)
+    # for aHard in hardness:
+        # print("ahard", aHard)
     # print("len hardness", len(hardness))
     # print("len hard ones", np.where(np.array(hardness) > 0.5))
     # print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))

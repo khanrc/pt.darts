@@ -194,7 +194,7 @@ def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
                 savePath = "./tempSave/gt/{}.png".format((step * N) + q)
                 toSave.save(savePath)
                 with open(f"./tempSave/gt/{(step*N)+q}.txt", "w") as txtfile:
-                    txtfile.write(logits)
+                    txtfile.write(str(logits))
 
             if is_multi:
                 prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply

@@ -197,7 +197,8 @@ def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
                     sigmoid = torch.sigmoid(logits)
                     sigmoid[logits>0.5] = 1
                     sigmoid[logits<=0.5] = 0
-                    txtfile.write(str(sigmoid))
+                    for sigm in sigmoid[q]:
+                        txtfile.write(str(sigm) + ", ")
 
             if is_multi:
                 prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply

@@ -236,7 +236,7 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
         sigmoid[output>0.5] = 1
         sigmoid[output<=0.5] = 0
         avg = 0
-        for a_thr in np.arange(0.5,1,0.05):
+        for a_thr in np.arange(0.85,1,0.005):
             avg += accuracy_multilabel(sigmoid, target, topk, a_thr)
         return np.array(avg / 10), np.array(0)
     else:

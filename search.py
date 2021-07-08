@@ -51,7 +51,7 @@ def main():
     if config.dataset == "imageobj":
         net_crit = nn.BCEWithLogitsLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                net_crit, device_ids=config.gpus)
+                                net_crit, device_ids=config.gpus, n_nodes=config.nodes)
     model = model.to(device)
 
     # weights optimizer

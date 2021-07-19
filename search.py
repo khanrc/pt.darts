@@ -99,11 +99,12 @@ def main():
     start_epoch = 0
 
     if config.resume is not None:
-        print("==> loading checkpoint '{}'".format(config.resume))
-        checkpoint = torch.load(config.resume)
-        start_epoch = checkpoint['epoch']
-        model.load_state_dict(checkpoint['state_dict'])
-        w_optim.load_state_dict(checkpoint['optimizer'])
+        if os.path.isfile(config.resume):
+            print("==> loading checkpoint '{}'".format(config.resume))
+            checkpoint = torch.load(config.resume)
+            start_epoch = checkpoint['epoch']
+            model.load_state_dict(checkpoint['state_dict'])
+            w_optim.load_state_dict(checkpoint['optimizer'])
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(start_epoch, config.epochs):

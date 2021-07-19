@@ -99,7 +99,16 @@ def main():
     start_epoch = 0
 
     if config.resume is not None:
+        if config.resume.endswith(".pth"):
+            resume_txt = config.resume[config.resume[:-4]] + ".txt"
+            print(f"resume text file is {resume_txt}")
+        else:
+            raise RuntimeError("resume file does not end with .pth")
         if os.path.isfile(config.resume):
+            if os.path.isfile(resume_txt):
+                with open(os.path.isfile(resume_txt), "r") as f:
+                    lines = f.readlines()
+                    best_top1 = lines[0]
             print("==> loading checkpoint '{}'".format(config.resume))
             checkpoint = torch.load(config.resume)
             start_epoch = checkpoint['epoch']
@@ -182,7 +191,6 @@ def main():
             # else:
             save_indices(train_loader.dataset.get_printable())
 
-        # TODO load up best so far so we know whether to save that or not
         # TODO load up current dataset (+ appropriate histories.?)
 
         if config.resume is not None:
@@ -191,6 +199,17 @@ def main():
                 'state_dict': model.state_dict(),
                 'optimizer': w_optim.state_dict()
             }, config.resume)
+
+        if config.best_resume is not None:
+            if is_best:
+                torch.save({
+                    'epoch': epoch + 1,
+                    'state_dict': model.state_dict(),
+                    'optimizer': w_optim.state_dict()
+                }, config.best_resume)
+                with open(config.resume[:,-4] + ".txt", "w") as f:
+                    f.write(best_top1)
+
 
         logger.info("Time after epoch {}: {} @ accuracy {}".format(epoch, time.time()-start_time, best_top1))
 

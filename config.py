@@ -76,6 +76,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--visualize', default=False, type=bool, help="are we visualizing?")
         parser.add_argument('--bede', default=False, type=bool, help="are we using bede server?")
         parser.add_argument('--resume', default=None, type=str, help="where to save pth file")
+        parser.add_argument('--best_resume', default=None, type=str, help="where to save best pth file")
 
         return parser
 

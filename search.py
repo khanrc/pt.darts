@@ -96,9 +96,17 @@ def main():
     if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
     save_indices(train_loader.dataset.get_printable(), 0)
+    start_epoch = 0
+
+    if config.resume is not None:
+        print("==> loading checkpoint '{}'".format(config.resume))
+        checkpoint = torch.load(config.resume)
+        start_epoch = checkpoint['epoch']
+        model.load_state_dict(checkpoint['state_dict'])
+        w_optim.load_state_dict(checkpoint['optimizer'])
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
-    for epoch in range(config.epochs):
+    for epoch in range(start_epoch, config.epochs):
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 
@@ -173,6 +181,16 @@ def main():
             # else:
             save_indices(train_loader.dataset.get_printable())
 
+        # TODO load up best so far so we know whether to save that or not
+        # TODO load up current dataset (+ appropriate histories.?)
+
+        if config.resume is not None:
+            torch.save({
+                'epoch': epoch + 1,
+                'state_dict': model.state_dict(),
+                'optimizer': w_optim.state_dict()
+            }, config.resume)
+
         logger.info("Time after epoch {}: {} @ accuracy {}".format(epoch, time.time()-start_time, best_top1))
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
@@ -185,6 +203,11 @@ def save_indices(data, epoch):
         csv_writer.writerow(data)
 
 
+        torch.save({
+            'epoch': e+1,
+            'state_dict': model.state_dict(),
+            'optimizer': optimizer.state_dict()
+        }, resume)
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()

@@ -203,12 +203,6 @@ def save_indices(data, epoch):
         csv_writer.writerow(data)
 
 
-        torch.save({
-            'epoch': e+1,
-            'state_dict': model.state_dict(),
-            'optimizer': optimizer.state_dict()
-        }, resume)
-
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()

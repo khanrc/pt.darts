@@ -100,7 +100,7 @@ def main():
 
     if config.resume is not None:
         if config.resume.endswith(".pth"):
-            resume_txt = config.resume[config.resume[:-4]] + ".txt"
+            resume_txt = config.resume[:-4] + ".txt"
             print(f"resume text file is {resume_txt}")
         else:
             raise RuntimeError("resume file does not end with .pth")
@@ -207,7 +207,7 @@ def main():
                     'state_dict': model.state_dict(),
                     'optimizer': w_optim.state_dict()
                 }, config.best_resume)
-                with open(config.resume[:,-4] + ".txt", "w") as f:
+                with open(config.resume[:-4] + ".txt", "w") as f:
                     f.write(best_top1)
 
 

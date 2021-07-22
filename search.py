@@ -97,23 +97,41 @@ def main():
         is_multi = True
     save_indices(train_loader.dataset.get_printable(), 0)
     start_epoch = 0
+    just_loaded = False
 
     if config.resume is not None:
-        if config.resume.endswith(".pth"):
-            resume_txt = config.resume[:-4] + ".txt"
-            print(f"resume text file is {resume_txt}")
-        else:
-            raise RuntimeError("resume file does not end with .pth")
         if os.path.isfile(config.resume):
-            if os.path.isfile(resume_txt):
-                with open(os.path.isfile(resume_txt), "r") as f:
-                    lines = f.readlines()
-                    best_top1 = lines[0]
             print("==> loading checkpoint '{}'".format(config.resume))
             checkpoint = torch.load(config.resume)
             start_epoch = checkpoint['epoch']
             model.load_state_dict(checkpoint['state_dict'])
-            w_optim.load_state_dict(checkpoint['optimizer'])
+            w_optim.load_state_dict(checkpoint['w_optimizer'])
+            alpha_optim.load_state_dict(checkpoint['a_optimizer'])
+            best_top1 = checkpoint['best_top1']
+            just_loaded = True
+            print(f"loading at epoch {start_epoch}")
+
+            # load up last used dataset. hardness values will not be stored, but the dataset used will be at least.
+            # n.b. accuracies.out & visualized dataset.png should be accurate since these are calculated from the
+            # raw csv files
+            if config.ncc:
+                indices_dir = "/home2/lgfm95/nas/darts/tempSave/curriculums/"
+            else:
+                indices_dir = "/hdd/PhD/nas/pt.darts/tempSave/curriculums/"
+            indices_files = os.listdir(indices_dir)
+            highest = 0
+            for file in indices_files:
+                epoch_num = file[file.rindex("_")+1:-4]
+                if epoch_num > highest:
+                    highest = epoch_num
+            print(f"loading indices from {f'{indices_dir}indices_{config.dataset}_{highest}.csv'}")
+            with open(os.path.join(indices_dir, f"indices_{config.dataset}_{highest}.csv"), 'r') as csv_file:
+                csv_reader = csv.reader(csv_file, delimiter=' ')
+                train_loader.dataset.idx = list(csv_reader)
+                temp = np.array(train_loader.dataset.idx).flatten()
+                train_loader.dataset.idx = list(map(int, temp))
+        else:
+            print("resume pth file not found")
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(start_epoch, config.epochs):
@@ -122,7 +140,11 @@ def main():
 
         model.print_alphas(logger)
 
-        epoch_type = get_epoch_type(epoch, hardness, top1)
+        epoch_type = 1 # epoch type is a train epoch rather than dataset update by default
+        # (ie for case of loading from resume pth file)
+        if not just_loaded:
+            epoch_type = get_epoch_type(epoch, hardness, top1)
+
 
         if epoch_type or just_updated or not config.dynamic: # 1 is train, as normal (0 is dataset update)
             just_updated = False
@@ -157,7 +179,7 @@ def main():
                 is_best = True
             else:
                 is_best = False
-            utils.save_checkpoint(model, config.path, is_best)
+            utils.save_checkpoint(model, config.path, is_best) # TODO redundant checkpoint save
             print("")
             if config.early_stopping:
                 if abs(old_loss - new_loss) < 0.0005:
@@ -191,13 +213,14 @@ def main():
             # else:
             save_indices(train_loader.dataset.get_printable())
 
-        # TODO load up current dataset (+ appropriate histories.?)
 
         if config.resume is not None:
             torch.save({
                 'epoch': epoch + 1,
                 'state_dict': model.state_dict(),
-                'optimizer': w_optim.state_dict()
+                'w_optimizer': w_optim.state_dict(),
+                'a_optimizer': alpha_optim.state_dict(),
+                'best_top1': best_top1
             }, config.resume)
 
         if config.best_resume is not None:
@@ -205,10 +228,10 @@ def main():
                 torch.save({
                     'epoch': epoch + 1,
                     'state_dict': model.state_dict(),
-                    'optimizer': w_optim.state_dict()
+                    'w_optimizer': w_optim.state_dict(),
+                    'a_optimizer': alpha_optim.state_dict(),
+                    'best_top1': best_top1
                 }, config.best_resume)
-                with open(config.resume[:-4] + ".txt", "w") as f:
-                    f.write(best_top1)
 
 
         logger.info("Time after epoch {}: {} @ accuracy {}".format(epoch, time.time()-start_time, best_top1))
@@ -218,9 +241,14 @@ def main():
     logger.info("Training end {}".format(time.time()-start_time))
 
 def save_indices(data, epoch):
-    with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
-        csv_writer = csv.writer(csv_file, delimiter=' ')
-        csv_writer.writerow(data)
+    if config.ncc:
+        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=' ')
+            csv_writer.writerow(data)
+    else:
+        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
+            csv_writer = csv.writer(csv_file, delimiter=' ')
+            csv_writer.writerow(data)
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
@@ -397,7 +425,7 @@ def get_hardness(output, target, is_multi):
             hardness.append(sum(hardness_value) / len(output[q]))
 
 
-        hardness_scaler = np.array(hardness_scaler)
+        hardness_scaler = np.asave_indrray(hardness_scaler)
         hardness = np.array(hardness)
         # raise AttributeError(output, target, hardness_scaler, hardness)
 

@@ -121,9 +121,10 @@ def main():
             indices_files = os.listdir(indices_dir)
             highest = 0
             for file in indices_files:
-                epoch_num = int(file[file.rindex("_")+1:-4])
-                if epoch_num > highest:
-                    highest = epoch_num
+                if config.dataset in file:
+                    epoch_num = int(file[file.rindex("_")+1:-4])
+                    if epoch_num > highest:
+                        highest = epoch_num
             print(f"loading indices from {f'{indices_dir}indices_{config.dataset}_{highest}.csv'}")
             with open(os.path.join(indices_dir, f"indices_{config.dataset}_{highest}.csv"), 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=' ')

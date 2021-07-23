@@ -34,8 +34,8 @@ def main():
                         val_accs.append(acc)
                     else:
                         if "Final" in tv:
-                            skipool_count = tv.count("pool")
-                            skipool_count += tv.count("skip")
+                            skipool_count = suffix.count("pool")
+                            skipool_count += suffix.count("skip")
                             print(f"num skip or pool is {skipool_count}")
                         print(f"neither: {tv}")
                 except ValueError:

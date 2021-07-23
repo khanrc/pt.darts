@@ -36,7 +36,7 @@ def main():
                         if "Final" in tv:
                             skipool_count = suffix.count("pool")
                             skipool_count += suffix.count("skip")
-                            print(f"num skip or pool is {skipool_count}")
+                            print(f"num skip or pool is {skipool_count} {suffix}")
                         print(f"neither: {tv}")
                 except ValueError:
                     if d != len(data)-1:

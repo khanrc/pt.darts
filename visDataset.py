@@ -33,7 +33,7 @@ def main():
                     elif "Valid:" in tv:
                         val_accs.append(acc)
                     else:
-                        if "Best" in tv:
+                        if "Final" in tv:
                             skipool_count = tv.count("pool")
                             skipool_count += tv.count("skip")
                             print(f"num skip or pool is {skipool_count}")

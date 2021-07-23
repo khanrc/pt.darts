@@ -33,14 +33,14 @@ def main():
                     elif "Valid:" in tv:
                         val_accs.append(acc)
                     else:
-                        if "Best" in tv:
-                            skipool_count = suffix.count("pool")
-                            skipool_count += suffix.count("skip")
-                            print(f"num skip or pool is {skipool_count} {suffix}")
                         print(f"neither: {tv}")
                 except ValueError:
                     if d != len(data)-1:
                         bars.append(count)
+                    if "Best" in tv:
+                        skipool_count = suffix.count("pool")
+                        skipool_count += suffix.count("skip")
+                        print(f"num skip or pool is {skipool_count} {suffix}")
 
             assert len(train_accs) == len(val_accs), "len of train and val accuracies should be same"
             x_axis = [i for i in range(len(train_accs))]

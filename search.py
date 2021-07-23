@@ -243,11 +243,11 @@ def main():
 
 def save_indices(data, epoch):
     if config.ncc:
-        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
+        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')
             csv_writer.writerow(data)
     else:
-        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/indices_{config.dataset}_{epoch}.csv', 'w') as csv_file:
+        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')
             csv_writer.writerow(data)
 

@@ -37,7 +37,7 @@ def main():
                             skipool_count = tv.count("pool")
                             skipool_count += tv.count("skip")
                             print(f"num skip or pool is {skipool_count}")
-                        print("neither")
+                        print(f"neither: {tv}")
                 except ValueError:
                     if d != len(data)-1:
                         bars.append(count)

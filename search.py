@@ -143,6 +143,7 @@ def main():
         if config.curriculum:
             if epoch in mastery_epochs:
                 config.mastery = masteries[mastery_epochs.index(epoch)]
+                print("mastery threshold change reached")
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 

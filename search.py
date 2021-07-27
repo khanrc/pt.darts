@@ -99,6 +99,10 @@ def main():
     start_epoch = 0
     just_loaded = False
 
+    mastery_threshold_count = 5
+    mastery_epochs = [(i+1)*(config.epochs//mastery_threshold_count) for i in range(mastery_threshold_count)]
+    masteries = [config.mastery - (i*0.1*config.mastery) for i in range(mastery_threshold_count)]
+
     if config.resume is not None:
         if os.path.isfile(config.resume):
             print("==> loading checkpoint '{}'".format(config.resume))
@@ -136,6 +140,9 @@ def main():
 
     # TODO: seperate counter for training epochs as opposed to training / dataset update combined
     for epoch in range(start_epoch, config.epochs):
+        if config.curriculum:
+            if epoch in mastery_epochs:
+                config.mastery = masteries[mastery_epochs.index(epoch)]
         lr_scheduler.step()
         lr = lr_scheduler.get_lr()[0]
 
@@ -455,6 +462,8 @@ def get_mastered(hardness, top1):
     # print("len hard ones", np.where(np.array(hardness) > 0.5))
     # print("len hard ones", len(np.where(np.array(hardness) > 0.5)[0]))
     # print("hardness calculations: ", (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)), config.mastery)
+
+    #if percentage of items considered hard exceeds a mastery threshold, update the subset.
     if top1 is None:
         if (len(np.where(np.array(hardness) > config.hardness)[0]) / len(hardness)) < config.mastery:
             print("therefore not mastered")

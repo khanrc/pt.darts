@@ -434,7 +434,7 @@ def get_hardness(output, target, is_multi):
             hardness.append(sum(hardness_value) / len(output[q]))
 
 
-        hardness_scaler = np.asave_indrray(hardness_scaler)
+        hardness_scaler = np.asarray(hardness_scaler)
         hardness = np.array(hardness)
         # raise AttributeError(output, target, hardness_scaler, hardness)
 

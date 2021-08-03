@@ -101,7 +101,7 @@ def main():
 
     mastery_threshold_count = 5
     mastery_epochs = [(i+1)*(config.epochs//mastery_threshold_count) for i in range(mastery_threshold_count)]
-    masteries = [config.mastery - (i*0.1*config.mastery) for i in range(mastery_threshold_count)]
+    masteries = [config.mastery + (i*0.1*config.mastery) for i in range(mastery_threshold_count)]
 
     if config.resume is not None:
         if os.path.isfile(config.resume):

@@ -16,8 +16,7 @@ saved_name = sys.argv[sys.argv.index('--name')+1]
 from dataloader import DynamicDataset
 from subloader import SubDataset
 sys.argv.insert(1, saved_name)
-sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
-raise AttributeError(sys.argv, "post import loaders")
+sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
 
 

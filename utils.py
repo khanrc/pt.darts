@@ -9,10 +9,10 @@ from torchvision import transforms
 import numpy as np
 import preproc
 from config import SearchConfig, AugmentConfig
-raise AttributeError(sys.argv, "pre import loaders")
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
+raise AttributeError(sys.argv, "post path inserts")
 from dataloader import DynamicDataset
 from subloader import SubDataset
 raise AttributeError(sys.argv, "post import loaders")

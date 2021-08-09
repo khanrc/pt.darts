@@ -120,9 +120,9 @@ def main():
             # n.b. accuracies.out & visualized dataset.png should be accurate since these are calculated from the
             # raw csv files
             if config.ncc:
-                indices_dir = "/home2/lgfm95/nas/darts/tempSave/curriculums/"
+                indices_dir = f"/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/"
             else:
-                indices_dir = "/hdd/PhD/nas/pt.darts/tempSave/curriculums/"
+                indices_dir = f"/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/"
             indices_files = os.listdir(indices_dir)
             highest = 0
             for file in indices_files:
@@ -130,8 +130,8 @@ def main():
                     epoch_num = int(file[file.rindex("_")+1:-4])
                     if epoch_num > highest:
                         highest = epoch_num
-            print(f"loading indices from {f'{indices_dir}indices_{config.dataset}_{highest}.csv'}")
-            with open(os.path.join(indices_dir, f"indices_{config.dataset}_{highest}.csv"), 'r') as csv_file:
+            print(f"loading indices from {f'{indices_dir}indices_{config.name}_{highest}.csv'}")
+            with open(os.path.join(indices_dir, f"indices_{config.name}_{highest}.csv"), 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=' ')
                 train_loader.dataset.idx = list(csv_reader)
                 temp = np.array(train_loader.dataset.idx).flatten()
@@ -252,11 +252,11 @@ def main():
 
 def save_indices(data, epoch):
     if config.ncc:
-        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
+        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')
             csv_writer.writerow(data)
     else:
-        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
+        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')
             csv_writer.writerow(data)
 

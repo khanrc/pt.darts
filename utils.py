@@ -12,12 +12,12 @@ from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
-raise AttributeError(sys.argv, "post path inserts")
+saved_name = sys.argv.index('--name')
 from dataloader import DynamicDataset
 from subloader import SubDataset
+sys.argv.insert(1, saved_name)
+sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
 raise AttributeError(sys.argv, "post import loaders")
-# sys.argv.insert(1, "cifar10")
-# sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
 from sklearn.metrics import average_precision_score as ap
 
 

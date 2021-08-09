@@ -14,8 +14,8 @@ sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from dataloader import DynamicDataset
 from subloader import SubDataset
-sys.argv.insert(1, "cifar10")
-sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
+# sys.argv.insert(1, "cifar10")
+# sys.argv.insert(1, "--name")  # TODO less hacky solution needed when not tired
 from sklearn.metrics import average_precision_score as ap
 
 

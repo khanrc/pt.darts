@@ -33,6 +33,10 @@ def main():
     start_time = time.time()
     logger.info("Logger is set - training start {}".format(start_time))
 
+    is_multi = False
+    if config.dataset == "imageobj" or config.dataset == "cocomask":
+        is_multi = True
+
     # set default gpu device id
     torch.cuda.set_device(config.gpus[0])
 
@@ -48,7 +52,7 @@ def main():
         config.dataset, config.data_path, cutout_length=0, validation=True, search=True, bede=config.bede)
 
     net_crit = nn.CrossEntropyLoss().to(device)
-    if config.dataset == "imageobj":
+    if is_multi:
         net_crit = nn.BCEWithLogitsLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
                                 net_crit, device_ids=config.gpus, n_nodes=config.nodes)
@@ -92,9 +96,6 @@ def main():
     print_mode = False
     non_update_epochs = 0
     top1 = None
-    is_multi = False
-    if config.dataset == "imageobj" or config.dataset == "cocomask":
-        is_multi = True
     save_indices(train_loader.dataset.get_printable(), 0)
     start_epoch = 0
     just_loaded = False

@@ -5,9 +5,9 @@ import genotypes as gt
 from functools import partial
 import torch
 import sys
-raise AttributeError(sys.argv)
 
 def get_parser(name):
+    raise AttributeError(sys.argv)
     """ make default formatted parser """
     parser = argparse.ArgumentParser(name, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # print default value always

@@ -8,7 +8,6 @@ import numpy as np
 from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils
-raise AttributeError(sys.argv, "pre import models, post utils")
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot
@@ -18,7 +17,6 @@ import csv
 from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 
-raise AttributeError(sys.argv, "pre init config")
 config = SearchConfig()
 
 device = torch.device("cuda")

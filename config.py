@@ -7,7 +7,6 @@ import torch
 import sys
 
 def get_parser(name):
-    raise AttributeError(sys.argv)
     """ make default formatted parser """
     parser = argparse.ArgumentParser(name, formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     # print default value always
@@ -42,7 +41,6 @@ class BaseConfig(argparse.Namespace):
 
 class SearchConfig(BaseConfig):
     def build_parser(self):
-        raise AttributeError(sys.argv, "build parser first thing")
         parser = get_parser("Search config")
         parser.add_argument('--name', required=True)
         parser.add_argument('--dataset', required=True, help='CIFAR10 / MNIST / FashionMNIST')
@@ -84,7 +82,6 @@ class SearchConfig(BaseConfig):
         return parser
 
     def __init__(self):
-        raise AttributeError(sys.argv, "init parser first thing")
         parser = self.build_parser()
         args = parser.parse_args()
         super().__init__(**vars(args))

@@ -12,7 +12,7 @@ from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
-saved_name = sys.argv.index('--name')
+saved_name = sys.argv[sys.argv.index('--name')+1]
 from dataloader import DynamicDataset
 from subloader import SubDataset
 sys.argv.insert(1, saved_name)

@@ -42,6 +42,7 @@ class BaseConfig(argparse.Namespace):
 
 class SearchConfig(BaseConfig):
     def build_parser(self):
+        raise AttributeError(sys.argv, "build parser first thing")
         parser = get_parser("Search config")
         parser.add_argument('--name', required=True)
         parser.add_argument('--dataset', required=True, help='CIFAR10 / MNIST / FashionMNIST')

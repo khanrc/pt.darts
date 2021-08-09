@@ -8,6 +8,7 @@ import numpy as np
 from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils
+raise AttributeError(sys.argv, "pre import models, post utils")
 from models.search_cnn import SearchCNNController
 from architect import Architect
 from visualize import plot

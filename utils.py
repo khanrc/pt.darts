@@ -87,7 +87,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         is_detection = True
         convert_to_paths = True
     elif dataset == "cocomask":
-        n_classes = 200
+        n_classes = 80
         dynamic_name = "cocomask"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMaskGood.pth.tar"

@@ -84,6 +84,7 @@ class SearchConfig(BaseConfig):
         return parser
 
     def __init__(self):
+        raise AttributeError(sys.argv, "init parser first thing")
         parser = self.build_parser()
         args = parser.parse_args()
         super().__init__(**vars(args))

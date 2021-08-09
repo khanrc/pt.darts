@@ -5,6 +5,7 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
+raise AttributeError(sys.argv, "pre import utils")
 from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils

@@ -5,6 +5,7 @@ import genotypes as gt
 from functools import partial
 import torch
 import sys
+raise AttributeError(sys.argv)
 
 def get_parser(name):
     """ make default formatted parser """
@@ -12,7 +13,6 @@ def get_parser(name):
     # print default value always
     parser.add_argument = partial(parser.add_argument, help=' ')
     idx = sys.argv.index('--name')
-    raise AttributeError(sys.argv)
     return parser
 
 

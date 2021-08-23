@@ -134,7 +134,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
-        trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=100)
+        subset_size = 10000
+        if search:
+            subset_size = 100
+        trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
             # trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
 
         input_size = len(trn_data)

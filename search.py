@@ -134,11 +134,14 @@ def main():
             print(f"loading indices from {f'{indices_dir}indices_{config.name}_{highest}.csv'}")
             with open(os.path.join(indices_dir, f"indices_{config.name}_{highest}.csv"), 'r') as csv_file:
                 csv_reader = csv.reader(csv_file, delimiter=' ')
-                train_loader.dataset.idx = list(csv_reader)
-                temp = np.array(train_loader.dataset.idx).flatten()
+                temp = list(csv_reader)
+                temp = np.array(temp).flatten()
                 assert len(temp) == config.subset_size, f"number of images in dynamic dataset in checkpoint different to now: {len(temp)} and {config.subset_size} respectively"
-                assert highest == 97
-                train_loader.dataset.idx = list(map(int, temp))
+                if train_loader.dataset.convert_to_paths:
+                    temp = list(map(int, temp))
+                    train_loader.dataset.idx = [train_loader.dataset.train_indices[idx] for idx in temp] # assumes train_indices remains constant (should do as seeding w/in dataloader)
+                else:
+                    train_loader.dataset.idx = list(map(int, temp))
         else:
             print("resume pth file not found")
 
@@ -224,7 +227,7 @@ def main():
             # if len(train_loader.dataset.idx) == 1:
             #     save_indices(train_loader.dataset.idx[0])
             # else:
-            save_indices(train_loader.dataset.get_printable())
+            save_indices(train_loader.dataset.get_printable(), epoch)
 
 
         if config.resume is not None:

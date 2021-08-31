@@ -136,6 +136,8 @@ def main():
                 csv_reader = csv.reader(csv_file, delimiter=' ')
                 train_loader.dataset.idx = list(csv_reader)
                 temp = np.array(train_loader.dataset.idx).flatten()
+                assert len(temp) == config.subset_size, f"number of images in dynamic dataset in checkpoint different to now: {len(temp)} and {config.subset_size} respectively"
+                assert highest == 97
                 train_loader.dataset.idx = list(map(int, temp))
         else:
             print("resume pth file not found")

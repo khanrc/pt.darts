@@ -359,8 +359,8 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, exp_nam
                 prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
                 for q, im in enumerate(X):
                     with open(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.txt", "w") as f:
-                        raise AttributeError(logits[q].shape)
-                        f.write(str(logits[q].item()))
+                        for logit in logits[q]:
+                            f.write(str(logit.item()) + " ")
                     save_image(im, f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.png")
 
             else:

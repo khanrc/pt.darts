@@ -139,6 +139,7 @@ def main():
                 assert len(temp) == config.subset_size, f"number of images in dynamic dataset in checkpoint different to now: {len(temp)} and {config.subset_size} respectively"
                 if train_loader.dataset.convert_to_paths:
                     temp = list(map(int, temp))
+                    raise AttributeError(len(train_loader.dataset.train_indices))
                     train_loader.dataset.idx = [train_loader.dataset.train_indices[idx] for idx in temp] # assumes train_indices remains constant (should do as seeding w/in dataloader)
                 else:
                     train_loader.dataset.idx = list(map(int, temp))

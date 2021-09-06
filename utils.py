@@ -237,8 +237,10 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
 
     if thr is None:
         sigmoid = torch.sigmoid(output)
-        sigmoid[output>0.5] = 1
-        sigmoid[output<=0.5] = 0
+        # sigmoid[output>0.5] = 1
+        # sigmoid[output<=0.5] = 0
+        sigmoid[sigmoid>0.5] = 1
+        sigmoid[sigmoid<=0.5] = 0
         avg = 0
         thresholds = np.arange(0.9,1,0.005)
         for a_thr in thresholds:

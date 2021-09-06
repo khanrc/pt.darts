@@ -361,6 +361,14 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, exp_nam
                     with open(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.txt", "w") as f:
                         for logit in logits[q]:
                             f.write(str(logit.item()) + " ")
+                        sigm = torch.sigmoid(logits[q])
+                        sigm[sigm>0.5] = 1
+                        sigm[sigm<=0.5] = 0
+                        f.write("\n")
+                        f.write("###########################################")
+                        f.write("\n")
+                        for logit in sigm:
+                            f.write(str(logit.item()) + " ")
                     save_image(im, f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.png")
 
             else:

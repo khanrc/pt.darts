@@ -128,6 +128,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--use_curriculum', default=False, type=bool, help="use learned curriculum")
         parser.add_argument('--final_mined', default=False, type=bool, help="use final mined curriculum only")
         parser.add_argument('--bede', default=False, type=bool, help="are we using bede server?")
+        parser.add_argument('--vanilla', default=False, type=bool, help="are we using vanilla data")
 
         return parser
 

@@ -78,6 +78,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--resume', default=None, type=str, help="where to save pth file")
         parser.add_argument('--best_resume', default=None, type=str, help="where to save best pth file")
         parser.add_argument('--curriculum', default=False, type=bool, help="are we using curriculum?")
+        parser.add_argument('--vanilla', default=False, type=bool, help="are we using vanilla data")
 
         return parser
 

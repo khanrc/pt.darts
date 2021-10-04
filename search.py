@@ -206,7 +206,7 @@ def main():
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch)
-            save_indices(train_loader.dataset.get_printable(), epoch)
+            save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
 
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
@@ -256,11 +256,17 @@ def main():
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))
 
-def save_indices(data, epoch):
+def save_indices(data, epoch, images=None):
     if config.ncc:
         with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')
             csv_writer.writerow(data)
+        if images is not None:
+            image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}'
+            os.makedirs(image_dir)
+            for q, image in enumerate(images):
+                image.save(image_dir + "{q}.png")
+
     else:
         with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             csv_writer = csv.writer(csv_file, delimiter=' ')

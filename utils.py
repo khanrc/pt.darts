@@ -134,19 +134,21 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
-        subset_size = 10000
-        if search:
-            subset_size = 100
-        trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
-            # trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)
+        if config.vanilla:
+            trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
+            shape = trn_data.data.shape
+            input_channels = 3 if len(shape) == 4 else 1
+            assert shape[1] == shape[2], "not expected shape = {}".format(shape)
+            input_size = shape[1]
+        else:
+            subset_size = 10000
+            if search:
+                subset_size = 100
+            trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
 
-        input_size = len(trn_data)
-        input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
-        # # assuming shape is NHW or NHWC
-        # shape = trn_data.data.shape
-        # input_channels = 3 if len(shape) == 4 else 1
-        # assert shape[1] == shape[2], "not expected shape = {}".format(shape)
-        # input_size = shape[1]
+            input_size = len(trn_data)
+            input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+
 
     ret = [input_size, input_channels, n_classes, trn_data]
     if validation: # append validation data
@@ -169,7 +171,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         elif dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'imagenet':
+        elif dataset == 'imagenet' and not config.vanilla: # only dset that can be vanilla w/ special things going on (ie convert to paths)
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
         elif dataset == 'imageobj':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))

@@ -171,7 +171,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         elif dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'imagenet' and not config.vanilla: # only dset that can be vanilla w/ special things going on (ie convert to paths)
+        elif dataset == 'imagenet': # only dset that can be vanilla w/ special things going on (need custom loader since no longer public dset)
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
         elif dataset == 'imageobj':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))

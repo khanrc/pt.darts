@@ -105,6 +105,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         transforms.ToTensor(),
         normalize,
     ])
+    if config.badpath:
+        auto_resume = "badpath"
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     if config.dynamic:
@@ -149,7 +151,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         else:
             subset_size = 10000
             if search:
-                subset_size = 100
+                subset_size = config.subset_size
             trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
 
             input_size = len(trn_data)

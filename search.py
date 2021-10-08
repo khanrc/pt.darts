@@ -258,20 +258,21 @@ def main():
     logger.info("Training end {}".format(time.time()-start_time))
 
 def save_indices(data, epoch, images=None):
-    if config.ncc:
-        with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
-            csv_writer = csv.writer(csv_file, delimiter=' ')
-            csv_writer.writerow(data)
-        if images is not None:
-            image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}'
-            os.makedirs(image_dir)
-            for q, image in enumerate(images):
-                image.save(image_dir + "{q}.png")
+    if not config.badpath:
+        if config.ncc:
+            with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=' ')
+                csv_writer.writerow(data)
+            if images is not None:
+                image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}'
+                os.makedirs(image_dir)
+                for q, image in enumerate(images):
+                    image.save(image_dir + "{q}.png")
 
-    else:
-        with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
-            csv_writer = csv.writer(csv_file, delimiter=' ')
-            csv_writer.writerow(data)
+        else:
+            with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
+                csv_writer = csv.writer(csv_file, delimiter=' ')
+                csv_writer.writerow(data)
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):

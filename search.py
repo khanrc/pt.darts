@@ -17,6 +17,7 @@ import csv
 from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
+import wandb
 
 config = SearchConfig()
 
@@ -31,6 +32,10 @@ config.print_params(logger.info)
 
 
 def main():
+    wandb.init(
+        entity="mattpoyser",
+        config=config,
+    )
     start_time = time.time()
     logger.info("Logger is set - training start {}".format(start_time))
 
@@ -175,6 +180,7 @@ def main():
             # validation
             cur_step = (epoch+1) * len(train_loader)
             top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config.name)
+            wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
                 print_mode = False
@@ -256,6 +262,7 @@ def main():
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
     logger.info("Best Genotype = {}".format(best_genotype))
     logger.info("Training end {}".format(time.time()-start_time))
+    wandb.finish()
 
 def save_indices(data, epoch, images=None):
     if not config.badpath:

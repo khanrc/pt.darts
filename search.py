@@ -18,6 +18,7 @@ from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
+wandb.login()
 
 config = SearchConfig()
 

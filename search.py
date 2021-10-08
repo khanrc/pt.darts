@@ -18,7 +18,6 @@ from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
-wandb.login()
 
 config = SearchConfig()
 
@@ -35,6 +34,7 @@ config.print_params(logger.info)
 def main():
     wandb.init(
         entity="mattpoyser",
+        project="darts",
         config=config,
     )
     start_time = time.time()

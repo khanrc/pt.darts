@@ -266,7 +266,7 @@ def main():
     wandb.finish()
 
 def save_indices(data, epoch, images=None):
-    if not config.badpath:
+    if not config.badpath and not config.nosave:
         if config.ncc:
             with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
                 csv_writer = csv.writer(csv_file, delimiter=' ')

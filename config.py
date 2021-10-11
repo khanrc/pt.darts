@@ -80,6 +80,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--curriculum', default=False, type=bool, help="are we using curriculum?")
         parser.add_argument('--vanilla', default=False, type=bool, help="are we using vanilla data")
         parser.add_argument('--badpath', default=False, type=bool, help="are we using untrained autoencoder?")
+        parser.add_argument('--nosave', default=False, type=bool, help="are we producing visualiation of updates?")
 
         return parser
 

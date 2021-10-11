@@ -275,7 +275,7 @@ def save_indices(data, epoch, images=None):
                 image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}'
                 os.makedirs(image_dir)
                 for q, image in enumerate(images):
-                    image.save(image_dir + "{q}.png")
+                    image.save(image_dir + f"{q}.png")
 
         else:
             with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:

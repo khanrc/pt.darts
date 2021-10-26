@@ -171,6 +171,7 @@ def main():
 
         if epoch_type or just_updated or not config.dynamic: # 1 is train, as normal (0 is dataset update)
             just_updated = False
+            just_loaded = False
             # training
             hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
             if config.dynamic:

@@ -325,7 +325,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
         correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
-        raise AttributeError(len(train_loader), batch_size, len(correct), len(new_correct), len(new_hardness))
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
@@ -351,6 +350,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
+    raise AttributeError(len(train_loader), batch_size, len(correct), len(new_correct), len(new_hardness))
 
     return hardness, correct
 

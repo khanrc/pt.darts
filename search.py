@@ -103,7 +103,7 @@ def main():
     print_mode = False
     non_update_epochs = 0
     top1 = None
-    if config.dynamic:
+    if config.dynamic and not config.nosave:
         save_indices(train_loader.dataset.get_printable(), 0)
     start_epoch = 0
     just_loaded = False
@@ -298,7 +298,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
-    raise AttributeError(len(train_loader), batch_size, len(correct))
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
@@ -326,6 +325,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
         correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
+        raise AttributeError(len(train_loader), batch_size, len(correct), len(new_correct), len(new_hardness))
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()

@@ -350,7 +350,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
-    raise AttributeError(len(train_loader), batch_size, len(correct), len(new_correct), len(new_hardness))
 
     return hardness, correct
 

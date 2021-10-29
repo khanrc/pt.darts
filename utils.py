@@ -15,6 +15,7 @@ sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
 from dataloader import DynamicDataset
 from subloader import SubDataset
+from imageloader import ImageLoader
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
@@ -180,7 +181,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         elif dataset == 'cityscapes':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
         elif dataset == 'imagenet': # only dset that can be vanilla w/ special things going on (need custom loader since no longer public dset)
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
+            if search:
+                ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
+            else:
+                ret.append(ImageLoader(transforms=val_transform))
         elif dataset == 'imageobj':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
         elif dataset == 'cocomask':

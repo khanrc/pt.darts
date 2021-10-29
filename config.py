@@ -132,6 +132,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--final_mined', default=False, type=bool, help="use final mined curriculum only")
         parser.add_argument('--bede', default=False, type=bool, help="are we using bede server?")
         parser.add_argument('--vanilla', default=False, type=bool, help="are we using vanilla data")
+        parser.add_argument('--badpath', default=False, type=bool, help="are we using untrained autoencoder?")
 
         return parser
 

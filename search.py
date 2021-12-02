@@ -181,7 +181,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config.name)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
             wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
@@ -353,7 +353,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     return hardness, correct
 
-def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, exp_name):
+def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
+    exp_name = config.name
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -374,20 +375,21 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, exp_nam
 
             if is_multi:
                 prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
-                for q, im in enumerate(X):
-                    with open(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.txt", "w") as f:
-                        for logit in logits[q]:
-                            f.write(str(logit.item()) + " ")
-                        sigm = torch.sigmoid(logits[q])
-                        sigm[sigm>0.5] = 1
-                        sigm[sigm<=0.5] = 0
-                        f.write("\n")
-                        f.write("###########################################")
-                        f.write("\n")
-                        for logit in sigm:
-                            f.write(str(logit.item()) + " ")
-                    os.makedirs(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/")
-                    save_image(im, f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/{q}.png")
+                if not config.nosave:
+                    for q, im in enumerate(X):
+                        with open(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.txt", "w") as f:
+                            for logit in logits[q]:
+                                f.write(str(logit.item()) + " ")
+                            sigm = torch.sigmoid(logits[q])
+                            sigm[sigm>0.5] = 1
+                            sigm[sigm<=0.5] = 0
+                            f.write("\n")
+                            f.write("###########################################")
+                            f.write("\n")
+                            for logit in sigm:
+                                f.write(str(logit.item()) + " ")
+                            os.makedirs(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/")
+                            save_image(im, f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/{q}.png")
 
             else:
                 prec1, prec5 = utils.accuracy(logits, y, topk=(1, 5))

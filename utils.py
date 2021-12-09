@@ -269,7 +269,7 @@ def accuracy_multilabel(output, target, topk=(1,), thr=None):
             if sample.sum().float() / batch_size > thr:
                 avg += 1
         ret = avg / samples.size(0)
-        print(f"ret at threshold {thr} is {ret}")
+        # print(f"ret at threshold {thr} is {ret}")
         return ret
 
 

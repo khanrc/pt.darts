@@ -353,7 +353,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
-
+    raise AttributeError(len(correct))
     return hardness, correct
 
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
@@ -482,6 +482,7 @@ def get_hardness(output, target, is_multi):
         hardness = np.array(hardness)
         # raise AttributeError(output, target, hardness_scaler, hardness)
 
+    print("hardness scaler", len(hardness_scaler))
     return hardness, hardness_scaler
 
 

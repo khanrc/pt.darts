@@ -328,7 +328,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
         correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
-        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct))
+        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()

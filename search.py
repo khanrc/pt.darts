@@ -391,7 +391,8 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
                             f.write("\n")
                             for logit in sigm:
                                 f.write(str(logit.item()) + " ")
-                            os.makedirs(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/")
+                            if not os.path.isdir(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/"):
+                                os.makedirs(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/")
                             save_image(im, f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{step}/{q}.png")
 
             else:

@@ -247,6 +247,24 @@ class AverageMeter():
 #     sigmoid = torch.sigmoid(output)
 #
 #     avp = ap(target, sigmoid)
+
+def accuracy_multilabel_new(output, target, topk=(1,)):
+    assert max(topk) == 1 # topk doesn't make sense for multilabel
+
+    sigmoid = torch.sigmoid(output)
+    # sigmoid[output>0.5] = 1
+    # sigmoid[output<=0.5] = 0
+    sigmoid[sigmoid > 0.5] = 1
+    sigmoid[sigmoid <= 0.5] = 0
+    is_one_sigm = np.where(np.float32(sigmoid)==1)
+    is_one_lab = np.where(np.float32(target)==1)
+
+    intersection = len(np.intersect1d(is_one_sigm, is_one_lab))
+    union = len(np.union1d(is_one_sigm, is_one_lab))
+    return intersection/union
+
+
+
 def accuracy_multilabel(output, target, topk=(1,), thr=None):
     assert max(topk) == 1 # topk doesn't make sense for multilabel
 

@@ -82,6 +82,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--badpath', default=False, type=bool, help="are we using untrained autoencoder?")
         parser.add_argument('--nosave', default=False, type=bool, help="are we producing visualiation of updates?")
         parser.add_argument('--mining', default=False, type=bool, help="are we producing visualiation of updates?")
+        parser.add_argument('--new_acc', default=False, type=bool, help="are we using intersection/union accuracy?")
 
         return parser
 

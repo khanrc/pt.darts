@@ -334,7 +334,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.step()
 
         if is_multi:
-            prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
+            if config.new_acc:
+                prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
+            else:
+                prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
         else:
             prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
         losses.update(loss.item(), N)
@@ -377,7 +380,10 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
                 
 
             if is_multi:
-                prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
+                if config.new_acc:
+                    prec1, prec5 = utils.accuracy_multilabel_new(logits, y) # top5 doesnt apply
+                else:
+                    prec1, prec5 = utils.accuracy_multilabel(logits, y)  # top5 doesnt apply
                 if not config.nosave:
                     for q, im in enumerate(X):
                         with open(f"/home2/lgfm95/nas/darts/tempSave/curriculums/{exp_name}/{exp_name}_{step}_{q}.txt", "w") as f:

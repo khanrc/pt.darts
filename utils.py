@@ -256,8 +256,8 @@ def accuracy_multilabel_new(output, target, topk=(1,)):
     # sigmoid[output<=0.5] = 0
     sigmoid[sigmoid > 0.5] = 1
     sigmoid[sigmoid <= 0.5] = 0
-    is_one_sigm = np.where(np.float32(sigmoid)==1)
-    is_one_lab = np.where(np.float32(target)==1)
+    is_one_sigm = np.where(np.float32(sigmoid.detach().cpu())==1)
+    is_one_lab = np.where(np.float32(target.detach().cpu())==1)
 
     intersection = len(np.intersect1d(is_one_sigm, is_one_lab))
     union = len(np.union1d(is_one_sigm, is_one_lab))

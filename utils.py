@@ -12,6 +12,7 @@ from config import SearchConfig, AugmentConfig
 sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
 sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
+sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
 from dataloader import DynamicDataset
 from subloader import SubDataset
@@ -261,7 +262,7 @@ def accuracy_multilabel_new(output, target, topk=(1,)):
 
     intersection = len(np.intersect1d(is_one_sigm, is_one_lab))
     union = len(np.union1d(is_one_sigm, is_one_lab))
-    return intersection/union
+    return intersection/union, np.array(0)
 
 
 

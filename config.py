@@ -83,6 +83,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--nosave', default=False, type=bool, help="are we producing visualiation of updates?")
         parser.add_argument('--mining', default=False, type=bool, help="are we producing visualiation of updates?")
         parser.add_argument('--new_acc', default=False, type=bool, help="are we using intersection/union accuracy?")
+        parser.add_argument('--minedimagefname', default="dynGood", type=str, help="folder name to save mined images under")
 
         return parser
 

@@ -272,11 +272,11 @@ def main():
 def save_indices(data, epoch, images=None):
     if not config.badpath and not config.nosave:
         if config.ncc:
-            with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
-                csv_writer = csv.writer(csv_file, delimiter=' ')
-                csv_writer.writerow(data)
+            # with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
+            #     csv_writer = csv.writer(csv_file, delimiter=' ')
+            #     csv_writer.writerow(data)
             if images is not None:
-                image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}'
+                image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/{config.minedimagefname}_{epoch}'
                 os.makedirs(image_dir)
                 for q, image in enumerate(images):
                     image.save(image_dir + f"{q}.png")

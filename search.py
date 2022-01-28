@@ -275,13 +275,15 @@ def save_indices(data, epoch, images=None):
             # with open(f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:
             #     csv_writer = csv.writer(csv_file, delimiter=' ')
             #     csv_writer.writerow(data)
-            print(f"about to save curriculum; {len(images)}")
             if images is not None:
+                print(f"about to save curriculum; {len(images)}")
                 image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/{config.minedimagefname}_{epoch}'
                 print(f"saving curriculum in {image_dir}")
                 os.makedirs(image_dir)
                 for q, image in enumerate(images):
                     image.save(image_dir + f"{q}.png")
+            else:
+                print("images is none")
 
         else:
             with open(f'/hdd/PhD/nas/pt.darts/tempSave/curriculums/{config.name}/indices_{config.name}_{epoch}.csv', 'w') as csv_file:

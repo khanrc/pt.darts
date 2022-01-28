@@ -79,10 +79,12 @@ class SearchCNN(nn.Module):
 class SearchCNNController(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
     def __init__(self, C_in, C, n_classes, n_layers, criterion, n_nodes=4, stem_multiplier=3,
-                 device_ids=None):
+                 device_ids=None, class_loss=None, weight_dict=None):
         super().__init__()
         self.n_nodes = n_nodes
         self.criterion = criterion
+        self.class_loss = class_loss
+        self.weight_dict = weight_dict # for detr loss
         if device_ids is None:
             device_ids = list(range(torch.cuda.device_count()))
         self.device_ids = device_ids

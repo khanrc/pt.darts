@@ -30,8 +30,14 @@ writer.add_text('config', config.as_markdown(), 0)
 logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
 config.print_params(logger.info)
 
+sys.path.append('./detr/')
+
+from detr.models.matcher import HungarianMatcher
+from detr.models.detr import SetCriterion
+from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
 def main():
+    os.environ['WANDB_SILENT']="true"
     wandb.init(
         entity="mattpoyser",
         project="darts",
@@ -43,6 +49,7 @@ def main():
     is_multi = False
     if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
+
 
     # set default gpu device id
     torch.cuda.set_device(config.gpus[0])
@@ -59,10 +66,24 @@ def main():
         config.dataset, config.data_path, cutout_length=0, validation=True, search=True, bede=config.bede)
 
     net_crit = nn.CrossEntropyLoss().to(device)
+
+    # additional parameters for detr
+    class_loss = None
+    weight_dict = None
+
     if is_multi:
         net_crit = nn.BCEWithLogitsLoss().to(device)
+    if config.dataset == "pure_det":
+        num_classes = 16
+        matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
+        weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
+        weight_dict['loss_giou'] = 2
+        losses = ['labels', 'boxes', 'cardinality']
+        net_crit = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
+                                 eos_coef=0.1, losses=losses).to(device)
+        class_loss = nn.NLLLoss().to(device)
     model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                net_crit, device_ids=config.gpus, n_nodes=config.nodes)
+                                net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss, weight_dict=weight_dict)
     model = model.to(device)
 
     # weights optimizer

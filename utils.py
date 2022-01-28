@@ -18,6 +18,7 @@ from dataloader import DynamicDataset
 from subloader import SubDataset
 from subloaderfull import SubDatasetFull
 from imageloader import ImageLoader
+from det_dataset import Imagenet_Det as Pure_Det
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
@@ -97,6 +98,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         is_detection = True
         convert_to_paths = True
         # convert_to_lbl_paths = True
+    elif dataset == "pure_det":
+        n_classes = 16
+        dynamic_name = "imageobj"
     else:
         raise ValueError(dataset)
 
@@ -139,7 +143,15 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
-        if config.vanilla:
+        if dataset == "pure_det":
+            root = '/hdd/PhD/data/imagenet2017detection/'
+            # # train_path = '/home2/lgfm95/coco/'
+            # train_path = '/hdd/PhD/data/coco/'
+            # trn_data = COCOLoader(train_path, trn_transform, class_only=False)
+            trn_data = Pure_Det(root, transforms=val_transform)
+            input_size = len(trn_data)
+            input_channels = 3
+        elif config.vanilla:
             if dataset == 'imagenet' or dataset == "imageobj":
                 trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False,
                                       dataset_name=dynamic_name)
@@ -191,6 +203,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
         elif dataset == 'cocomask':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
+        elif dataset == 'pure_det':
+            root = '/hdd/PhD/data/imagenet2017detection/'
+            ret.append(Pure_Det(root, transforms=val_transform))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

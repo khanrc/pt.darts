@@ -46,7 +46,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         n_classes = 10
         # nz = 32
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar10Good.pth.tar"
-        # auto_resume = "badpath"
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"
@@ -63,14 +62,12 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         dynamic_name = "mnist"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
-        auto_resume = "badpath"
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
-        auto_resume = "badpath"
     elif dataset == 'planes':
         # dset_cls = dset.FashionMNIST
         n_classes = 70

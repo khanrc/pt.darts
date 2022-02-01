@@ -63,7 +63,8 @@ def main():
 
     # get data with meta info
     input_size, input_channels, n_classes, train_data, val_data = utils.get_data(
-        config.dataset, config.data_path, cutout_length=0, validation=True, search=True, bede=config.bede)
+        config.dataset, config.data_path, cutout_length=0, validation=True, search=True,
+        bede=config.bede, is_concat=config.is_concat)
 
     net_crit = nn.CrossEntropyLoss().to(device)
 
@@ -327,6 +328,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     batch_size = config.batch_size
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
+        if config.dataset == "pure_det":
+            raise AttributeError(trn_y["labels"])
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)

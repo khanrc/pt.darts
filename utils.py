@@ -24,7 +24,7 @@ sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
 
 
-def get_data(dataset, data_path, cutout_length, validation, search, bede):
+def get_data(dataset, data_path, cutout_length, validation, search, bede, is_concat):
     if search:
         config = SearchConfig()
     else:
@@ -46,7 +46,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         n_classes = 10
         # nz = 32
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCifar10Good.pth.tar"
-        # auto_resume = "badpath"
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"
@@ -63,14 +62,12 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         dynamic_name = "mnist"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
-        auto_resume = "badpath"
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
-        auto_resume = "badpath"
     elif dataset == 'planes':
         # dset_cls = dset.FashionMNIST
         n_classes = 70
@@ -100,7 +97,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
         # convert_to_lbl_paths = True
     elif dataset == "pure_det":
         n_classes = 16
-        dynamic_name = "imageobj"
+        dynamic_name = "pure_det"
+        grayscale = False
+        is_detection = True
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -138,21 +138,14 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede):
             is_detection=is_detection,
             convert_to_paths=convert_to_paths,
             convert_to_lbl_paths=convert_to_lbl_paths,
-            bede=bede)
+            bede=bede,
+            is_concat=is_concat)
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
     else:
-        if dataset == "pure_det":
-            root = '/hdd/PhD/data/imagenet2017detection/'
-            # # train_path = '/home2/lgfm95/coco/'
-            # train_path = '/hdd/PhD/data/coco/'
-            # trn_data = COCOLoader(train_path, trn_transform, class_only=False)
-            trn_data = Pure_Det(root, transforms=val_transform)
-            input_size = len(trn_data)
-            input_channels = 3
-        elif config.vanilla:
-            if dataset == 'imagenet' or dataset == "imageobj":
+        if config.vanilla:
+            if dataset == 'imagenet' or dataset == "imageobj" or dataset == "pure_det":
                 trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False,
                                       dataset_name=dynamic_name)
                 input_size = len(trn_data)

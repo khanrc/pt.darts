@@ -329,7 +329,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     batch_size = config.batch_size
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         if config.dataset == "pure_det":
-            raise AttributeError(trn_y["labels"])
+            for q, im in enumerate(trn_X):
+                toSave = transforms.ToPILImage()(im.cpu())
+                savePath = "./tempSave/validate/{}-{}.png".format((step * batch_size) + q, trn_y["labels"].item())
+                toSave.save(savePath)
+            continue
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)

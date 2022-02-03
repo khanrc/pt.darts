@@ -427,6 +427,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             logits = model(trn_X)
         if is_multi:
             loss = model.criterion(logits, trn_y.float())
+        elif is_det:
+            raise AttributeError("todo")
         else:
             loss = model.criterion(logits, trn_y)
         new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)

@@ -89,7 +89,7 @@ class SearchCNN(nn.Module):
         # out = out.view(out.size(0), -1) # flatten
         # logits = self.linear(out)
         # return logits
-        return self.model(x, targets=y)
+        return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
 
 
 class SearchCNNControllerObj(nn.Module):

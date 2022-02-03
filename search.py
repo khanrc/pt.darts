@@ -38,14 +38,16 @@ from detr.models.detr import SetCriterion
 from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
 
+# torch.multiprocessing.set_start_method('spawn') # https://github.com/pytorch/pytorch/issues/40403
+# caused by putting dictionary elements onto gpu
 def collate_fn(batch):
     data, labels = zip(*batch)
     stacked_data = torch.stack(data, dim=0)
-    new_labels = []
-    for label in labels:
-        new_labels.append({"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)})
-    # labels = [{"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)} for label in labels]
-    return stacked_data, new_labels
+    # new_labels = []
+    # for label in labels:
+    #     new_labels.append({"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)})
+    labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
+    return stacked_data, labels
     # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
     # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)
     # return stacked_data, {"labels": labels, "boxes": boxes}

@@ -41,7 +41,7 @@ from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 def collate_fn(batch):
     data, labels = zip(*batch)
     stacked_data = torch.stack(data, dim=0)
-    labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
+    labels = [{"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)} for label in labels]
     return stacked_data, labels
     # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
     # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)

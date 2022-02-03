@@ -36,6 +36,11 @@ from detr.models.matcher import HungarianMatcher
 from detr.models.detr import SetCriterion
 from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
+
+def collate_fn(batch):
+    return tuple(zip(*batch))
+
+
 def main():
     os.environ['WANDB_SILENT']="true"
     wandb.init(
@@ -100,16 +105,25 @@ def main():
     # indices = list(range(n_train))
     # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
     # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+
+    collate_func = None
+    if config.dataset == "pure_det":
+        collate_func = collate_fn
+
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
                                                # sampler=train_sampler,
                                                num_workers=config.workers,
-                                               pin_memory=True)
+                                               pin_memory=True,
+                                               collate_fn=collate_func
+                                               )
     valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
                                                # sampler=valid_sampler,
                                                num_workers=config.workers,
-                                               pin_memory=True)
+                                               pin_memory=True,
+                                               collate_fn=collate_func
+                                               )
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #     w_optim, config.epochs, eta_min=config.w_lr_min)
     # print ("grep", config.workers, config.batch_size, config.name)
@@ -313,6 +327,7 @@ def save_indices(data, epoch, images=None):
                 csv_writer.writerow(data)
 
 
+from det_dataset import Imagenet_Det as Pure_Det
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
@@ -327,13 +342,32 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
+    resize_transform = [transforms.Resize((128,128))]
+    MEAN = [0.13066051707548254]
+    STD = [0.30810780244715075]
+    normalize = [
+        transforms.ToTensor(),
+        transforms.Normalize(MEAN, STD)
+    ]
+    valid_transform = transforms.Compose(resize_transform + normalize)
+    root = '/hdd/PhD/data/imagenet2017detection/'
+    temp_dset = Pure_Det(root, transforms=valid_transform)
+    classes = temp_dset.classes
+    inv_map = {v: k for k, v in classes.items()}
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-        if config.dataset == "pure_det":
-            for q, im in enumerate(trn_X):
-                toSave = transforms.ToPILImage()(im.cpu())
-                savePath = "./tempSave/validate/{}-{}.png".format((step * batch_size) + q, trn_y["labels"].item())
-                toSave.save(savePath)
-            continue
+        # if config.dataset == "pure_det":
+        #     for q, im in enumerate(trn_X):
+        #         os.makedirs(f"/hdd/PhD/nas/pt.darts/tempSave/validate/{(step * batch_size) + q}", exist_ok=True)
+        #         toSave = transforms.ToPILImage()(im.cpu())
+        #         savePath = f"./tempSave/validate/{(step * batch_size) + q}/{0}.png"
+        #         toSave.save(savePath)
+        #         with open(f"/hdd/PhD/nas/pt.darts/tempSave/validate/{(step * batch_size) + q}/0.txt", "w") as new_f:
+        #             for lab in trn_y[q]["labels"][0]:
+        #                 # raise AttributeError(inv_map[lab_class], lab_class)
+        #                 new_f.write(inv_map[lab.item()])
+        #                 new_f.write("\n")
+        #     continue
+
         trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
         val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)

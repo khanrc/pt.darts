@@ -9,6 +9,7 @@ from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils
 from models.search_cnn import SearchCNNController
+from models.search_cnn_obj import SearchCNNControllerObj
 from architect import Architect
 from visualize import plot
 import torch.nn.functional as F
@@ -38,8 +39,18 @@ from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
 
 def collate_fn(batch):
-    return tuple(zip(*batch))
+    data, labels = zip(*batch)
+    stacked_data = torch.stack(data, dim=0)
+    labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
+    return stacked_data, labels
+    # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
+    # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)
+    # return stacked_data, {"labels": labels, "boxes": boxes}
 
+    # return stacked_data, (classes, boxes)
+
+    # stacked_labels = torch.stack(labels, dim=0)
+    # return stacked_data, stacked_labels
 
 def main():
     os.environ['WANDB_SILENT']="true"
@@ -52,8 +63,11 @@ def main():
     logger.info("Logger is set - training start {}".format(start_time))
 
     is_multi = False
+    is_det = False
     if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
+    elif config.dataset == "pure_det":
+        is_det = True
 
 
     # set default gpu device id
@@ -88,8 +102,14 @@ def main():
         net_crit = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
                                  eos_coef=0.1, losses=losses).to(device)
         class_loss = nn.NLLLoss().to(device)
-    model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss, weight_dict=weight_dict)
+    if config.dataset == "pure_det":
+        model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
+                                    net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
+                                    weight_dict=weight_dict)
+    else:
+        model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
+                                    net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss, weight_dict=weight_dict)
+
     model = model.to(device)
 
     # weights optimizer
@@ -209,7 +229,7 @@ def main():
             just_updated = False
             just_loaded = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
+            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi, is_det)
             if config.dynamic:
                 train_loader.dataset.update_correct(correct)
                 if config.ncc and config.visualize:
@@ -327,8 +347,9 @@ def save_indices(data, epoch, images=None):
                 csv_writer.writerow(data)
 
 
+sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi, is_det):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -342,18 +363,18 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
-    resize_transform = [transforms.Resize((128,128))]
-    MEAN = [0.13066051707548254]
-    STD = [0.30810780244715075]
-    normalize = [
-        transforms.ToTensor(),
-        transforms.Normalize(MEAN, STD)
-    ]
-    valid_transform = transforms.Compose(resize_transform + normalize)
-    root = '/hdd/PhD/data/imagenet2017detection/'
-    temp_dset = Pure_Det(root, transforms=valid_transform)
-    classes = temp_dset.classes
-    inv_map = {v: k for k, v in classes.items()}
+    # resize_transform = [transforms.Resize((128,128))]
+    # MEAN = [0.13066051707548254]
+    # STD = [0.30810780244715075]
+    # normalize = [
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(MEAN, STD)
+    # ]
+    # valid_transform = transforms.Compose(resize_transform + normalize)
+    # root = '/hdd/PhD/data/imagenet2017detection/'
+    # temp_dset = Pure_Det(root, transforms=valid_transform)
+    # classes = temp_dset.classes
+    # inv_map = {v: k for k, v in classes.items()}
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         # if config.dataset == "pure_det":
         #     for q, im in enumerate(trn_X):
@@ -368,24 +389,37 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         #                 new_f.write("\n")
         #     continue
 
-        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
-        val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
+        if is_det:
+            trn_X = trn_X.to(device, non_blocking=True)
+            val_X = val_X.to(device, non_blocking=True)
+            # trn_y = trn_y.to(device, non_blocking=True)
+            # val_y = val_y.to(device, non_blocking=True)
+            # trn_classes, trn_boxes = trn_y
+            # trn_classes, trn_boxes = trn_classes.to(device, non_blocking=True), trn_boxes.to(device, non_blocking=True)
+            # val_classes, val_boxes = val_y
+            # val_classes, val_boxes = val_classes.to(device, non_blocking=True), val_boxes.to(device, non_blocking=True)
+        else:
+            trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
+            val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
         # print("grep label shape", trn_y)
-        if step < 200 and not is_multi:
+        if step < 200 and not is_multi and not is_det:
             for q, im in enumerate(trn_X):
                 toSave = transforms.ToPILImage()(im.cpu())
                 savePath = "./tempSave/gt/{}-{}.png".format((step * batch_size) + q, trn_y[q])
                 toSave.save(savePath)
 
         # phase 2. architect step (alpha)
-        alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
-        alpha_optim.step()
+        # alpha_optim.zero_grad()
+        # architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        # alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        logits = model(trn_X)
+        if is_det:
+            logits = model(trn_X, trn_y)
+        else:
+            logits = model(trn_X)
         if is_multi:
             loss = model.criterion(logits, trn_y.float())
         else:

@@ -197,8 +197,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         elif dataset == 'cocomask':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
         elif dataset == 'pure_det':
-            root = '/hdd/PhD/data/imagenet2017detection/'
-            ret.append(Pure_Det(root, transforms=val_transform))
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="pure_det", bede=bede))
+
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

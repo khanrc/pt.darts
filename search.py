@@ -475,7 +475,12 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     .format(
                         epoch+1, config.epochs, step, len(train_loader)-1, losses=losses))
         cur_step += 1
-    logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, "n/a" if is_det else top1.avg))
+    if is_det:
+        logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch+1, config.epochs, losses.avg))
+    else:        
+        logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
+
+
     return hardness, correct
 
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):

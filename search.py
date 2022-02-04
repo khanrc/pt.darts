@@ -406,9 +406,12 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                 prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
         else:
             prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
-        losses.update(loss.item(), N)
-        top1.update(prec1.item(), N)
-        top5.update(prec5.item(), N)
+        try:
+            losses.update(loss.item(), N)
+            top1.update(prec1.item(), N)
+            top5.update(prec5.item(), N)
+        except AttributeError:
+            raise AttributeError(loss, prec1, prec5)
 
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(

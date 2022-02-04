@@ -5,7 +5,7 @@ from contextlib import redirect_stdout
 import numpy as np
 import pycocotools.mask as mask_util
 import torch
-import utils
+import detection_utils
 from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 

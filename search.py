@@ -428,7 +428,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         if is_multi:
             loss = model.criterion(logits, trn_y.float())
         elif is_det:
-            print(logits, trn_y)
+            loss = sum(_loss for _loss in logits.values())
         else:
             loss = model.criterion(logits, trn_y)
         new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)

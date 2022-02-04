@@ -19,6 +19,7 @@ from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
+from detectionengine import evaluate
 
 config = SearchConfig()
 
@@ -242,7 +243,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, is_det, config)
             wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
@@ -477,20 +478,22 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         cur_step += 1
     if is_det:
         logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch+1, config.epochs, losses.avg))
-    else:        
+    else:
         logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
 
     return hardness, correct
 
-def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
+def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, is_det, config):
     exp_name = config.name
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
     model.eval()
-
+    if is_det:
+        evaluate(model, valid_loader, device=device)
+        return 0,0
     with torch.no_grad():
         for step, (X, y) in enumerate(valid_loader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)

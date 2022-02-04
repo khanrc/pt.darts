@@ -431,39 +431,51 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             loss = sum(_loss for _loss in logits.values())
         else:
             loss = model.criterion(logits, trn_y)
-        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
+
+        if is_det:
+            print("todo not updating hardness, need logits not loss to be returned by model")
+        else:
+            new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
+            hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+            correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
+            print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
+
+
         loss.backward()
-        hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
-        correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
-        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
-        if is_multi:
-            if config.new_acc:
-                prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
+        if not is_det: # no mAP calculation until validation step
+            if is_multi:
+                if config.new_acc:
+                    prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
+                else:
+                    prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
             else:
-                prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
+                prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+            losses.update(loss.item(), N)
+            top1.update(prec1.item(), N)
+            top5.update(prec5.item(), N)
+
+            if step % config.print_freq == 0 or step == len(train_loader)-1:
+                logger.info(
+                    "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
+                    "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
+                        epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
+                        top1=top1, top5=top5))
+
+            writer.add_scalar('train/loss', loss.item(), cur_step)
+            writer.add_scalar('train/top1', prec1.item(), cur_step)
+            writer.add_scalar('train/top5', prec5.item(), cur_step)
         else:
-            prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
-        losses.update(loss.item(), N)
-        top1.update(prec1.item(), N)
-        top5.update(prec5.item(), N)
-
-        if step % config.print_freq == 0 or step == len(train_loader)-1:
-            logger.info(
-                "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
-                "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
-                    epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
-                    top1=top1, top5=top5))
-
-        writer.add_scalar('train/loss', loss.item(), cur_step)
-        writer.add_scalar('train/top1', prec1.item(), cur_step)
-        writer.add_scalar('train/top5', prec5.item(), cur_step)
+            if step % config.print_freq == 0 or step == len(train_loader)-1:
+                logger.info(
+                    "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
+                    .format(
+                        epoch+1, config.epochs, step, len(train_loader)-1, losses=losses))
         cur_step += 1
-
-    logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
+    logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, "n/a" if is_det else top1.avg))
     return hardness, correct
 
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):

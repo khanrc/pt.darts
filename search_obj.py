@@ -117,7 +117,7 @@ def main():
                                     net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
                                     weight_dict=weight_dict)
 
-    model = model.to(device)
+    # model = model.to(device)
 
     # weights optimizer
     w_optim = torch.optim.SGD(model.weights(), config.w_lr, momentum=config.w_momentum,
@@ -401,8 +401,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         #                 new_f.write("\n")
         #     continue
 
-        trn_X = trn_X.to(device, non_blocking=True)
-        val_X = val_X.to(device, non_blocking=True)
+        # trn_X = trn_X.to(device, non_blocking=True)
+        # val_X = val_X.to(device, non_blocking=True)
 
         N = trn_X.size(0)
         # print("grep label shape", trn_y)

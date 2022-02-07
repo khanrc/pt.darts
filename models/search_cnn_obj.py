@@ -10,6 +10,7 @@ import sys
 import torchvision
 from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator
+from collections import OrderedDict
 
 def broadcast_list(l, device_ids):
     """ Broadcasting list """
@@ -73,24 +74,52 @@ class SearchCNN(nn.Module):
         roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
                                                         output_size=7,
                                                         sampling_ratio=2)
-        self.model = FasterRCNN(backbone,
-                   num_classes=200,
-                   rpn_anchor_generator=anchor_generator,
-                   box_roi_pool=roi_pooler)
+        # self.model = FasterRCNN(backbone,
+        #            num_classes=200,
+        #            rpn_anchor_generator=anchor_generator,
+        #            box_roi_pool=roi_pooler)
+
+    def forward_prev(self, x, weights_normal, weights_reduce):
+        s0 = s1 = self.stem(x)
+
+        for cell in self.cells:
+            weights = weights_reduce if cell.reduction else weights_normal
+            s0, s1 = s1, cell(s0, s1, weights)
+
+        out = self.gap(s1)
+        out = out.view(out.size(0), -1) # flatten
+        logits = self.linear(out)
+        return logits
 
     def forward(self, x, y, weights_normal, weights_reduce):
-        # s0 = s1 = self.stem(x)
-        #
-        # for cell in self.cells:
-        #     weights = weights_reduce if cell.reduction else weights_normal
-        #     s0, s1 = s1, cell(s0, s1, weights)
-        #
-        # out = self.gap(s1)
-        # out = out.view(out.size(0), -1) # flatten
-        # logits = self.linear(out)
-        # return logits
-        return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
+        # using torchvision.models.detection.generalized_rcnn
+        # skipping sanity checks (read: pray)
 
+        original_image_sizes = []
+        for img in x:
+            val = img.shape[-2:]
+            assert len(val) == 2
+            original_image_sizes.append((val[0], val[1]))
+
+        features = self.backbone(x.tensors)
+        if isinstance(features, torch.Tensor):
+            features = OrderedDict([('0', features)])
+        proposals, proposal_losses = self.rpn(x, features, y)
+        detections, detector_losses = self.roi_heads(features, proposals, x.image_sizes, y)
+        detections = self.transform.postprocess(detections, x.image_sizes, original_image_sizes)
+
+        losses = {}
+        losses.update(detector_losses)
+        losses.update(proposal_losses)
+
+        return self.eager_outputs(losses, detections)
+        # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
+
+    def eager_outputs(self, losses, detections):
+        if self.training:
+            return losses
+
+        return detections
 
 class SearchCNNControllerObj(nn.Module):
     """ SearchCNN controller supporting multi-gpu """

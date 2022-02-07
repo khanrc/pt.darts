@@ -72,6 +72,9 @@ def main():
     logger.info("Logger is set - training start {}".format(start_time))
 
     assert config.dataset == "pure_det"
+    is_multi = False
+    if config.dataset == "imageobj" or config.dataset == "cocomask":
+        is_multi = True
 
     # set default gpu device id
     torch.cuda.set_device(config.gpus[0])

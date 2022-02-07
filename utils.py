@@ -96,7 +96,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         convert_to_paths = True
         # convert_to_lbl_paths = True
     elif dataset == "pure_det":
-        n_classes = 16
+        n_classes = 200
         dynamic_name = "pure_det"
         grayscale = False
         is_detection = True

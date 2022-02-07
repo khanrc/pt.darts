@@ -176,7 +176,7 @@ def convert_to_coco_api(ds):
             ann["image_id"] = image_id
             ann["bbox"] = bboxes[i]
             ann["category_id"] = labels[i]
-            raise AttributeError(labels[i], labels, ann, bboxes, num_objs)
+            raise AttributeError(labels[i], labels, ann, bboxes, num_objs, img.shape)
             categories.add(labels[i])
             ann["area"] = areas[i]
             ann["iscrowd"] = iscrowd[i]

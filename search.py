@@ -47,7 +47,8 @@ def collate_fn(batch):
     # new_labels = []
     # for label in labels:
     #     new_labels.append({"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)})
-    labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
+    labels = [{k: v[0] for k,v in label.items()} for label in labels]
+    # labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
     return stacked_data, labels
     # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
     # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)

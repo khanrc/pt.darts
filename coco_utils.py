@@ -157,12 +157,12 @@ def convert_to_coco_api(ds):
         img_dict["height"] = img.shape[-2]
         img_dict["width"] = img.shape[-1]
         dataset["images"].append(img_dict)
-        bboxes = targets["boxes"].clone()
+        bboxes = targets["boxes"][0].clone()
         bboxes[:, 2:] -= bboxes[:, :2]
         bboxes = bboxes.tolist()
-        labels = targets["labels"].tolist()
-        areas = targets["area"].tolist()
-        iscrowd = targets["iscrowd"].tolist()
+        labels = targets["labels"][0].tolist()
+        areas = targets["area"][0].tolist()
+        iscrowd = targets["iscrowd"][0].tolist()
         if "masks" in targets:
             masks = targets["masks"]
             # make masks Fortran contiguous for coco_mask

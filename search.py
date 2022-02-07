@@ -9,7 +9,6 @@ from tensorboardX import SummaryWriter
 from config import SearchConfig
 import utils
 from models.search_cnn import SearchCNNController
-from models.search_cnn_obj import SearchCNNControllerObj
 from architect import Architect
 from visualize import plot
 import torch.nn.functional as F
@@ -19,7 +18,6 @@ from torchvision import transforms
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
-from detectionengine import evaluate
 
 config = SearchConfig()
 
@@ -39,25 +37,9 @@ from detr.models.detr import SetCriterion
 from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
 
-# torch.multiprocessing.set_start_method('spawn') # https://github.com/pytorch/pytorch/issues/40403
-# caused by putting dictionary elements onto gpu
 def collate_fn(batch):
-    data, labels = zip(*batch)
-    stacked_data = torch.stack(data, dim=0)
-    # new_labels = []
-    # for label in labels:
-    #     new_labels.append({"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)})
-    labels = [{k: v[0] for k,v in label.items()} for label in labels]
-    # labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
-    return stacked_data, labels
-    # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
-    # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)
-    # return stacked_data, {"labels": labels, "boxes": boxes}
+    return tuple(zip(*batch))
 
-    # return stacked_data, (classes, boxes)
-
-    # stacked_labels = torch.stack(labels, dim=0)
-    # return stacked_data, stacked_labels
 
 def main():
     os.environ['WANDB_SILENT']="true"
@@ -70,11 +52,8 @@ def main():
     logger.info("Logger is set - training start {}".format(start_time))
 
     is_multi = False
-    is_det = False
     if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
-    elif config.dataset == "pure_det":
-        is_det = True
 
 
     # set default gpu device id
@@ -109,14 +88,8 @@ def main():
         net_crit = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
                                  eos_coef=0.1, losses=losses).to(device)
         class_loss = nn.NLLLoss().to(device)
-    if config.dataset == "pure_det":
-        model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
-                                    net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
-                                    weight_dict=weight_dict)
-    else:
-        model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                    net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss, weight_dict=weight_dict)
-
+    model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
+                                net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss, weight_dict=weight_dict)
     model = model.to(device)
 
     # weights optimizer
@@ -236,7 +209,7 @@ def main():
             just_updated = False
             just_loaded = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi, is_det)
+            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
             if config.dynamic:
                 train_loader.dataset.update_correct(correct)
                 if config.ncc and config.visualize:
@@ -244,7 +217,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, is_det, config)
+            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
             wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
@@ -354,9 +327,8 @@ def save_indices(data, epoch, images=None):
                 csv_writer.writerow(data)
 
 
-sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
-def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi, is_det):
+def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
@@ -370,18 +342,18 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
-    # resize_transform = [transforms.Resize((128,128))]
-    # MEAN = [0.13066051707548254]
-    # STD = [0.30810780244715075]
-    # normalize = [
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(MEAN, STD)
-    # ]
-    # valid_transform = transforms.Compose(resize_transform + normalize)
-    # root = '/hdd/PhD/data/imagenet2017detection/'
-    # temp_dset = Pure_Det(root, transforms=valid_transform)
-    # classes = temp_dset.classes
-    # inv_map = {v: k for k, v in classes.items()}
+    resize_transform = [transforms.Resize((128,128))]
+    MEAN = [0.13066051707548254]
+    STD = [0.30810780244715075]
+    normalize = [
+        transforms.ToTensor(),
+        transforms.Normalize(MEAN, STD)
+    ]
+    valid_transform = transforms.Compose(resize_transform + normalize)
+    root = '/hdd/PhD/data/imagenet2017detection/'
+    temp_dset = Pure_Det(root, transforms=valid_transform)
+    classes = temp_dset.classes
+    inv_map = {v: k for k, v in classes.items()}
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         # if config.dataset == "pure_det":
         #     for q, im in enumerate(trn_X):
@@ -396,105 +368,74 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         #                 new_f.write("\n")
         #     continue
 
-        if is_det:
-            trn_X = trn_X.to(device, non_blocking=True)
-            val_X = val_X.to(device, non_blocking=True)
-            # trn_y = trn_y.to(device, non_blocking=True)
-            # val_y = val_y.to(device, non_blocking=True)
-            # trn_classes, trn_boxes = trn_y
-            # trn_classes, trn_boxes = trn_classes.to(device, non_blocking=True), trn_boxes.to(device, non_blocking=True)
-            # val_classes, val_boxes = val_y
-            # val_classes, val_boxes = val_classes.to(device, non_blocking=True), val_boxes.to(device, non_blocking=True)
-        else:
-            trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
-            val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
+        trn_X, trn_y = trn_X.to(device, non_blocking=True), trn_y.to(device, non_blocking=True)
+        val_X, val_y = val_X.to(device, non_blocking=True), val_y.to(device, non_blocking=True)
         N = trn_X.size(0)
         # print("grep label shape", trn_y)
-        if step < 200 and not is_multi and not is_det:
+        if step < 200 and not is_multi:
             for q, im in enumerate(trn_X):
                 toSave = transforms.ToPILImage()(im.cpu())
                 savePath = "./tempSave/gt/{}-{}.png".format((step * batch_size) + q, trn_y[q])
                 toSave.save(savePath)
 
         # phase 2. architect step (alpha)
-        # alpha_optim.zero_grad()
-        # architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
-        # alpha_optim.step()
+        alpha_optim.zero_grad()
+        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        if is_det:
-            logits = model(trn_X, trn_y)
-        else:
-            logits = model(trn_X)
+        logits = model(trn_X)
         if is_multi:
             loss = model.criterion(logits, trn_y.float())
-        elif is_det:
-            loss = sum(_loss for _loss in logits.values())
         else:
             loss = model.criterion(logits, trn_y)
-
-        if is_det:
-            print("todo not updating hardness, need logits not loss to be returned by model")
-        else:
-            new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
-            hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
-            correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
-            print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
-
-
+        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
         loss.backward()
+        hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+        correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
+        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
-        if not is_det: # no mAP calculation until validation step
-            if is_multi:
-                if config.new_acc:
-                    prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
-                else:
-                    prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
+        if is_multi:
+            if config.new_acc:
+                prec1, prec5 = utils.accuracy_multilabel(logits, trn_y) # top5 doesnt apply
             else:
-                prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+                prec1, prec5 = utils.accuracy_multilabel_new(logits, trn_y) # top5 doesnt apply
+        else:
+            prec1, prec5 = utils.accuracy(logits, trn_y, topk=(1, 5))
+        try:
             losses.update(loss.item(), N)
             top1.update(prec1.item(), N)
             top5.update(prec5.item(), N)
+        except AttributeError:
+            raise AttributeError(loss, prec1, prec5)
 
-            if step % config.print_freq == 0 or step == len(train_loader)-1:
-                logger.info(
-                    "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
-                    "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
-                        epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
-                        top1=top1, top5=top5))
+        if step % config.print_freq == 0 or step == len(train_loader)-1:
+            logger.info(
+                "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
+                "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
+                    epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
+                    top1=top1, top5=top5))
 
-            writer.add_scalar('train/loss', loss.item(), cur_step)
-            writer.add_scalar('train/top1', prec1.item(), cur_step)
-            writer.add_scalar('train/top5', prec5.item(), cur_step)
-        else:
-            if step % config.print_freq == 0 or step == len(train_loader)-1:
-                logger.info(
-                    "Train: [{:2d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.4f} "
-                    .format(
-                        epoch+1, config.epochs, step, len(train_loader)-1, losses=losses))
+        writer.add_scalar('train/loss', loss.item(), cur_step)
+        writer.add_scalar('train/top1', prec1.item(), cur_step)
+        writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
-    if is_det:
-        logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch+1, config.epochs, losses.avg))
-    else:
-        logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
 
-
+    logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
     return hardness, correct
 
-def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, is_det, config):
+def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
     exp_name = config.name
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
     losses = utils.AverageMeter()
 
     model.eval()
-    if is_det:
-        evaluate(model, valid_loader, device=device)
-        return 0,0
+
     with torch.no_grad():
         for step, (X, y) in enumerate(valid_loader):
             X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)

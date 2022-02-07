@@ -117,12 +117,13 @@ class SearchCNN(nn.Module):
             assert len(val) == 2
             original_image_sizes.append((val[0], val[1]))
 
-        features = self.backbone(x.tensors)
+        images, targets = self.transform(x, y)
+        features = self.backbone(images.tensors)
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
-        proposals, proposal_losses = self.rpn(x, features, y)
-        detections, detector_losses = self.roi_heads(features, proposals, x.image_sizes, y)
-        detections = self.transform.postprocess(detections, x.image_sizes, original_image_sizes)
+        proposals, proposal_losses = self.rpn(images, features, targets)
+        detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
+        detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         losses = {}
         losses.update(detector_losses)

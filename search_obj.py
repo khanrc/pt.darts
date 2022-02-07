@@ -72,9 +72,6 @@ def main():
     logger.info("Logger is set - training start {}".format(start_time))
 
     assert config.dataset == "pure_det"
-    is_multi = False
-    if config.dataset == "imageobj" or config.dataset == "cocomask":
-        is_multi = True
 
     # set default gpu device id
     torch.cuda.set_device(config.gpus[0])
@@ -97,25 +94,16 @@ def main():
     class_loss = None
     weight_dict = None
 
-    if is_multi:
-        net_crit = nn.BCEWithLogitsLoss().to(device)
-    if config.dataset == "pure_det":
-        num_classes = 16
-        matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
-        weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
-        weight_dict['loss_giou'] = 2
-        losses = ['labels', 'boxes', 'cardinality']
-        net_crit = SetCriterion(num_classes, matcher=matcher, weight_dict=weight_dict,
-                                eos_coef=0.1, losses=losses).to(device)
-        class_loss = nn.NLLLoss().to(device)
-    if config.dataset == "pure_det":
-        model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
-                                       net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
-                                       weight_dict=weight_dict)
-    else:
-        model = SearchCNNController(input_channels, config.init_channels, n_classes, config.layers,
-                                    net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
-                                    weight_dict=weight_dict)
+    matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
+    weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
+    weight_dict['loss_giou'] = 2
+    losses = ['labels', 'boxes', 'cardinality']
+    net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
+                            eos_coef=0.1, losses=losses).to(device)
+    class_loss = nn.NLLLoss().to(device)
+    model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
+                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
+                                   weight_dict=weight_dict)
 
     # model = model.to(device)
 
@@ -133,9 +121,7 @@ def main():
     # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
     # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
 
-    collate_func = None
-    if config.dataset == "pure_det":
-        collate_func = collate_fn
+    collate_func = collate_fn
 
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,

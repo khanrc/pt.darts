@@ -151,7 +151,7 @@ def convert_to_coco_api(ds):
         # targets = ds.get_annotations(img_idx)
         img, targets = ds[img_idx]
         # image_id = targets["image_id"].item()
-        image_id = targets["image_id"]
+        image_id = targets["image_id"][0]
         img_dict = {}
         img_dict["id"] = image_id
         img_dict["height"] = img.shape[-2]
@@ -176,7 +176,6 @@ def convert_to_coco_api(ds):
             ann["image_id"] = image_id
             ann["bbox"] = bboxes[i]
             ann["category_id"] = labels[i]
-            raise AttributeError(labels[i], labels, ann, bboxes, num_objs, img.shape)
             categories.add(labels[i])
             ann["area"] = areas[i]
             ann["iscrowd"] = iscrowd[i]

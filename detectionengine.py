@@ -91,7 +91,7 @@ def evaluate(model, data_loader, device):
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             model_time = time.time()
-            outputs = model(images)
+            outputs = model(images, targets)
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
             model_time = time.time() - model_time

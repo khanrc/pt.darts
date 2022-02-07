@@ -9,8 +9,12 @@ import logging
 import sys
 import torchvision
 from torchvision.models.detection import FasterRCNN
-from torchvision.models.detection.rpn import AnchorGenerator
+from torchvision.models.detection.rpn import AnchorGenerator, RPNHead, RegionProposalNetwork
 from collections import OrderedDict
+from torchvision.ops import MultiScaleRoIAlign
+from torchvision.models.detection.roi_heads import RoIHeads
+from torchvision.models.detection.faster_rcnn import TwoMLPHead, FastRCNNPredictor
+from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
 def broadcast_list(l, device_ids):
     """ Broadcasting list """
@@ -22,7 +26,7 @@ def broadcast_list(l, device_ids):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
+    def __init__prev(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -67,13 +71,25 @@ class SearchCNN(nn.Module):
         self.gap = nn.AdaptiveAvgPool2d(1)
         self.linear = nn.Linear(C_p, n_classes)
 
-        backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-        backbone.out_channels = 1280
+
+    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
+        super().__init__()
+        self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        self.backbone.out_channels = 1280
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))
-        roi_pooler = torchvision.ops.MultiScaleRoIAlign(featmap_names=['0'],
-                                                        output_size=7,
-                                                        sampling_ratio=2)
+
+        self.rpn = get_rpn(anchor_generator, None, self.backbone.out_channels)
+        roi_pooler = MultiScaleRoIAlign(featmap_names=['0'],
+                                        output_size=7,
+                                        sampling_ratio=2)
+        self.roi_heads = get_roi(roi_pooler, self.backbone.out_channels, n_classes)
+
+        # TODO currently using cifar, change mean/std to pure_det
+        image_mean = [0.485, 0.456, 0.406]
+        image_std = [0.229, 0.224, 0.225]
+        self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
+
         # self.model = FasterRCNN(backbone,
         #            num_classes=200,
         #            rpn_anchor_generator=anchor_generator,
@@ -120,6 +136,58 @@ class SearchCNN(nn.Module):
             return losses
 
         return detections
+
+def get_rpn(rpn_anchor_generator, rpn_head, out_channels):
+    if rpn_anchor_generator is None:
+        anchor_sizes = ((32,), (64,), (128,), (256,), (512,))
+        aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
+        rpn_anchor_generator = AnchorGenerator(
+            anchor_sizes, aspect_ratios
+        )
+    if rpn_head is None:
+        rpn_head = RPNHead(
+            out_channels, rpn_anchor_generator.num_anchors_per_location()[0]
+        )
+
+    rpn_pre_nms_top_n = dict(training=2000, testing=1000)
+    rpn_post_nms_top_n = dict(training=2000, testing=1000)
+
+    rpn = RegionProposalNetwork(
+        rpn_anchor_generator, rpn_head,
+        fg_iou_thresh=0.7, bg_iou_thresh=0.3,
+        batch_size_per_image=256, positive_fraction=0.5,
+        pre_nms_top_n=rpn_pre_nms_top_n, post_nms_top_n=rpn_post_nms_top_n, nms_thresh=0.7)
+
+    return rpn
+
+
+def get_roi(box_roi_pool, out_channels, num_classes):
+    if box_roi_pool is None:
+        box_roi_pool = MultiScaleRoIAlign(
+            featmap_names=['0', '1', '2', '3'],
+            output_size=7,
+            sampling_ratio=2)
+
+    resolution = box_roi_pool.output_size[0]
+    representation_size = 1024
+    box_head = TwoMLPHead(
+        out_channels * resolution ** 2,
+        representation_size)
+
+    representation_size = 1024
+    box_predictor = FastRCNNPredictor(
+        representation_size,
+        num_classes)
+
+    roi_heads = RoIHeads(
+        # Box
+        box_roi_pool, box_head, box_predictor,
+        fg_iou_thresh=0.5, bg_iou_thresh=0.5,
+        batch_size_per_image=512, positive_fraction=0.25,
+        bbox_reg_weights=None,
+        score_thresh=0.05, nms_thresh=0.5, detections_per_img=100)
+
+    return roi_heads
 
 class SearchCNNControllerObj(nn.Module):
     """ SearchCNN controller supporting multi-gpu """

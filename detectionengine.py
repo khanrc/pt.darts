@@ -84,7 +84,7 @@ def evaluate(model, data_loader, device):
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
-    with torch.no_grad:
+    with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
             images = list(img.to(device) for img in images)
 

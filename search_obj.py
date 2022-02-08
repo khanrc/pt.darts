@@ -403,7 +403,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        logits, detections = model(trn_X, trn_y)
+        logits, detections = model(trn_X, trn_y, full_ret=True)
         loss = sum(_loss for _loss in logits.values())
         raise AttributeError(detections)
 

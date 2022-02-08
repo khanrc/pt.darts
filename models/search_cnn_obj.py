@@ -92,7 +92,7 @@ class SearchCNN(nn.Module):
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
 
 
-    def forward(self, x, y, weights_normal, weights_reduce):
+    def forward(self, x, y, weights_normal, weights_reduce, full_ret):
         # using torchvision.models.detection.generalized_rcnn
         # skipping sanity checks (read: pray)
 
@@ -129,12 +129,14 @@ class SearchCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        return self.eager_outputs(losses, detections)
+        return self.eager_outputs(losses, detections, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
 
-    def eager_outputs(self, losses, detections):
+    def eager_outputs(self, losses, detections, full_ret):
         if self.training:
-            return losses, detections
+            if full_ret:
+                return losses, detections
+            return losses
 
         return detections
 
@@ -221,12 +223,12 @@ class SearchCNNControllerObj(nn.Module):
 
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
-    def forward(self, x, y):
+    def forward(self, x, y, full_ret=False):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
         weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
         if len(self.device_ids) == 1:
-            return self.net(x, y, weights_normal, weights_reduce)
+            return self.net(x, y, weights_normal, weights_reduce, full_ret)
 
         # # scatter x
         # xs = nn.parallel.scatter(x, self.device_ids)

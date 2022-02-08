@@ -39,6 +39,12 @@ class SearchCNN(nn.Module):
         super().__init__()
         self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         self.backbone.out_channels = 1280
+
+        self.cells = nn.ModuleList()
+        for i in range(1):
+            cell = SearchCell(n_nodes, 1280, 1280, 1280, False, False)
+            self.cells.append(cell)
+
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))
 
@@ -54,7 +60,7 @@ class SearchCNN(nn.Module):
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
 
 
-    def forward(self, x, y): #, weights_normal, weights_reduce):
+    def forward(self, x, y, weights_normal, weights_reduce):
         # using torchvision.models.detection.generalized_rcnn
         # skipping sanity checks (read: pray)
 
@@ -66,7 +72,12 @@ class SearchCNN(nn.Module):
 
         images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
         # images, targets = self.transform(x, y)
-        features = self.backbone(images.tensors)
+        
+        s0 = s1 = self.backbone(images.tensors)
+        for cell in self.cells:
+            weights = weights_normal
+            s0, features = s1, cell(s0, s1, weights)
+
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
@@ -170,12 +181,11 @@ class SearchCNNControllerObj(nn.Module):
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x, y):
-        # weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
-        # weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
+        weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
+        weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
         if len(self.device_ids) == 1:
-            # return self.net(x, y, weights_normal, weights_reduce)
-            return self.net(x, y)#, weights_normal, weights_reduce)
+            return self.net(x, y, weights_normal, weights_reduce)
 
         # # scatter x
         # xs = nn.parallel.scatter(x, self.device_ids)

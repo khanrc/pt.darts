@@ -154,18 +154,18 @@ class SearchCNNControllerObj(nn.Module):
         # initialize architect parameters: alphas
         n_ops = len(gt.PRIMITIVES)
 
-        # self.alpha_normal = nn.ParameterList()
-        # self.alpha_reduce = nn.ParameterList()
-        #
-        # for i in range(n_nodes):
-        #     self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
-        #     self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
-        #
-        # # setup alphas list
-        # self._alphas = []
-        # for n, p in self.named_parameters():
-        #     if 'alpha' in n:
-        #         self._alphas.append((n, p))
+        self.alpha_normal = nn.ParameterList()
+        self.alpha_reduce = nn.ParameterList()
+
+        for i in range(n_nodes):
+            self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+            self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+
+        # setup alphas list
+        self._alphas = []
+        for n, p in self.named_parameters():
+            if 'alpha' in n:
+                self._alphas.append((n, p))
 
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 

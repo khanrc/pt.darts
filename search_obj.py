@@ -397,9 +397,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # print("grep label shape", trn_y)
 
         # phase 2. architect step (alpha)
-        alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
-        alpha_optim.step()
+        # alpha_optim.zero_grad()
+        # architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        # alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()

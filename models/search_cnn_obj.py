@@ -54,7 +54,7 @@ class SearchCNN(nn.Module):
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
 
 
-    def forward(self, x, y, weights_normal, weights_reduce):
+    def forward(self, x, y): #, weights_normal, weights_reduce):
         # using torchvision.models.detection.generalized_rcnn
         # skipping sanity checks (read: pray)
 
@@ -154,43 +154,44 @@ class SearchCNNControllerObj(nn.Module):
         # initialize architect parameters: alphas
         n_ops = len(gt.PRIMITIVES)
 
-        self.alpha_normal = nn.ParameterList()
-        self.alpha_reduce = nn.ParameterList()
-
-        for i in range(n_nodes):
-            self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
-            self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
-
-        # setup alphas list
-        self._alphas = []
-        for n, p in self.named_parameters():
-            if 'alpha' in n:
-                self._alphas.append((n, p))
+        # self.alpha_normal = nn.ParameterList()
+        # self.alpha_reduce = nn.ParameterList()
+        #
+        # for i in range(n_nodes):
+        #     self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+        #     self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+        #
+        # # setup alphas list
+        # self._alphas = []
+        # for n, p in self.named_parameters():
+        #     if 'alpha' in n:
+        #         self._alphas.append((n, p))
 
         self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x, y):
-        weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
-        weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
+        # weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
+        # weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
 
         if len(self.device_ids) == 1:
-            return self.net(x, y, weights_normal, weights_reduce)
+            # return self.net(x, y, weights_normal, weights_reduce)
+            return self.net(x, y)#, weights_normal, weights_reduce)
 
-        # scatter x
-        xs = nn.parallel.scatter(x, self.device_ids)
-
-        # scatter x
-        ys = nn.parallel.scatter(y, self.device_ids)
-        # broadcast weights
-        wnormal_copies = broadcast_list(weights_normal, self.device_ids)
-        wreduce_copies = broadcast_list(weights_reduce, self.device_ids)
-
-        # replicate modules
-        replicas = nn.parallel.replicate(self.net, self.device_ids)
-        outputs = nn.parallel.parallel_apply(replicas,
-                                             list(zip(xs, ys, wnormal_copies, wreduce_copies)),
-                                             devices=self.device_ids)
-        return nn.parallel.gather(outputs, self.device_ids[0])
+        # # scatter x
+        # xs = nn.parallel.scatter(x, self.device_ids)
+        #
+        # # scatter x
+        # ys = nn.parallel.scatter(y, self.device_ids)
+        # # broadcast weights
+        # wnormal_copies = broadcast_list(weights_normal, self.device_ids)
+        # wreduce_copies = broadcast_list(weights_reduce, self.device_ids)
+        #
+        # # replicate modules
+        # replicas = nn.parallel.replicate(self.net, self.device_ids)
+        # outputs = nn.parallel.parallel_apply(replicas,
+        #                                      list(zip(xs, ys, wnormal_copies, wreduce_copies)),
+        #                                      devices=self.device_ids)
+        # return nn.parallel.gather(outputs, self.device_ids[0])
 
     def loss(self, X, y, is_multi):
         losses = self.forward(X, y)

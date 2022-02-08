@@ -40,11 +40,11 @@ class SearchCNN(nn.Module):
         """
         super().__init__()
         self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-        self.backbone.out_channels = 1280
+        self.backbone.out_channels = 2560
 
         self.cells = nn.ModuleList()
-        self.cells.append(SearchCell(1, 1280, 1280, 2560, False, False))
-        self.cells.append(SearchCell(1, 1280, 2560, 1280, False, True))
+        self.cells.append(SearchCell(1, 2560, 2560, 2560, False, False))
+        self.cells.append(SearchCell(1, 2560, 2560, 1280, False, True))
 
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))

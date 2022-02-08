@@ -44,7 +44,7 @@ class SearchCNN(nn.Module):
 
         self.cells = nn.ModuleList()
         for i in range(1):
-            cell = SearchCell(1, 1280, 1280, 5120, False, False)
+            cell = SearchCell(1, 1280, 1280, 1280, False, False)
             self.cells.append(cell)
 
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
@@ -76,10 +76,10 @@ class SearchCNN(nn.Module):
         # images, targets = self.transform(x, y)
 
         s0 = s1 = features = self.backbone(images.tensors)
-        # old_s0 = s0
-        # for cell in self.cells:
-        #     weights = weights_normal
-        #     s0, features = s1, cell(s0, s1, weights)
+        old_s0 = s0
+        for cell in self.cells:
+            weights = weights_normal
+            s0, features = s1, cell(s0, s1, weights)
         raise AttributeError(features.shape, self.rpn)
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

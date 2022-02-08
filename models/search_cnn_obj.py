@@ -80,7 +80,7 @@ class SearchCNN(nn.Module):
         for cell in self.cells:
             weights = weights_normal
             s0, features = s1, cell(s0, s1, weights)
-        raise AttributeError(features.shape, self.rpn)
+        # raise AttributeError(features.shape, self.rpn)
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)

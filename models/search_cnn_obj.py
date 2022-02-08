@@ -39,14 +39,42 @@ class SearchCNN(nn.Module):
             stem_multiplier
         """
         super().__init__()
-        self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-        print(self.backbone)
-        self.backbone.out_channels = 2560
-        raise AttributeError(self.backbone)
-        
+        self.C_in = C_in
+        self.C = C
+        self.n_classes = n_classes
+        self.n_layers = n_layers
+
+        C_cur = stem_multiplier * C
+        self.stem = nn.Sequential(
+            nn.Conv2d(C_in, C_cur, 3, 1, 1, bias=False),
+            nn.BatchNorm2d(C_cur)
+        )
+
+        # for the first cell, stem is used for both s0 and s1
+        # [!] C_pp and C_p is output channel size, but C_cur is input channel size.
+        C_pp, C_p, C_cur = C_cur, C_cur, C
+
         self.cells = nn.ModuleList()
-        self.cells.append(SearchCell(1, 2560, 2560, 2560, False, False))
-        self.cells.append(SearchCell(1, 2560, 2560, 1280, False, True))
+        reduction_p = False
+        for i in range(n_layers):
+            # Reduce featuremap size and double channels in 1/3 and 2/3 layer.
+            if i in [n_layers//3, 2*n_layers//3]:
+                C_cur *= 2
+                reduction = True
+            else:
+                reduction = False
+
+            cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
+            reduction_p = reduction
+            self.cells.append(cell)
+            C_cur_out = C_cur * n_nodes
+            C_pp, C_p = C_p, C_cur_out
+
+        self.gap = nn.AdaptiveAvgPool2d(1)
+        self.linear = nn.Linear(C_p, 1280)
+
+        # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        # self.backbone.out_channels = 2560
 
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))
@@ -76,17 +104,22 @@ class SearchCNN(nn.Module):
         images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
         # images, targets = self.transform(x, y)
 
-        s0 = s1 = self.backbone(images.tensors)
+        s0 = s1 = self.stem(images)
+
         for cell in self.cells:
-            print(s0.shape, s1.shape)
-            weights = weights_normal
+            weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
-        # raise AttributeError(features.shape, self.rpn)
-        print(s0.shape, s1.shape)
-        if isinstance(s1, torch.Tensor):
-            s1 = OrderedDict([('0', s1)])
-        proposals, proposal_losses = self.rpn(images, s1, targets)
-        detections, detector_losses = self.roi_heads(s1, proposals, images.image_sizes, targets)
+
+        out = self.gap(s1)
+        out = out.view(out.size(0), -1)  # flatten
+        features = self.linear(out)
+
+        # s0 = s1 = self.backbone(images.tensors)
+        if isinstance(features, torch.Tensor):
+            features = OrderedDict([('0', features)])
+
+        proposals, proposal_losses = self.rpn(images, features, targets)
+        detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         losses = {}

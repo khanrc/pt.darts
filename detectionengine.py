@@ -86,7 +86,8 @@ def evaluate(model, data_loader, device):
     coco_evaluator = CocoEvaluator(coco, iou_types)
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
-            images = list(img.to(device) for img in images)
+            # images = list(img.to(device) for img in images)
+            torch.stack([img.to(device) for img in images], dim=0)
 
             if torch.cuda.is_available():
                 torch.cuda.synchronize()

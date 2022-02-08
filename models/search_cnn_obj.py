@@ -116,8 +116,7 @@ class SearchCNN(nn.Module):
         out = out.view(out.size(0), -1)  # flatten
         features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 
-        s0 = s1 = self.backbone(images.tensors)
-        raise AttributeError(features.shape, s0.shape, s1.shape)
+        # s0 = s1 = self.backbone(images.tensors)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

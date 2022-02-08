@@ -405,7 +405,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
         loss = sum(_loss for _loss in logits.values())
-        raise AttributeError(detections)
 
         print("todo not updating hardness, need logits not loss to be returned by model")
         # new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)

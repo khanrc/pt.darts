@@ -114,7 +114,7 @@ class SearchCNN(nn.Module):
 
         out = self.gap(s1)
         out = out.view(out.size(0), -1)  # flatten
-        features = self.linear(out).unsqueeze(0).unsqueeze(0)
+        features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 
         s0 = s1 = self.backbone(images.tensors)
         raise AttributeError(features.shape, s0.shape, s1.shape)

@@ -75,8 +75,7 @@ class SearchCNN(nn.Module):
         images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
         # images, targets = self.transform(x, y)
 
-        s0 = s1 = features = self.backbone(images.tensors)
-        old_s0 = s0
+        s0 = s1 = self.backbone(images.tensors)
         for cell in self.cells:
             weights = weights_normal
             s0, features = s1, cell(s0, s1, weights)

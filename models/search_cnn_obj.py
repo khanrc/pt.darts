@@ -26,7 +26,7 @@ def broadcast_list(l, device_ids):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__prev(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
+    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -36,43 +36,6 @@ class SearchCNN(nn.Module):
             n_nodes: # of intermediate nodes in Cell
             stem_multiplier
         """
-        super().__init__()
-        self.C_in = C_in
-        self.C = C
-        self.n_classes = n_classes
-        self.n_layers = n_layers
-
-        C_cur = stem_multiplier * C
-        self.stem = nn.Sequential(
-            nn.Conv2d(C_in, C_cur, 3, 1, 1, bias=False),
-            nn.BatchNorm2d(C_cur)
-        )
-
-        # for the first cell, stem is used for both s0 and s1
-        # [!] C_pp and C_p is output channel size, but C_cur is input channel size.
-        C_pp, C_p, C_cur = C_cur, C_cur, C
-
-        self.cells = nn.ModuleList()
-        reduction_p = False
-        for i in range(n_layers):
-            # Reduce featuremap size and double channels in 1/3 and 2/3 layer.
-            if i in [n_layers//3, 2*n_layers//3]:
-                C_cur *= 2
-                reduction = True
-            else:
-                reduction = False
-
-            cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
-            reduction_p = reduction
-            self.cells.append(cell)
-            C_cur_out = C_cur * n_nodes
-            C_pp, C_p = C_p, C_cur_out
-
-        self.gap = nn.AdaptiveAvgPool2d(1)
-        self.linear = nn.Linear(C_p, n_classes)
-
-
-    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
         super().__init__()
         self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         self.backbone.out_channels = 1280
@@ -90,22 +53,6 @@ class SearchCNN(nn.Module):
         image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
 
-        # self.model = FasterRCNN(backbone,
-        #            num_classes=200,
-        #            rpn_anchor_generator=anchor_generator,
-        #            box_roi_pool=roi_pooler)
-
-    def forward_prev(self, x, weights_normal, weights_reduce):
-        s0 = s1 = self.stem(x)
-
-        for cell in self.cells:
-            weights = weights_reduce if cell.reduction else weights_normal
-            s0, s1 = s1, cell(s0, s1, weights)
-
-        out = self.gap(s1)
-        out = out.view(out.size(0), -1) # flatten
-        logits = self.linear(out)
-        return logits
 
     def forward(self, x, y, weights_normal, weights_reduce):
         # using torchvision.models.detection.generalized_rcnn
@@ -246,16 +193,10 @@ class SearchCNNControllerObj(nn.Module):
         return nn.parallel.gather(outputs, self.device_ids[0])
 
     def loss(self, X, y, is_multi):
-        logits = self.forward(X)
-        try:
-            # raise AttributeError(y.shape, logits.shape, y)
-            if is_multi:
-                y = y.float()
-            return self.criterion(logits, y)
-        except (RuntimeError, ValueError) as e:
-            print(e)
-            raise AttributeError(y.shape, logits.shape, y, self.criterion, logits)
-            sys.exit()
+        losses = self.forward(X, y)
+        return sum(_loss for _loss in losses.values())
+
+        # return self.criterion(logits, y)
 
     def print_alphas(self, logger):
         # remove formats

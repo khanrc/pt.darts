@@ -87,12 +87,16 @@ def evaluate(model, data_loader, device):
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
             # images = list(img.to(device) for img in images)
-            torch.stack([img.to(device) for img in images], dim=0)
+            old_images_shape = images.shape
+            images = torch.stack([img.to(device) for img in images], dim=0)
 
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             model_time = time.time()
-            outputs = model(images, targets)
+            try:
+                outputs = model(images, targets)
+            except RuntimeError:
+                raise AttributeError(images.shape, old_images_shape)
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
             model_time = time.time() - model_time

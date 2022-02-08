@@ -40,8 +40,10 @@ class SearchCNN(nn.Module):
         """
         super().__init__()
         self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        print(self.backbone)
         self.backbone.out_channels = 2560
-
+        raise AttributeError(self.backbone)
+        
         self.cells = nn.ModuleList()
         self.cells.append(SearchCell(1, 2560, 2560, 2560, False, False))
         self.cells.append(SearchCell(1, 2560, 2560, 1280, False, True))

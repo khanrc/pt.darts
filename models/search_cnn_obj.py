@@ -71,7 +71,8 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        self.linear = nn.Linear(C_p, 1280)
+        out_channels = 1280
+        self.linear = nn.Linear(C_p, out_channels)
 
         # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         # self.backbone.out_channels = 2560
@@ -79,11 +80,11 @@ class SearchCNN(nn.Module):
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))
 
-        self.rpn = get_rpn(anchor_generator, None, self.backbone.out_channels)
+        self.rpn = get_rpn(anchor_generator, None, out_channels)
         roi_pooler = MultiScaleRoIAlign(featmap_names=['0'],
                                         output_size=7,
                                         sampling_ratio=2)
-        self.roi_heads = get_roi(roi_pooler, self.backbone.out_channels, n_classes)
+        self.roi_heads = get_roi(roi_pooler, out_channels, n_classes)
 
         # TODO currently using cifar, change mean/std to pure_det
         image_mean = [0.485, 0.456, 0.406]

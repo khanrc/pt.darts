@@ -195,4 +195,5 @@ class MixedOp(nn.Module):
             x: input
             weights: weight for each operation
         """
+        raise AttributeError(list(zip(weights, self._ops)))
         return sum(w * op(x) for w, op in zip(weights, self._ops))

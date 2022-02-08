@@ -64,7 +64,8 @@ class Architect():
         # compute gradient
         v_alphas = tuple(self.v_net.alphas())
         v_weights = tuple(self.v_net.weights())
-        v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
+        # v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
+        v_grads = torch.autograd.grad(loss, self.v_net.weights())
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]
 

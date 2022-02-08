@@ -74,8 +74,8 @@ class SearchCNN(nn.Module):
         out_channels = 1280
         self.linear = nn.Linear(C_p, out_channels)
 
-        self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-        self.backbone.out_channels = out_channels
+        # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        # self.backbone.out_channels = out_channels
 
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                            aspect_ratios=((0.5, 1.0, 2.0),))

@@ -76,9 +76,11 @@ class SearchCNN(nn.Module):
 
         s0 = s1 = self.backbone(images.tensors)
         for cell in self.cells:
+            print(s0.shape, s1.shape)
             weights = weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
         # raise AttributeError(features.shape, self.rpn)
+        print(s0.shape, s1.shape)
         if isinstance(s1, torch.Tensor):
             s1 = OrderedDict([('0', s1)])
         proposals, proposal_losses = self.rpn(images, s1, targets)

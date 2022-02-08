@@ -134,7 +134,7 @@ class SearchCNN(nn.Module):
 
     def eager_outputs(self, losses, detections):
         if self.training:
-            return losses
+            return losses, detections
 
         return detections
 

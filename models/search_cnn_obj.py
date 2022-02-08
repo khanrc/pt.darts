@@ -44,7 +44,7 @@ class SearchCNN(nn.Module):
 
         self.cells = nn.ModuleList()
         for i in range(1):
-            cell = SearchCell(n_nodes, 1280, 1280, 1280, False, False)
+            cell = SearchCell(n_nodes, 5120, 5120, 5120, False, False)
             self.cells.append(cell)
 
         anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),

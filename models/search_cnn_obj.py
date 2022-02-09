@@ -158,8 +158,7 @@ def get_rpn(rpn_anchor_generator, rpn_head, out_channels):
 
     rpn = RegionProposalNetwork(
         rpn_anchor_generator, rpn_head,
-        # fg_iou_thresh=0.7, bg_iou_thresh=0.3,
-        fg_iou_thresh=0.4, bg_iou_thresh=0.3,
+        fg_iou_thresh=0.7, bg_iou_thresh=0.3,
         batch_size_per_image=256, positive_fraction=0.5,
         pre_nms_top_n=rpn_pre_nms_top_n, post_nms_top_n=rpn_post_nms_top_n, nms_thresh=0.7)
 

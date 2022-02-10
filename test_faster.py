@@ -13,8 +13,6 @@ from search_obj import collate_fn
 from detectionengine import evaluate
 
 def main():
-    train_path = '/hdd/PhD/data/imagenet2017detection/'  # TODO revert
-    # train_path = '/data/mining/imageobjdata/'
     train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
     # full_set = Pure_Det(train_path, train_transforms)
     _, _, _, train_data, _ = utils.get_data(
@@ -59,12 +57,14 @@ def main():
     model = FasterRCNN(backbone,
                        num_classes=2,
                        rpn_anchor_generator=anchor_generator,
-                       box_roi_pool=roi_pooler).to(device)
+                       box_roi_pool=roi_pooler)\
+        # .to(device)
 
     for i in range(10):
         for step, (image, targets) in enumerate(train_loader):
-            targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
-            output = model(image.to(device), targets)
+            # targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
+            # output = model(image.to(device), targets)
+            output = model(image, targets)
             model.eval()
             evaluate(model, train_loader, device=device)
 

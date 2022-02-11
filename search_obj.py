@@ -427,10 +427,17 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     epoch + 1, config.epochs, step, len(train_loader) - 1, losses=losses))
         cur_step += 1
 
-        act = model.activation['conv1'].squeeze()
-        fig, axarr = plt.subplots(act.size(0))
-        for idx in range(act.size(0)):
-            axarr[idx].imshow(act[idx])
+        os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
+        for key in model.net.activation.keys():
+            act = model.net.activation[key].squeeze()
+            fig, axarr = plt.subplots(int(act.size(0)/4), 4)
+            row_count = -1
+            for idx in range(act.size(0)):
+                if idx % 4 == 0:
+                    row_count += 1
+                axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
+                axarr[row_count, idx%4].set_axis_off()
+            fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
 
     logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch + 1, config.epochs, losses.avg))
 

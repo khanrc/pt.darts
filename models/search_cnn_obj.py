@@ -80,6 +80,7 @@ class SearchCNN(nn.Module):
 
             cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
             cell.preproc1.net[1].register_forward_hook(get_activation(f'cell{i}')) # cell preproc1 is necessarily ops.stdconv
+            print(f"cell{i} shape is {cell.preproc1.net[1]}")
             reduction_p = reduction
             self.cells.append(cell)
             C_cur_out = C_cur * n_nodes

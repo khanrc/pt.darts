@@ -359,6 +359,7 @@ def draw_bounding_boxes(image, boxes, img_path, labels=None, colors=None, fill=F
                 except RuntimeError:
                     draw.text((bbox[0] + margin, bbox[1] + margin), str(labels[i].item()), fill=color, font=txt_font)
 
-        print(f"drew box: {bbox}")
+        if len(img_boxes) > 0:
+            print(f"drew box: {bbox}")
         img_to_draw.save(img_path)
         return torch.from_numpy(np.array(img_to_draw)).permute(2, 0, 1).to(dtype=torch.uint8)

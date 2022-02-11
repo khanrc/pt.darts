@@ -438,6 +438,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                 axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
                 axarr[row_count, idx%4].set_axis_off()
             fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
+            plt.close(fig)
 
     logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch + 1, config.epochs, losses.avg))
 

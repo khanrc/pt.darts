@@ -348,6 +348,7 @@ def save_indices(data, epoch, images=None):
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
+import matplotlib.pyplot as plt
 
 
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
@@ -425,6 +426,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     .format(
                     epoch + 1, config.epochs, step, len(train_loader) - 1, losses=losses))
         cur_step += 1
+
+        act = model.activation['conv1'].squeeze()
+        fig, axarr = plt.subplots(act.size(0))
+        for idx in range(act.size(0)):
+            axarr[idx].imshow(act[idx])
 
     logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch + 1, config.epochs, losses.avg))
 

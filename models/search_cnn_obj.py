@@ -26,6 +26,8 @@ def broadcast_list(l, device_ids):
     return l_copies
 
 
+
+
 class SearchCNN(nn.Module):
     """ Search CNN model """
     def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
@@ -39,6 +41,15 @@ class SearchCNN(nn.Module):
             stem_multiplier
         """
         super().__init__()
+
+        # Visualize feature maps
+        self.activation = {}
+        def get_activation(name):
+            def hook(model, input, output):
+                self.activation[name] = output.detach()
+            return hook
+
+
         self.C_in = C_in
         self.C = C
         self.n_classes = n_classes
@@ -54,6 +65,9 @@ class SearchCNN(nn.Module):
         # [!] C_pp and C_p is output channel size, but C_cur is input channel size.
         C_pp, C_p, C_cur = C_cur, C_cur, C
 
+        # self.stem = torchvision.models.mobilenet_v2(pretrained=True).features
+        # C_pp, C_p, C_cur = 1280, 1280, 128
+
         self.cells = nn.ModuleList()
         reduction_p = False
         for i in range(n_layers):
@@ -65,14 +79,16 @@ class SearchCNN(nn.Module):
                 reduction = False
 
             cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
+            cell.preproc1.net[1].register_forward_hook(get_activation(f'cell{i}')) # cell preproc1 is necessarily ops.stdconv
             reduction_p = reduction
             self.cells.append(cell)
             C_cur_out = C_cur * n_nodes
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        out_channels = 1280
-        self.linear = nn.Linear(C_p, out_channels)
+        out_channels = 256
+        # out_channels = 1280
+        # self.linear = nn.Linear(C_p, out_channels)
 
         # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         # self.backbone.out_channels = out_channels
@@ -107,22 +123,22 @@ class SearchCNN(nn.Module):
         # images, targets = self.transform(x, y)
 
         s0 = s1 = self.stem(x) # use tensor form of images not transformed form
+        # s0 = s1 = self.stem(images.tensors)
 
         for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
 
-        out = self.gap(s1)
-        out = out.view(out.size(0), -1)  # flatten
-        features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
+        # out = self.gap(s1)
+        features = self.gap(s1)
+        # out = out.view(out.size(0), -1)  # flatten
+        # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 
-        # s0 = s1 = self.backbone(images.tensors)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
 
         proposals, proposal_losses = self.rpn(images, features, targets)
-        raise AttributeError(proposals, proposal_losses)
         detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 

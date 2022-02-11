@@ -7,6 +7,7 @@ import torchvision.models.detection.mask_rcnn
 import detection_utils as utils
 from coco_eval import CocoEvaluator
 from coco_utils import get_coco_api_from_dataset
+import torchvision.transforms as tf
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
@@ -20,13 +21,15 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
         warmup_factor = 1.0 / 1000
         warmup_iters = min(1000, len(data_loader) - 1)
 
-        lr_scheduler = torch.optim.lr_scheduler.LinearLR(
-            optimizer, start_factor=warmup_factor, total_iters=warmup_iters
-        )
+        # lr_scheduler = torch.optim.lr_scheduler.LinearLR(
+        #     optimizer, start_factor=warmup_factor, total_iters=warmup_iters
+        # )
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        optimizer, 10, eta_min=0.001)
 
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
         images = list(image.to(device) for image in images)
-        targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
+        targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             loss_dict = model(images, targets)
             losses = sum(loss for loss in loss_dict.values())
@@ -72,7 +75,7 @@ def _get_iou_types(model):
     return iou_types
 
 
-def evaluate(model, data_loader, device):
+def evaluate(model, data_loader, device, epoch=0):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -84,6 +87,7 @@ def evaluate(model, data_loader, device):
     coco = get_coco_api_from_dataset(data_loader.dataset)
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
+    step = 0
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
             # images = list(img.to(device) for img in images)
@@ -99,6 +103,10 @@ def evaluate(model, data_loader, device):
                 raise AttributeError(images.shape, old_images_shape)
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
+            if step == 0:
+                for i in range(len(outputs)): # batch size
+                    to_save = f"./tempSave/validate_obj/{epoch}-{i}.png"
+                    utils.draw_bounding_boxes(images[i].to(cpu_device), outputs[i]["boxes"], to_save, labels=None, fill=True)
             model_time = time.time() - model_time
 
             # res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
@@ -107,6 +115,7 @@ def evaluate(model, data_loader, device):
             coco_evaluator.update(res)
             evaluator_time = time.time() - evaluator_time
             metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
+            step += 1
 
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()

@@ -10,7 +10,7 @@ import preproc
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
 from search_obj import collate_fn
-from detectionengine import evaluate
+from detectionengine import train_one_epoch, evaluate
 
 def main():
     train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
@@ -55,18 +55,23 @@ def main():
     device = torch.device("cuda")
     # put the pieces together inside a FasterRCNN model
     model = FasterRCNN(backbone,
-                       num_classes=2,
+                       num_classes=200,
                        rpn_anchor_generator=anchor_generator,
-                       box_roi_pool=roi_pooler)\
-        # .to(device)
+                       box_roi_pool=roi_pooler,
+                       box_score_thresh=0.001)\
+        .to(device)
+    params = [p for p in model.parameters() if p.requires_grad]
+    optimizer = torch.optim.SGD(params, lr=0.005,
+                                momentum=0.9, weight_decay=0.0005)
 
     for i in range(10):
-        for step, (image, targets) in enumerate(train_loader):
-            # targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
-            # output = model(image.to(device), targets)
-            output = model(image, targets)
-            model.eval()
-            evaluate(model, train_loader, device=device)
+        # for step, (image, targets) in enumerate(train_loader):
+        #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
+        #     output = model(image.to(device), targets)
+        #     output = model(image, targets)
+        train_one_epoch(model, optimizer, train_loader, device, i, print_freq=10)
+        model.eval()
+        evaluate(model, train_loader, device=device, epoch=i)
 
 if __name__ == "__main__":
     main()

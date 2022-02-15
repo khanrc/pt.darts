@@ -259,7 +259,7 @@ def main():
                 is_best = True
             else:
                 is_best = False
-            utils.save_checkpoint(model, config.path, is_best)  # TODO redundant checkpoint save
+            # utils.save_checkpoint(model, config.path, is_best)  # TODO redundant checkpoint save
             print("")
             if config.early_stopping:
                 if abs(old_loss - new_loss) < 0.0005:

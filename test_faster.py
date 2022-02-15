@@ -6,6 +6,8 @@ import torch
 import sys
 import utils
 import preproc
+import os
+import matplotlib.pyplot as plt
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
@@ -60,6 +62,22 @@ def main():
                        box_roi_pool=roi_pooler,
                        box_score_thresh=0.001)\
         .to(device)
+
+    # Visualize feature maps
+    activation = {}
+    def get_activation(name):
+        def hook(model, input, output):
+            activation[name] = output.detach()
+
+        return hook
+
+    model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
+
+    for i, module in enumerate(model.backbone):
+        if isinstance(module, torchvision.models.mobilenet.InvertedResidual):
+            module.conv[0].register_forward_hook(get_activation(f'cell{i}'))
+    model.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
+
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,
                                 momentum=0.9, weight_decay=0.0005)
@@ -72,6 +90,18 @@ def main():
         train_one_epoch(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
         evaluate(model, train_loader, device=device, epoch=i)
+        os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
+        for key in activation.keys():
+            act = activation[key].squeeze()
+            fig, axarr = plt.subplots(int(act.size(0)/4), 4)
+            row_count = -1
+            for idx in range(act.size(0)):
+                if idx % 4 == 0:
+                    row_count += 1
+                axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
+                axarr[row_count, idx%4].set_axis_off()
+            fig.savefig(f"./tempSave/validate_obj/activations_mobile/{i}/{key}.png")
+            plt.close(fig)
 
 if __name__ == "__main__":
     main()

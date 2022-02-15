@@ -136,10 +136,10 @@ class SearchCNN(nn.Module):
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 
+        raise AttributeError(features.shape)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
-        raise AttributeError(features.shape)
         proposals, proposal_losses = self.rpn(images, features, targets)
         detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)

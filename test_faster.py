@@ -8,6 +8,7 @@ import utils
 import preproc
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
@@ -81,7 +82,7 @@ def main():
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,
                                 momentum=0.9, weight_decay=0.0005)
-
+    raise AttributeError(model)
     for i in range(10):
         # for step, (image, targets) in enumerate(train_loader):
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
@@ -103,6 +104,16 @@ def main():
                 axarr[row_count, idx%4].set_axis_off()
             fig.savefig(f"./tempSave/validate_obj/activations_mobile/{i}/{key}.png")
             plt.close(fig)
+
+
+def getCAM(feature_conv, weight_fc, class_idx):
+    _, nc, h, w = feature_conv.shape
+    cam = weight_fc[class_idx].dot(feature_conv.reshape((nc, h*w)))
+    cam = cam.reshape(h, w)
+    cam = cam - np.min(cam)
+    cam_img = cam / np.max(cam)
+    return [cam_img]
+
 
 if __name__ == "__main__":
     main()

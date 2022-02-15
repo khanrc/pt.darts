@@ -438,7 +438,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                 try:
                     axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
                 except TypeError:
-                    raise AttributeError(act[idx].shape)
+                    raise AttributeError(act.shape, key)
                 axarr[row_count, idx%4].set_axis_off()
             fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
             plt.close(fig)

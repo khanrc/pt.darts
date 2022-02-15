@@ -98,6 +98,7 @@ class SearchCNN(nn.Module):
                                            aspect_ratios=((0.5, 1.0, 2.0),))
 
         self.rpn = get_rpn(anchor_generator, None, out_channels)
+        self.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
         roi_pooler = MultiScaleRoIAlign(featmap_names=['0'],
                                         output_size=7,
                                         sampling_ratio=2)

@@ -435,7 +435,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             for idx in range(act.size(0)):
                 if idx % 4 == 0:
                     row_count += 1
-                axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
+                try:
+                    axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
+                except TypeError:
+                    raise AttributeError(act[idx].shape)
                 axarr[row_count, idx%4].set_axis_off()
             fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
             plt.close(fig)

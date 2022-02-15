@@ -107,14 +107,5 @@ def main():
             plt.close(fig)
 
 
-def getCAM(feature_conv, weight_fc, class_idx):
-    _, nc, h, w = feature_conv.shape
-    cam = weight_fc[class_idx].dot(feature_conv.reshape((nc, h*w)))
-    cam = cam.reshape(h, w)
-    cam = cam - np.min(cam)
-    cam_img = cam / np.max(cam)
-    return [cam_img]
-
-
 if __name__ == "__main__":
     main()

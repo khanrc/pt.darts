@@ -134,6 +134,7 @@ class SearchCNN(nn.Module):
 
         # out = self.gap(s1)
         features = self.gap(s1)
+        print(features.shape)
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 

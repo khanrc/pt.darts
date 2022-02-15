@@ -435,7 +435,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             if key == 'cellhead':
                 qmult = 8
                 idx_range = 32
-                raise AttributeError(model.net.activation[key].shape)
             fig, axarr = plt.subplots(qmult, 4)
             row_count = -1
             for idx in range(idx_range):

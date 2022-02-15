@@ -430,16 +430,17 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
         for key in model.net.activation.keys():
             act = model.net.activation[key].squeeze()
-            fig, axarr = plt.subplots(int(act.size(0)/4), 4)
+            qmult = int(act.size(0)/4)
+            idx_range = act.size(0)
+            if key == 'head':
+                qmult = 8
+                idx_range = 32
+            fig, axarr = plt.subplots(qmult, 4)
             row_count = -1
-            for idx in range(act.size(0)):
+            for idx in range(idx_range):
                 if idx % 4 == 0:
                     row_count += 1
-                try:
-                    axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
-                except TypeError:
-                    # raise AttributeError(act.shape, key, model.net.activation[key].shape)
-                    raise AttributeError(model)
+                axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
                 axarr[row_count, idx%4].set_axis_off()
             fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
             plt.close(fig)

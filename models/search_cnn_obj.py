@@ -133,7 +133,8 @@ class SearchCNN(nn.Module):
             print(s0.shape, s1.shape, cell.reduction)
 
         # out = self.gap(s1)
-        features = self.gap(s1)
+        # features = self.gap(s1)
+        features = s1
         print(features.shape)
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)

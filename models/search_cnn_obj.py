@@ -72,11 +72,11 @@ class SearchCNN(nn.Module):
         reduction_p = False
         for i in range(n_layers):
             # Reduce featuremap size and double channels in 1/3 and 2/3 layer.
-            # if i in [n_layers//3, 2*n_layers//3]:
-            #     C_cur *= 2
-            #     reduction = True
-            # else:
-            #     reduction = False
+            if i in [n_layers//3]:#, 2*n_layers//3]:
+                C_cur *= 2
+                reduction = True
+            else:
+                reduction = False
             reduction = False
 
             cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)

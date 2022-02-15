@@ -130,7 +130,7 @@ class SearchCNN(nn.Module):
         for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
-            print(s0.shape, s1.shape)
+            print(s0.shape, s1.shape, cell.reduction)
 
         # out = self.gap(s1)
         features = self.gap(s1)

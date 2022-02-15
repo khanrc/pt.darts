@@ -92,6 +92,8 @@ def main():
         evaluate(model, train_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
+            if key == 'head':
+                raise AttributeError(activation[key].shape)
             act = activation[key].squeeze()
             q_mult = min(q*4, 8)
             fig, axarr = plt.subplots(q_mult, 4)

@@ -21,7 +21,7 @@ def main():
         "pure_det", "", cutout_length=0, validation=True, search=True,
         bede=False, is_concat=False)
     train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=2,
+                                               batch_size=1,
                                                # sampler=train_sampler,
                                                num_workers=0,
                                                pin_memory=True,
@@ -91,12 +91,12 @@ def main():
         model.eval()
         evaluate(model, train_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
-        for key in activation.keys():
+        for q, key in enumerate(activation.keys()):
             act = activation[key].squeeze()
-            raise AttributeError([activation[acts].shape for acts in activation])
-            fig, axarr = plt.subplots(int(act.size(0)/4), 4)
+            q_mult = min(q, 16)
+            fig, axarr = plt.subplots(q_mult, 4)
             row_count = -1
-            for idx in range(act.size(0)):
+            for idx in range(q_mult*4):
                 if idx % 4 == 0:
                     row_count += 1
                 axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())

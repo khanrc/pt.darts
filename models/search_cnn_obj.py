@@ -77,7 +77,6 @@ class SearchCNN(nn.Module):
                 reduction = True
             else:
                 reduction = False
-            reduction = False
 
             cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
             cell.preproc1.net[1].register_forward_hook(get_activation(f'cell{i}')) # cell preproc1 is necessarily ops.stdconv

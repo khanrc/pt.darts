@@ -130,13 +130,12 @@ class SearchCNN(nn.Module):
         for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
+            print(s0.shape, s1.shape)
 
         # out = self.gap(s1)
         features = self.gap(s1)
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
-
-        raise AttributeError(features.shape)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])

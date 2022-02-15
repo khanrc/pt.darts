@@ -93,7 +93,7 @@ def main():
         os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
         for key in activation.keys():
             act = activation[key].squeeze()
-            raise AttributeError([acts.shape for acts in activation])
+            raise AttributeError([activation[acts].shape for acts in activation])
             fig, axarr = plt.subplots(int(act.size(0)/4), 4)
             row_count = -1
             for idx in range(act.size(0)):

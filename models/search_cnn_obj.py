@@ -130,18 +130,17 @@ class SearchCNN(nn.Module):
         for cell in self.cells:
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
-            print(s0.shape, s1.shape, cell.reduction)
 
         # out = self.gap(s1)
         # features = self.gap(s1)
         features = s1
-        print(features.shape)
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         proposals, proposal_losses = self.rpn(images, features, targets)
+        print(proposals)
         detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 

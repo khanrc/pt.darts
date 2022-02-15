@@ -82,7 +82,6 @@ def main():
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,
                                 momentum=0.9, weight_decay=0.0005)
-    raise AttributeError(model)
     for i in range(10):
         # for step, (image, targets) in enumerate(train_loader):
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
@@ -94,7 +93,7 @@ def main():
         os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
             act = activation[key].squeeze()
-            q_mult = min(q*4, 16)
+            q_mult = min(q*4, 8)
             fig, axarr = plt.subplots(q_mult, 4)
             row_count = -1
             for idx in range(q_mult*4):

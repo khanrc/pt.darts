@@ -94,6 +94,7 @@ def main():
         for q, key in enumerate(activation.keys()):
             if key == 'head':
                 raise AttributeError(activation[key].shape)
+            raise AttributeError(activation.keys())
             act = activation[key].squeeze()
             q_mult = min(q*4, 8)
             fig, axarr = plt.subplots(q_mult, 4)

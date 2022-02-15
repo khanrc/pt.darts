@@ -432,7 +432,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             act = model.net.activation[key].squeeze()
             qmult = int(act.size(0)/4)
             idx_range = act.size(0)
-            if key == 'head':
+            if key == 'cellhead':
                 qmult = 8
                 idx_range = 32
             fig, axarr = plt.subplots(qmult, 4)

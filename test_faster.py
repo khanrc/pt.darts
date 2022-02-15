@@ -92,7 +92,7 @@ def main():
         evaluate(model, train_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
-            if key == 'head':
+            if key == 'cellhead':
                 raise AttributeError(activation[key].shape)
             raise AttributeError(activation.keys())
             act = activation[key].squeeze()

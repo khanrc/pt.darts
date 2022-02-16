@@ -93,7 +93,7 @@ def main():
 
             # load back in new (untrained) backbone
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-            backbone.out_channels = 256
+            model.backbone = backbone
             model.backbone[-1][0] = torch.nn.Conv2d(320, 256, kernel_size=(3,3), stride=(1,1), bias=False)
             model.backbone[-1][1] = torch.nn.BatchNorm2d(256)
 

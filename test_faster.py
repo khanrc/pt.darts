@@ -21,6 +21,7 @@ from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
 is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
 is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
+is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed    ')+1])
 
 
 def main():
@@ -85,8 +86,10 @@ def main():
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
         model.load_state_dict(state_dict)
         if is_retrained:
-            for param in model.features.parameters():
-                param.requires_grad = False
+            if is_fixed:
+                for param in model.features.parameters():
+                    param.requires_grad = False
+
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
             backbone.out_channels = 1280
 
@@ -97,8 +100,8 @@ def main():
                 param.requires_grad = True
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
         model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
-        # raise AttributeError(model)
-        # TODO change to 200 class output / use different dataset
+
+        raise AttributeError(model)
 
     # Visualize feature maps
     activation = {}

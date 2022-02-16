@@ -87,6 +87,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--is_concat', default=False, type=bool, help="autoencoder uses concat strategy for non single image classification")
         parser.add_argument('--obj_pretrained', default=False, type=bool, help="use pretrained one/two stage detector")
         parser.add_argument('--obj_retrained', default=False, type=bool, help="use retrained one/two stage detector")
+        parser.add_argument('--obj_fixed', default=False, type=bool, help="fix non backbone weights?")
         # TODO remove last configs since only used for performance validation
 
         return parser

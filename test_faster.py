@@ -88,7 +88,7 @@ def main():
         if is_retrained:
             if is_fixed:
                 # fix non backbone weights
-                for param in model.features.parameters():
+                for param in model.parameters():
                     param.requires_grad = False
 
             # load back in new (untrained) backbone
@@ -96,8 +96,7 @@ def main():
             backbone.out_channels = 256
             model.backbone = backbone
 
-            for param in model.features.parameters():
-                raise AttributeError(param)
+            for param in model.backbone.parameters():
                 param.requires_grad = True
             raise AttributeError(model)
 

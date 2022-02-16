@@ -112,7 +112,7 @@ def main():
 
         return hook
 
-    if is_pretrained:
+    if is_pretrained and not is_retrained:
         model.backbone.body.conv1.register_forward_hook(get_activation(f'conv1'))
         for i, module in enumerate(model.backbone.body):
             if i <= 3:  # non layer
@@ -122,7 +122,6 @@ def main():
                     bottleneck.conv1.register_forward_hook(get_activation(f'conv{i}-{j}'))
         model.backbone.fpn.inner_blocks[0].register_forward_hook(get_activation(f'fpn1'))
         model.backbone.fpn.layer_blocks[0].register_forward_hook(get_activation(f'fpn2'))
-
     else:
         model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
         for i, module in enumerate(model.backbone):

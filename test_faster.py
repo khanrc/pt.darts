@@ -100,21 +100,24 @@ def main():
 
         return hook
 
-    # model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
-    # for i, module in enumerate(model.backbone):
-    #     if isinstance(module, torchvision.models.mobilenet.InvertedResidual):
-    #         module.conv[0].register_forward_hook(get_activation(f'cell{i}'))
-    # model.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
+    if is_pretrained:
+        model.backbone.body.conv1.register_forward_hook(get_activation(f'conv1'))
+        for i, module in enumerate(model.backbone.body):
+            if i <= 3:  # non layer
+                print(module)
+            else:
+                for j, bottleneck in enumerate(model.backbone.body[module]):  # necessarily bottleneck module
+                    bottleneck.conv1.register_forward_hook(get_activation(f'conv{i}-{j}'))
+        model.backbone.fpn.inner_blocks[0].register_forward_hook(get_activation(f'fpn1'))
+        model.backbone.fpn.layer_blocks[0].register_forward_hook(get_activation(f'fpn2'))
 
-    model.backbone.body.conv1.register_forward_hook(get_activation(f'conv1'))
-    for i, module in enumerate(model.backbone.body):
-        if i <= 3: # non layer
-            print(module)
-        else:
-            for j, bottleneck in enumerate(model.backbone.body[module]): # necessarily bottleneck module
-                bottleneck.conv1.register_forward_hook(get_activation(f'conv{i}-{j}'))
-    model.backbone.fpn.inner_blocks[0].register_forward_hook(get_activation(f'fpn1'))
-    model.backbone.fpn.layer_blocks[0].register_forward_hook(get_activation(f'fpn2'))
+    else:
+        model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
+        for i, module in enumerate(model.backbone):
+            if isinstance(module, torchvision.models.mobilenet.InvertedResidual):
+                module.conv[0].register_forward_hook(get_activation(f'cell{i}'))
+        model.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
+
 
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,

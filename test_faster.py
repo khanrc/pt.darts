@@ -36,8 +36,10 @@ def main():
                                                pin_memory=True,
                                                collate_fn=collate_fn
                                                )
+    num_classes = 200
     if is_pretrained:
         backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
+        num_classes = 91
     else:
         # load a pre-trained model for classification and return
         # only the features
@@ -73,7 +75,7 @@ def main():
     device = torch.device("cuda")
     # put the pieces together inside a FasterRCNN model
     model = FasterRCNN(backbone,
-                       num_classes=91,
+                       num_classes=num_classes,
                        # rpn_anchor_generator=anchor_generator,
                        box_roi_pool=roi_pooler,
                        box_score_thresh=0.001)\
@@ -90,7 +92,7 @@ def main():
             # TODO validate old backbone has 1280 out channels. if not make new backbone same?
             # TODO fix non backbone weights
 
-    raise AttributeError(model)
+        raise AttributeError(model)
         # TODO change to 200 class output / use different dataset
 
     # Visualize feature maps

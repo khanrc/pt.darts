@@ -87,17 +87,17 @@ def main():
         model.load_state_dict(state_dict)
         if is_retrained:
             if is_fixed:
+                # fix non backbone weights
                 for param in model.features.parameters():
                     param.requires_grad = False
 
+            # load back in new (untrained) backbone
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
             backbone.out_channels = 256
             model.backbone = backbone
 
-            # TODO load back in new (untrained) backbone
-            # TODO validate old backbone has 1280 out channels. if not make new backbone same?
-            # TODO fix non backbone weights
-            for param in model.backbone.features.parameters():
+            for param in model.features.parameters():
+                raise AttributeError(param)
                 param.requires_grad = True
             raise AttributeError(model)
 

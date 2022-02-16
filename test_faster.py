@@ -98,7 +98,6 @@ def main():
 
             for param in model.backbone.parameters():
                 param.requires_grad = True
-            raise AttributeError(model)
 
         # set to 200 class. TODO allow for different classes, using num_classes variable
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)

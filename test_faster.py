@@ -119,7 +119,7 @@ def main():
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,
                                 momentum=0.9, weight_decay=0.0005)
-    for i in range(10):
+    for i in range(200):
         # for step, (image, targets) in enumerate(train_loader):
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
         #     output = model(image.to(device), targets)

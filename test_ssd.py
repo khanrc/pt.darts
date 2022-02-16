@@ -13,7 +13,7 @@ import numpy as np
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
 from search_obj import collate_fn
-from detectionengine import train_one_epoch, evaluate
+from detectionengine import train_one_epoch, train_one_epoch_ssd, evaluate
 
 from ssd import ssd
 
@@ -58,7 +58,7 @@ def main():
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
         #     output = model(image.to(device), targets)
         #     output = model(image, targets)
-        train_one_epoch(model, optimizer, train_loader, device, i, print_freq=10)
+        train_one_epoch_ssd(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
         evaluate(model, train_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_ssd/{i}/", exist_ok=True)

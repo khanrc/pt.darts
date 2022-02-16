@@ -15,6 +15,14 @@ from det_dataset import Imagenet_Det as Pure_Det
 from search_obj import collate_fn
 from detectionengine import train_one_epoch, evaluate
 
+# from torchvision._internally_replaced_utils import load_state_dict_from_url
+from torch.hub import load_state_dict_from_url
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+
+is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
+is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
+
+
 def main():
     train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
     # full_set = Pure_Det(train_path, train_transforms)
@@ -28,19 +36,26 @@ def main():
                                                pin_memory=True,
                                                collate_fn=collate_fn
                                                )
-    # load a pre-trained model for classification and return
-    # only the features
-    backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-    # FasterRCNN needs to know the number of
-    # output channels in a backbone. For mobilenet_v2, it's 1280
-    # so we need to add it here
-    backbone.out_channels = 1280
+    if is_pretrained:
+        backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
+    else:
+        # load a pre-trained model for classification and return
+        # only the features
+        backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        # FasterRCNN needs to know the number of
+        # output channels in a backbone. For mobilenet_v2, it's 1280
+        # so we need to add it here
+        backbone.out_channels = 1280
 
     # let's make the RPN generate 5 x 3 anchors per spatial
     # location, with 5 different sizes and 3 different aspect
     # ratios. We have a Tuple[Tuple[int]] because each feature
     # map could potentially have different sizes and
     # aspect ratios
+    # anchor_sizes = ((32, 64, 128, 256, 512, ), ) * 3
+    # aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
+    # anchor_generator = AnchorGenerator(anchor_sizes, aspect_ratios)
+
     anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
                                        aspect_ratios=((0.5, 1.0, 2.0),))
 
@@ -58,11 +73,24 @@ def main():
     device = torch.device("cuda")
     # put the pieces together inside a FasterRCNN model
     model = FasterRCNN(backbone,
-                       num_classes=200,
-                       rpn_anchor_generator=anchor_generator,
+                       num_classes=91,
+                       # rpn_anchor_generator=anchor_generator,
                        box_roi_pool=roi_pooler,
                        box_score_thresh=0.001)\
         .to(device)
+
+    if is_pretrained:
+        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
+        model.load_state_dict(state_dict)
+        if is_retrained:
+            backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+            backbone.out_channels = 1280
+
+            # TODO load back in new (untrained) backbone
+            # TODO validate old backbone has 1280 out channels. if not make new backbone same?
+            # TODO fix non backbone weights
+
+        # TODO change to 200 class output / use different dataset
 
     # Visualize feature maps
     activation = {}
@@ -72,12 +100,21 @@ def main():
 
         return hook
 
-    model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
+    # model.backbone[0][0].register_forward_hook(get_activation(f'cell{0}'))  # cell preproc1 is necessarily ops.stdconv
+    # for i, module in enumerate(model.backbone):
+    #     if isinstance(module, torchvision.models.mobilenet.InvertedResidual):
+    #         module.conv[0].register_forward_hook(get_activation(f'cell{i}'))
+    # model.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
 
-    for i, module in enumerate(model.backbone):
-        if isinstance(module, torchvision.models.mobilenet.InvertedResidual):
-            module.conv[0].register_forward_hook(get_activation(f'cell{i}'))
-    model.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
+    model.backbone.body.conv1.register_forward_hook(get_activation(f'conv1'))
+    for i, module in enumerate(model.backbone.body):
+        if i <= 3: # non layer
+            print(module)
+        else:
+            for j, bottleneck in enumerate(model.backbone.body[module]): # necessarily bottleneck module
+                bottleneck.conv1.register_forward_hook(get_activation(f'conv{i}-{j}'))
+    model.backbone.fpn.inner_blocks[0].register_forward_hook(get_activation(f'fpn1'))
+    model.backbone.fpn.layer_blocks[0].register_forward_hook(get_activation(f'fpn2'))
 
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,

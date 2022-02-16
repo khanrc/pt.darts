@@ -21,7 +21,7 @@ from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 
 is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
 is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
-is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed    ')+1])
+is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed')+1])
 
 
 def main():

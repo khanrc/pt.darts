@@ -98,6 +98,7 @@ def main():
 
             for param in model.backbone.parameters():
                 param.requires_grad = True
+            raise AttributeError(model)
 
         # set to 200 class. TODO allow for different classes, using num_classes variable
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
@@ -133,6 +134,14 @@ def main():
     params = [p for p in model.parameters() if p.requires_grad]
     optimizer = torch.optim.SGD(params, lr=0.005,
                                 momentum=0.9, weight_decay=0.0005)
+
+    visualization_stem = "mobile"
+    if is_fixed:
+        visualization_stem = "mobile_rf"
+    elif is_retrained:
+        visualization_stem = "mobile_r"
+    elif is_pretrained:
+        visualization_stem = "resnet"
     for i in range(200):
         # for step, (image, targets) in enumerate(train_loader):
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
@@ -141,7 +150,7 @@ def main():
         train_one_epoch(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
         evaluate(model, train_loader, device=device, epoch=i)
-        os.makedirs(f"./tempSave/validate_obj/activations_mobile/{i}/", exist_ok=True)
+        os.makedirs(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
             if key == 'cellhead':
                 raise AttributeError(activation[key].shape)
@@ -154,7 +163,7 @@ def main():
                     row_count += 1
                 axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
                 axarr[row_count, idx%4].set_axis_off()
-            fig.savefig(f"./tempSave/validate_obj/activations_mobile/{i}/{key}.png")
+            fig.savefig(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/{key}.png")
             plt.close(fig)
 
 

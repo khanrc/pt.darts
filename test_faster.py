@@ -85,15 +85,19 @@ def main():
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
         model.load_state_dict(state_dict)
         if is_retrained:
+            for param in model.features.parameters():
+                param.requires_grad = False
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
             backbone.out_channels = 1280
 
             # TODO load back in new (untrained) backbone
             # TODO validate old backbone has 1280 out channels. if not make new backbone same?
             # TODO fix non backbone weights
-        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 91, bias=True)
-        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 364, bias=True)
-    raise AttributeError(model)
+            for param in model.backbone.features.parameters():
+                param.requires_grad = True
+        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
+        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
+        # raise AttributeError(model)
         # TODO change to 200 class output / use different dataset
 
     # Visualize feature maps

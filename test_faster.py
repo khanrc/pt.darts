@@ -91,7 +91,8 @@ def main():
             # TODO load back in new (untrained) backbone
             # TODO validate old backbone has 1280 out channels. if not make new backbone same?
             # TODO fix non backbone weights
-
+        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 91, bias=True)
+        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 364, bias=True)
         raise AttributeError(model)
         # TODO change to 200 class output / use different dataset
 

@@ -91,17 +91,20 @@ def main():
                     param.requires_grad = False
 
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-            backbone.out_channels = 1280
+            backbone.out_channels = 256
+            model.backbone = backbone
 
             # TODO load back in new (untrained) backbone
             # TODO validate old backbone has 1280 out channels. if not make new backbone same?
             # TODO fix non backbone weights
             for param in model.backbone.features.parameters():
                 param.requires_grad = True
+
+        # set to 200 class. TODO allow for different classes, using num_classes variable
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
         model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
 
-        raise AttributeError(model)
+            raise AttributeError(model)
 
     # Visualize feature maps
     activation = {}

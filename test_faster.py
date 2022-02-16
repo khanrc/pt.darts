@@ -99,12 +99,12 @@ def main():
             # TODO fix non backbone weights
             for param in model.backbone.features.parameters():
                 param.requires_grad = True
+            raise AttributeError(model)
 
         # set to 200 class. TODO allow for different classes, using num_classes variable
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
         model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
 
-            raise AttributeError(model)
 
     # Visualize feature maps
     activation = {}

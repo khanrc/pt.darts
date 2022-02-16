@@ -90,6 +90,7 @@ def main():
             # TODO validate old backbone has 1280 out channels. if not make new backbone same?
             # TODO fix non backbone weights
 
+    raise AttributeError(model)
         # TODO change to 200 class output / use different dataset
 
     # Visualize feature maps

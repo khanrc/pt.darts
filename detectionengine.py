@@ -143,8 +143,8 @@ def evaluate(model, data_loader, device, epoch=0):
     step = 0
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
-            images = list(img.to(device) for img in images)
-            old_images_shape = images.shape
+            # images = list(img.to(device) for img in images)
+            # old_images_shape = images.shape
             images = torch.stack([img.to(device) for img in images], dim=0)
 
             if torch.cuda.is_available():

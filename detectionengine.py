@@ -150,10 +150,7 @@ def evaluate(model, data_loader, device, epoch=0):
             if torch.cuda.is_available():
                 torch.cuda.synchronize()
             model_time = time.time()
-            try:
-                outputs = model(images, targets)
-            except RuntimeError:
-                raise AttributeError(images.shape, old_images_shape)
+            outputs = model(images, targets)
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
             if step == 0:

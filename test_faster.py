@@ -79,8 +79,7 @@ def main():
                        num_classes=num_classes,
                        # rpn_anchor_generator=anchor_generator,
                        box_roi_pool=roi_pooler,
-                       box_score_thresh=0.001)\
-        .to(device)
+                       box_score_thresh=0.001)
 
     if is_pretrained:
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
@@ -104,6 +103,7 @@ def main():
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
         model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
 
+    model = model.to(device)
 
     # Visualize feature maps
     activation = {}

@@ -101,7 +101,9 @@ def main():
 
         # set to 200 class. TODO allow for different classes, using num_classes variable
         model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
+        model.roi_heads.box_predictor.cls_score.requires_grad_(True)
         model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
+        model.roi_heads.box_predictor.bbox_pred.requires_grad_(True)
 
     model = model.to(device)
 

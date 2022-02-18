@@ -95,6 +95,14 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         is_detection = True
         convert_to_paths = True
         # convert_to_lbl_paths = True
+    elif dataset == "coco_det":
+        n_classes = 80
+        dynamic_name = "coco_det"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMaskGood.pth.tar"
+        is_detection = True
+        convert_to_paths = False
+        # convert_to_lbl_paths = True
     elif dataset == "pure_det":
         n_classes = 200
         dynamic_name = "pure_det"

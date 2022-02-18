@@ -39,7 +39,8 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomCrop(64, padding=4),
             transforms.RandomHorizontalFlip()
         ]
-    elif dataset == 'imagenet' or dataset == 'imageobj' or dataset == "cocomask" or dataset == "pure_det":
+    elif dataset == 'imagenet' or dataset == 'imageobj' \
+            or dataset == "cocomask" or dataset == "pure_det" or dataset == "coco_det":
         MEAN = [0.13066051707548254]
         STD = [0.30810780244715075]
         resize_transform = [transforms.Resize((128,128))]

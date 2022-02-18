@@ -22,14 +22,25 @@ from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
 is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
 is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed')+1])
+dataset = sys.argv[sys.argv.index('--dataset')+1]
 
 
 def main():
-    train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
-    # full_set = Pure_Det(train_path, train_transforms)
-    _, _, _, train_data, _ = utils.get_data(
-        "pure_det", "", cutout_length=0, validation=True, search=True,
-        bede=False, is_concat=False)
+    num_classes = 200
+    if dataset == "pure_det":
+        train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
+        # full_set = Pure_Det(train_path, train_transforms)
+        _, _, _, train_data, _ = utils.get_data(
+            "pure_det", "", cutout_length=0, validation=True, search=True,
+            bede=False, is_concat=False)
+    elif dataset == "coco_det":
+        train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
+        _, _, _, train_data, _ = utils.get_data(
+            "coco_det", "", cutout_length=0, validation=True, search=True,
+            bede=False, is_concat=False)
+        num_classes = 91
+    else:
+        raise AttributeError("bad dataset")
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=1,
                                                # sampler=train_sampler,
@@ -37,7 +48,6 @@ def main():
                                                pin_memory=True,
                                                collate_fn=collate_fn
                                                )
-    num_classes = 200
     if is_pretrained:
         backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
         num_classes = 91
@@ -100,9 +110,9 @@ def main():
                 param.requires_grad = True
 
         # set to 200 class. TODO allow for different classes, using num_classes variable
-        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, 200, bias=True)
+        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, num_classes, bias=True)
         model.roi_heads.box_predictor.cls_score.requires_grad_(True)
-        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, 800, bias=True)
+        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, num_classes*4, bias=True)
         model.roi_heads.box_predictor.bbox_pred.requires_grad_(True)
 
     model = model.to(device)

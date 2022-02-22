@@ -109,11 +109,12 @@ def main():
             for param in model.backbone.parameters():
                 param.requires_grad = True
 
-        # set to 200 class. TODO allow for different classes, using num_classes variable
-        model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, num_classes, bias=True)
-        model.roi_heads.box_predictor.cls_score.requires_grad_(True)
-        model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, num_classes*4, bias=True)
-        model.roi_heads.box_predictor.bbox_pred.requires_grad_(True)
+        if dataset == "pure_det":
+            # set to 200 class.
+            model.roi_heads.box_predictor.cls_score = torch.nn.Linear(1024, num_classes, bias=True)
+            model.roi_heads.box_predictor.cls_score.requires_grad_(True)
+            model.roi_heads.box_predictor.bbox_pred = torch.nn.Linear(1024, num_classes*4, bias=True)
+            model.roi_heads.box_predictor.bbox_pred.requires_grad_(True)
 
     model = model.to(device)
 

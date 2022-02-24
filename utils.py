@@ -123,7 +123,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     if config.badpath:
         auto_resume = "badpath"
 
-    trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
+    # trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
+    trn_transform = val_transform = transforms.Compose([transforms.Resize((64, 64)), transforms.ToTensor()])
     if config.dynamic:
         # print(perc_transforms)
         trn_data = DynamicDataset(

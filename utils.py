@@ -151,7 +151,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
-        raise AttributeError("dynamic", dataset)
     else:
         if config.vanilla:
             if dataset == 'imagenet' or dataset == "imageobj" or dataset == "pure_det":
@@ -165,7 +164,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_channels = 3 if len(shape) == 4 else 1
                 assert shape[1] == shape[2], "not expected shape = {}".format(shape)
                 input_size = shape[1]
-            raise AttributeError("vanilla", dataset)
         else:
             subset_size = 10000
             if search:
@@ -174,7 +172,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
 
             input_size = len(trn_data)
             input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
-            raise AttributeError("ablation", dataset)
 
 
     ret = [input_size, input_channels, n_classes, trn_data]
@@ -209,7 +206,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
         elif dataset == 'pure_det':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="pure_det", bede=bede))
-
+        elif dataset == 'coco_det':
+            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

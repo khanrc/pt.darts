@@ -89,7 +89,8 @@ def main():
                        num_classes=num_classes,
                        # rpn_anchor_generator=anchor_generator,
                        box_roi_pool=roi_pooler,
-                       box_score_thresh=0.001)
+                       # box_score_thresh=0.001
+                       )
 
     if is_pretrained:
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)

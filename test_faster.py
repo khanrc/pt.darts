@@ -12,6 +12,7 @@ import numpy as np
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
+from subloader import SubDataset
 from search_obj import collate_fn
 from detectionengine import train_one_epoch, evaluate
 
@@ -28,19 +29,34 @@ dataset = sys.argv[sys.argv.index('--dataset')+1]
 def main():
     num_classes = 200
     if dataset == "pure_det":
-        train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
+        # train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
         # full_set = Pure_Det(train_path, train_transforms)
-        _, _, _, train_data, _ = utils.get_data(
-            "pure_det", "", cutout_length=0, validation=True, search=True,
-            bede=False, is_concat=False)
+        # _, _, _, train_data, _ = utils.get_data(
+        #     "pure_det", "", cutout_length=0, validation=True, search=True,
+        #     bede=False, is_concat=False)
+        trn_transform = tf.Compose([
+                tf.Resize((64, 64)),
+                tf.RandomHorizontalFlip(),
+                tf.ToTensor(),
+                # normalize,
+            ])
+        train_data = SubDataset(transforms=trn_transform, dataset_name="pure_det")
     elif dataset == "coco_det":
-        train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
-        _, _, _, train_data, _ = utils.get_data(
-            "coco_det", "", cutout_length=0, validation=True, search=True,
-            bede=False, is_concat=False)
+        # train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
+        # _, _, _, train_data, _ = utils.get_data(
+        #     "coco_det", "", cutout_length=0, validation=True, search=True,
+        #     bede=False, is_concat=False)
+        trn_transform = tf.Compose([
+                tf.Resize((64, 64)),
+                tf.RandomHorizontalFlip(),
+                tf.ToTensor(),
+                # normalize,
+            ])
+        train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det")
         num_classes = 91
     else:
         raise AttributeError("bad dataset")
+
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=1,
                                                # sampler=train_sampler,
@@ -48,6 +64,7 @@ def main():
                                                pin_memory=True,
                                                collate_fn=collate_fn
                                                )
+
     if is_pretrained:
         backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
         num_classes = 91
@@ -168,6 +185,7 @@ def main():
         for q, key in enumerate(activation.keys()):
             act = activation[key].squeeze()
             q_mult = min(q*4, 8)
+            q_mult = max(q_mult, 2) # simplify axarr situation, enforcing always 2d fig.
             fig, axarr = plt.subplots(q_mult, 4)
             row_count = -1
             for idx in range(q_mult*4):

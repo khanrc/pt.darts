@@ -12,8 +12,8 @@ import numpy as np
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
+from coco_obj import COCODetLoader as Coco_Det
 from subloader import SubDataset
-from search_obj import collate_fn
 from detectionengine import train_one_epoch, evaluate
 
 # from torchvision._internally_replaced_utils import load_state_dict_from_url
@@ -24,6 +24,12 @@ is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
 is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
 is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed')+1])
 dataset = sys.argv[sys.argv.index('--dataset')+1]
+
+
+def collate_fn(batch):
+    data, labels = zip(*batch)
+    stacked_data = torch.stack(data, dim=0)
+    return stacked_data, labels
 
 
 def main():
@@ -52,13 +58,16 @@ def main():
                 tf.ToTensor(),
                 # normalize,
             ])
-        train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
+        train_path = '/hdd/PhD/data/coco/'
+        # train_path = '/home/matt/Documents/coco/'
+        # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
+        train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")
 
     train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=1,
+                                               batch_size=2, # needs to be > 1
                                                # sampler=train_sampler,
                                                num_workers=0,
                                                pin_memory=True,

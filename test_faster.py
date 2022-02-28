@@ -193,8 +193,9 @@ def main():
         os.makedirs(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
             act = activation[key].squeeze()
+            raise AttributeError(act.shape)
             q_mult = min(q*4, 8)
-            q_mult = max(q_mult, 2) # simplify axarr situation, enforcing always 2d fig.
+            q_mult = max(q_mult, 2) # simplify axarr situation, enforcing always >2 x n fig.
             fig, axarr = plt.subplots(q_mult, 4)
             row_count = -1
             for idx in range(q_mult*4):

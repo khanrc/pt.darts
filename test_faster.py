@@ -52,7 +52,7 @@ def main():
                 tf.ToTensor(),
                 # normalize,
             ])
-        train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det")
+        train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")

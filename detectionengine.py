@@ -8,6 +8,94 @@ import detection_utils as utils
 from coco_eval import CocoEvaluator
 from coco_utils import get_coco_api_from_dataset
 import torchvision.transforms as tf
+from PIL import ImageDraw
+import numpy as np
+
+
+
+class_dict = dict(zip(
+["person",
+"bicycle",
+"car",
+"motorcycle",
+"airplane",
+"bus",
+"train",
+"truck",
+"boat",
+"traffic light",
+"fire hydrant",
+"stop sign",
+"parking meter",
+"bench",
+"bird",
+"cat",
+"dog",
+"horse",
+"sheep",
+"cow",
+"elephant",
+"bear",
+"zebra",
+"giraffe",
+"backpack",
+"umbrella",
+"handbag",
+"tie",
+"suitcase",
+"frisbee",
+"skis",
+"snowboard",
+"sports ball",
+"kite",
+"baseball bat",
+"baseball glove",
+"skateboard",
+"surfboard",
+"tennis racket",
+"bottle",
+"wine glass",
+"cup",
+"fork",
+"knife",
+"spoon",
+"bowl",
+"banana",
+"apple",
+"sandwich",
+"orange",
+"broccoli",
+"carrot",
+"hot dog",
+"pizza",
+"donut",
+"cake",
+"chair",
+"couch",
+"potted plant",
+"bed",
+"dining table",
+"toilet",
+"tv",
+"laptop",
+"mouse",
+"remote",
+"keyboard",
+"cell phone",
+"microwave",
+"oven",
+"toaster",
+"sink",
+"refrigerator",
+"book",
+"clock",
+"vase",
+"scissors",
+"teddy bear",
+"hair drier",
+"toothbrush"], [i for i in range(80)]))
+
+rev_class_dict = {v:k for k,v in class_dict.items()}
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
@@ -28,6 +116,17 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
         optimizer, 10, eta_min=0.001)
 
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
+
+        # assert len(images) == len(targets)
+        # for i in range(len(images)):
+        #     image, target = images[i], targets[i]
+        #     image = tf.ToPILImage()(image)
+        #     draw = ImageDraw.Draw(image)
+        #     for i in range(len(target["boxes"])):
+        #         draw.rectangle(np.array(target["boxes"][i]))
+        #         draw.text((target['boxes'][i][0].item() + 2, target['boxes'][i][1].item() + 2), str(rev_class_dict[target['labels'][i].item()]))
+        #     image.save(f"tempSave/validate_obj/coco/{target['image_id']}.png")
+
         images = list(image.to(device) for image in images)
         targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
@@ -159,8 +258,8 @@ def evaluate(model, data_loader, device, epoch=0):
                     utils.draw_bounding_boxes(images[i].to(cpu_device), outputs[i]["boxes"], to_save, labels=None, fill=True)
             model_time = time.time() - model_time
 
-            # res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
-            res = {target["image_id"]: output for target, output in zip(targets, outputs)}
+            res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+            # res = {target["image_id"]: output for target, output in zip(targets, outputs)}
             evaluator_time = time.time()
             coco_evaluator.update(res)
             evaluator_time = time.time() - evaluator_time

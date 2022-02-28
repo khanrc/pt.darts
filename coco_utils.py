@@ -150,19 +150,19 @@ def convert_to_coco_api(ds):
         # find better way to get target
         # targets = ds.get_annotations(img_idx)
         img, targets = ds[img_idx]
-        # image_id = targets["image_id"].item()
-        image_id = targets["image_id"][0]
+        image_id = targets["image_id"].item()
+        # image_id = targets["image_id"][0]
         img_dict = {}
         img_dict["id"] = image_id
         img_dict["height"] = img.shape[-2]
         img_dict["width"] = img.shape[-1]
         dataset["images"].append(img_dict)
-        bboxes = targets["boxes"][0].clone()
+        bboxes = targets["boxes"].clone()
         bboxes[:, 2:] -= bboxes[:, :2]
         bboxes = bboxes.tolist()
-        labels = targets["labels"][0].tolist()
-        areas = targets["area"][0].tolist()
-        iscrowd = targets["iscrowd"][0].tolist()
+        labels = targets["labels"].tolist()
+        areas = targets["area"].tolist()
+        iscrowd = targets["iscrowd"].tolist()
         if "masks" in targets:
             masks = targets["masks"]
             # make masks Fortran contiguous for coco_mask

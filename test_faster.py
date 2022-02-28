@@ -12,7 +12,8 @@ import numpy as np
 
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 from det_dataset import Imagenet_Det as Pure_Det
-from search_obj import collate_fn
+from coco_obj import COCODetLoader as Coco_Det
+from subloader import SubDataset
 from detectionengine import train_one_epoch, evaluate
 
 # from torchvision._internally_replaced_utils import load_state_dict_from_url
@@ -25,29 +26,54 @@ is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed')+1])
 dataset = sys.argv[sys.argv.index('--dataset')+1]
 
 
+def collate_fn(batch):
+    data, labels = zip(*batch)
+    stacked_data = torch.stack(data, dim=0)
+    return stacked_data, labels
+
+
 def main():
     num_classes = 200
     if dataset == "pure_det":
-        train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
+        # train_transforms, _ = preproc.data_transforms("pure_det", cutout_length=0)
         # full_set = Pure_Det(train_path, train_transforms)
-        _, _, _, train_data, _ = utils.get_data(
-            "pure_det", "", cutout_length=0, validation=True, search=True,
-            bede=False, is_concat=False)
+        # _, _, _, train_data, _ = utils.get_data(
+        #     "pure_det", "", cutout_length=0, validation=True, search=True,
+        #     bede=False, is_concat=False)
+        trn_transform = tf.Compose([
+                tf.Resize((64, 64)),
+                tf.RandomHorizontalFlip(),
+                tf.ToTensor(),
+                # normalize,
+            ])
+        train_data = SubDataset(transforms=trn_transform, dataset_name="pure_det")
     elif dataset == "coco_det":
-        train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
-        _, _, _, train_data, _ = utils.get_data(
-            "coco_det", "", cutout_length=0, validation=True, search=True,
-            bede=False, is_concat=False)
+        # train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
+        # _, _, _, train_data, _ = utils.get_data(
+        #     "coco_det", "", cutout_length=0, validation=True, search=True,
+        #     bede=False, is_concat=False)
+        trn_transform = tf.Compose([
+                tf.Resize((64, 64)),
+                # tf.RandomHorizontalFlip(),
+                tf.ToTensor(),
+                # normalize,
+            ])
+        train_path = '/hdd/PhD/data/coco/'
+        # train_path = '/home/matt/Documents/coco/'
+        # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
+        train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")
+
     train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=1,
+                                               batch_size=2, # needs to be > 1
                                                # sampler=train_sampler,
                                                num_workers=0,
                                                pin_memory=True,
                                                collate_fn=collate_fn
                                                )
+
     if is_pretrained:
         backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
         num_classes = 91
@@ -166,8 +192,9 @@ def main():
         evaluate(model, train_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
-            act = activation[key].squeeze()
+            act = activation[key][0] # take first of batch arbitrarily
             q_mult = min(q*4, 8)
+            q_mult = max(q_mult, 2) # simplify axarr situation, enforcing always >2 x n fig.
             fig, axarr = plt.subplots(q_mult, 4)
             row_count = -1
             for idx in range(q_mult*4):

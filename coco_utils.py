@@ -146,6 +146,7 @@ def convert_to_coco_api(ds):
     ann_id = 1
     dataset = {"images": [], "categories": [], "annotations": []}
     categories = set()
+    raise AttributeError(len(ds))
     for img_idx in range(len(ds)):
         # find better way to get target
         # targets = ds.get_annotations(img_idx)

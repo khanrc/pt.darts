@@ -42,11 +42,13 @@ def main():
         #     bede=False, is_concat=False)
         trn_transform = tf.Compose([
                 tf.Resize((64, 64)),
-                tf.RandomHorizontalFlip(),
+                # tf.RandomHorizontalFlip(),
                 tf.ToTensor(),
                 # normalize,
             ])
-        train_data = SubDataset(transforms=trn_transform, dataset_name="pure_det")
+        train_path = '/hdd/PhD/data/imagenet2017detection/' # TODO revert
+        # train_path = '/data/mining/imageobjdata/'
+        train_data = Pure_Det(root=train_path, transforms=trn_transform)
     elif dataset == "coco_det":
         # train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
         # _, _, _, train_data, _ = utils.get_data(

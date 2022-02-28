@@ -258,8 +258,8 @@ def evaluate(model, data_loader, device, epoch=0):
                     utils.draw_bounding_boxes(images[i].to(cpu_device), outputs[i]["boxes"], to_save, labels=None, fill=True)
             model_time = time.time() - model_time
 
-            # res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
-            res = {target["image_id"]: output for target, output in zip(targets, outputs)}
+            res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+            # res = {target["image_id"]: output for target, output in zip(targets, outputs)}
             evaluator_time = time.time()
             coco_evaluator.update(res)
             evaluator_time = time.time() - evaluator_time

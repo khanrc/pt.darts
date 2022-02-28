@@ -54,7 +54,7 @@ def main():
         #     bede=False, is_concat=False)
         trn_transform = tf.Compose([
                 tf.Resize((64, 64)),
-                tf.RandomHorizontalFlip(),
+                # tf.RandomHorizontalFlip(),
                 tf.ToTensor(),
                 # normalize,
             ])

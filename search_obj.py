@@ -16,6 +16,7 @@ import torch.nn.functional as F
 import time
 import csv
 from torchvision import transforms
+import random
 
 sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
@@ -45,20 +46,14 @@ from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 def collate_fn(batch):
     data, labels = zip(*batch)
     stacked_data = torch.stack(data, dim=0)
-    # new_labels = []
-    # for label in labels:
-    #     new_labels.append({"labels": label["labels"][0].to(device), "boxes": label["boxes"][0].to(device)})
-    labels = [{k: v[0] for k, v in label.items()} for label in labels]
-    # labels = [{"labels": label["labels"][0], "boxes": label["boxes"][0]} for label in labels]
     return stacked_data, labels
-    # classes = torch.stack([label["labels"][0] for label in labels],dim=0)
-    # boxes = torch.stack([label["boxes"][0] for label in labels],dim=0)
-    # return stacked_data, {"labels": labels, "boxes": boxes}
 
-    # return stacked_data, (classes, boxes)
 
-    # stacked_labels = torch.stack(labels, dim=0)
-    # return stacked_data, stacked_labels
+def get_split(dataset):
+    n_train = len(dataset)
+    split = n_train * 0.8
+    remainder = split % 8
+    return int(split - remainder)
 
 
 def main():
@@ -71,7 +66,7 @@ def main():
     start_time = time.time()
     logger.info("Logger is set - training start {}".format(start_time))
 
-    assert config.dataset == "pure_det"
+    assert config.dataset == "coco_det"
     is_multi = False
     if config.dataset == "imageobj" or config.dataset == "cocomask":
         is_multi = True
@@ -118,28 +113,34 @@ def main():
                                    weight_decay=config.alpha_weight_decay)
 
     # split data to train/validation
-    # n_train = len(train_data)
-    # split = n_train // 2
-    # indices = list(range(n_train))
-    # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+    split = get_split(train_data)
+    indices = list(range(len(train_data)))
+    random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
+    random.shuffle(indices)
+    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
+    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+    if config.dynamic:
+        train_sampler = None # do not sample as DynamicDataset does this automatically.
+        # needs to be this way else dynamicdataset will process validation images + incorporate them
+        # into the tree
 
     collate_func = collate_fn
 
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
-                                               # sampler=train_sampler,
+                                               sampler=train_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
                                                collate_fn=collate_func
                                                )
     valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
-                                               # sampler=valid_sampler,
+                                               sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
                                                collate_fn=collate_func
                                                )
+
     # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
     #     w_optim, config.epochs, eta_min=config.w_lr_min)
     # print ("grep", config.workers, config.batch_size, config.name)

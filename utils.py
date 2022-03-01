@@ -19,6 +19,7 @@ from subloader import SubDataset
 from subloaderfull import SubDatasetFull
 from imageloader import ImageLoader
 from det_dataset import Imagenet_Det as Pure_Det
+from coco_obj import COCODetLoader as Coco_Det
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
@@ -96,7 +97,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         convert_to_paths = True
         # convert_to_lbl_paths = True
     elif dataset == "coco_det":
-        n_classes = 80
+        n_classes = 91
         dynamic_name = "coco_det"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMaskGood.pth.tar"
@@ -159,6 +160,11 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                                       dataset_name=dynamic_name)
                 input_size = len(trn_data)
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+            elif dataset == "coco_det":
+                train_path = '/hdd/PhD/data/coco/'
+                trn_data = Coco_Det(train_path=train_path, transforms=val_transform)
+                input_size = len(trn_data)
+                input_channels = 3
             else:
                 trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
                 shape = trn_data.data.shape
@@ -166,13 +172,22 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 assert shape[1] == shape[2], "not expected shape = {}".format(shape)
                 input_size = shape[1]
         else:
-            subset_size = 10000
-            if search:
-                subset_size = config.subset_size
-            trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
+            if dataset == "coco_det":
+                train_path = '/hdd/PhD/data/coco/'
+                subset_size = 10000
+                if search:
+                    subset_size = config.subset_size
+                trn_data = Coco_Det(train_path=train_path, transforms=val_transform, max_size=subset_size)
+                input_size = len(trn_data)
+                input_channels = 3
+            else:
+                subset_size = 10000
+                if search:
+                    subset_size = config.subset_size
+                trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
 
-            input_size = len(trn_data)
-            input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+                input_size = len(trn_data)
+                input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
 
 
     ret = [input_size, input_channels, n_classes, trn_data]
@@ -208,7 +223,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         elif dataset == 'pure_det':
             ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="pure_det", bede=bede))
         elif dataset == 'coco_det':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
+            # ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
+
+            train_path = '/hdd/PhD/data/coco/'
+            ret.append(Coco_Det(train_path=train_path, transforms=val_transform))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

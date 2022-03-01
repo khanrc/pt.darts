@@ -97,7 +97,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         convert_to_paths = True
         # convert_to_lbl_paths = True
     elif dataset == "coco_det":
-        n_classes = 91
+        n_classes = 80
         dynamic_name = "coco_det"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"

@@ -51,19 +51,19 @@ def main():
         train_data = Pure_Det(root=train_path, transforms=trn_transform)
     elif dataset == "coco_det":
         # train_transforms, _ = preproc.data_transforms("coco_det", cutout_length=0)
-        # _, _, _, train_data, _ = utils.get_data(
-        #     "coco_det", "", cutout_length=0, validation=True, search=True,
-        #     bede=False, is_concat=False)
-        trn_transform = tf.Compose([
-                tf.Resize((64, 64)),
-                # tf.RandomHorizontalFlip(),
-                tf.ToTensor(),
-                # normalize,
-            ])
-        train_path = '/hdd/PhD/data/coco/'
-        # train_path = '/home/matt/Documents/coco/'
-        # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
-        train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
+        _, _, _, train_data, _ = utils.get_data(
+            "coco_det", "", cutout_length=0, validation=True, search=True,
+            bede=False, is_concat=False)
+        # trn_transform = tf.Compose([
+        #         tf.Resize((64, 64)),
+        #         # tf.RandomHorizontalFlip(),
+        #         tf.ToTensor(),
+        #         # normalize,
+        #     ])
+        # train_path = '/hdd/PhD/data/coco/'
+        # # train_path = '/home/matt/Documents/coco/'
+        # # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
+        # train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")

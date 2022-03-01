@@ -117,7 +117,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         std = [0.229, 0.224, 0.225],
     )
     perc_transforms = transforms.Compose([
-        transforms.Resize(isize),
+        transforms.Resize((isize, isize)),
         transforms.ToTensor(),
         normalize,
     ])

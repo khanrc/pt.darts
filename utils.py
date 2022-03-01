@@ -145,9 +145,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             subset_size=config.subset_size,
             is_csv=config.is_csv,
             is_detection=is_detection,
-            convert_to_paths=convert_to_paths,
-            convert_to_lbl_paths=convert_to_lbl_paths,
-            bede=bede,
+            # convert_to_paths=convert_to_paths,
+            # convert_to_lbl_paths=convert_to_lbl_paths,
+            # bede=bede,
             is_concat=is_concat)
             # is_csv=False)
         input_size = len(trn_data)

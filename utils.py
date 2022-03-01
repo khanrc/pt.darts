@@ -100,7 +100,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         n_classes = 80
         dynamic_name = "coco_det"
         grayscale = False
-        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCocoOld.pth.tar"
         is_detection = True
         convert_to_paths = False
         # convert_to_lbl_paths = True

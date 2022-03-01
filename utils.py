@@ -113,10 +113,11 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         raise ValueError(dataset)
 
     normalize = transforms.Normalize(
-        mean=[0.13066051707548254],
-        std=[0.30810780244715075])
+        mean = [0.485, 0.456, 0.406],
+        std = [0.229, 0.224, 0.225],
+    )
     perc_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(isize),
+        transforms.Resize(isize),
         transforms.ToTensor(),
         normalize,
     ])

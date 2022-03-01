@@ -14,7 +14,7 @@ sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
-from dataloader import DynamicDataset
+from dataloader_convert import DynamicDataset
 from subloader import SubDataset
 from subloaderfull import SubDatasetFull
 from imageloader import ImageLoader

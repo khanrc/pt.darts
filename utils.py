@@ -39,7 +39,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     convert_to_lbl_paths = False
     isize = 64
     nz = 8
-    aisize = 256
+    aisize = 3
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"

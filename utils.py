@@ -102,8 +102,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCocoOld.pth.tar"
         is_detection = True
-        convert_to_paths = False
-        # convert_to_lbl_paths = True
+
+        # coco_train_path = '/home2/lgfm95/coco/'
+        # coco_train_path = '/home/matt/Documents/coco/'
+        coco_train_path = '/hdd/PhD/data/coco/'
     elif dataset == "pure_det":
         n_classes = 200
         dynamic_name = "pure_det"
@@ -161,8 +163,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_size = len(trn_data)
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
             elif dataset == "coco_det":
-                train_path = '/hdd/PhD/data/coco/'
-                trn_data = Coco_Det(train_path=train_path, transforms=val_transform)
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform)
                 input_size = len(trn_data)
                 input_channels = 3
             else:
@@ -173,11 +174,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_size = shape[1]
         else:
             if dataset == "coco_det":
-                train_path = '/hdd/PhD/data/coco/'
                 subset_size = 10000
                 if search:
                     subset_size = config.subset_size
-                trn_data = Coco_Det(train_path=train_path, transforms=val_transform, max_size=subset_size)
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform, max_size=subset_size)
                 input_size = len(trn_data)
                 input_channels = 3
             else:
@@ -225,8 +225,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         elif dataset == 'coco_det':
             # ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
 
-            train_path = '/hdd/PhD/data/coco/'
-            ret.append(Coco_Det(train_path=train_path, transforms=val_transform))
+            # train_path = '/home2/lgfm95/coco/'
+            # train_path = '/home/matt/Documents/coco/'
+            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

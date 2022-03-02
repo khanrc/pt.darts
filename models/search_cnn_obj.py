@@ -18,14 +18,16 @@ from torchvision.models.detection.roi_heads import RoIHeads
 from torchvision.models.detection.faster_rcnn import TwoMLPHead, FastRCNNPredictor
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
+from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
+from torch.hub import load_state_dict_from_url
+
+
 def broadcast_list(l, device_ids):
     """ Broadcasting list """
     l_copies = Broadcast.apply(device_ids, *l)
     l_copies = [l_copies[i:i+len(l)] for i in range(0, len(l_copies), len(l))]
 
     return l_copies
-
-
 
 
 class SearchCNN(nn.Module):
@@ -94,8 +96,11 @@ class SearchCNN(nn.Module):
         # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         # self.backbone.out_channels = out_channels
 
-        anchor_generator = AnchorGenerator(sizes=((32, 64, 128, 256, 512),),
-                                           aspect_ratios=((0.5, 1.0, 2.0),))
+        anchor_sizes = ((32,), (64,), (128,), (256,), (512,))
+        aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
+        anchor_generator = AnchorGenerator(
+            anchor_sizes, aspect_ratios
+        )
 
         self.rpn = get_rpn(anchor_generator, None, out_channels)
         self.rpn.head.conv.register_forward_hook(get_activation(f'cellhead'))
@@ -108,6 +113,27 @@ class SearchCNN(nn.Module):
         image_mean = [0.485, 0.456, 0.406]
         image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
+
+        # load pretrain
+        pretrained_backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
+        pretrained = FasterRCNN(pretrained_backbone,
+                       num_classes=91,
+                       # rpn_anchor_generator=anchor_generator,
+                       box_roi_pool=roi_pooler,
+                       )
+        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
+        pretrained.load_state_dict(state_dict)
+
+        # Copy network weights from pretrained.rpn + freeze them
+        # note not worth doing this (this way) even for a directly copied backbone as those
+        # use cell format, which adopts alpha/weights normal/reduce, instantiated in controller.
+        self.rpn.load_state_dict(pretrained.rpn.state_dict())
+        self.rpn.requires_grad_(False)
+
+        self.roi_heads.load_state_dict(pretrained.roi_heads.state_dict())
+        self.roi_heads.requires_grad_(False)
+
+        del pretrained
 
 
     def forward(self, x, y, weights_normal, weights_reduce, full_ret):

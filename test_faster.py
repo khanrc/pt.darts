@@ -64,7 +64,7 @@ def main():
         # # train_path = '/home/matt/Documents/coco/'
         # # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
         # train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
-        num_classes = 91
+        num_classes = 80
     else:
         raise AttributeError("bad dataset")
 

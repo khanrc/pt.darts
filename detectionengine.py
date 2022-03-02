@@ -162,8 +162,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
     return metric_logger
 
 
-
-def train_one_epoch_ssd(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
+def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
@@ -181,21 +180,36 @@ def train_one_epoch_ssd(model, optimizer, data_loader, device, epoch, print_freq
         optimizer, 10, eta_min=0.001)
 
     for images, targets in metric_logger.log_every(data_loader, print_freq, header):
-        images = list(image.to(device) for image in images)
+
+        # for i in range(len(images)): # working
+        #     image, target = images[i], targets[i]
+        #     image = tf.ToPILImage()(image)
+        #     draw = ImageDraw.Draw(image)
+        #     for i in range(len(target["boxes"])):
+        #         draw.rectangle(np.array(target["boxes"][i]))
+        #         draw.text((target['boxes'][i][0].item() + 2, target['boxes'][i][1].item() + 2), str(rev_class_dict[target['labels'][i].item()]))
+        #     image.save(f"tempSave/validate_obj/coco/{target['image_id']}.png")
+
+        images = torch.stack([image.to(device) for image in images])
         targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             loss_dict = model(images)
-            losses = sum(loss for loss in loss_dict.values())
+            loss_dict = tuple(loss.cuda() for loss in loss_dict)
 
-        # reduce losses over all GPUs for logging purposes
-        loss_dict_reduced = utils.reduce_dict(loss_dict)
-        losses_reduced = sum(loss for loss in loss_dict_reduced.values())
+            # needs labels in form batchsize x num_objects x 5 (first 4 is bbox, 5th is class label)
+            boxlabels = torch.stack([torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))], 0)
+            loss_l, loss_c = criterion(loss_dict, boxlabels)
+            losses = loss_l + loss_c
 
-        loss_value = losses_reduced.item()
+        # # reduce losses over all GPUs for logging purposes
+        # loss_dict_reduced = utils.reduce_dict(loss_dict)
+        # losses_reduced = sum(loss for loss in loss_dict_reduced.values())
+        #
+        # loss_value = losses_reduced.item()
 
-        if not math.isfinite(loss_value):
-            print(f"Loss is {loss_value}, stopping training")
-            print(loss_dict_reduced)
+        if not math.isfinite(losses):
+            print(f"Loss is {losses}, stopping training")
+            print(f"loss_l: {loss_l}, loss_c: {loss_c}")
             sys.exit(1)
 
         optimizer.zero_grad()
@@ -210,7 +224,7 @@ def train_one_epoch_ssd(model, optimizer, data_loader, device, epoch, print_freq
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
+        metric_logger.update(loss=losses, **{"loss_l":loss_l, "loss_c": loss_c})
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
     return metric_logger

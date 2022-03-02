@@ -128,10 +128,10 @@ class SearchCNN(nn.Module):
         # note not worth doing this (this way) even for a directly copied backbone as those
         # use cell format, which adopts alpha/weights normal/reduce, instantiated in controller.
         self.rpn.load_state_dict(pretrained.rpn.state_dict())
-        self.rpn.requires_grad_(False)
+        # self.rpn.requires_grad_(False)
 
         self.roi_heads.load_state_dict(pretrained.roi_heads.state_dict())
-        self.roi_heads.requires_grad_(False)
+        # self.roi_heads.requires_grad_(False)
 
         del pretrained
 

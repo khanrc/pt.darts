@@ -428,23 +428,24 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     epoch + 1, config.epochs, step, len(train_loader) - 1, losses=losses))
         cur_step += 1
 
-        os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
-        for key in model.net.activation.keys():
-            act = model.net.activation[key].squeeze()
-            qmult = int(act.size(0)/4)
-            idx_range = act.size(0)
-            if key == 'cellhead':
-                qmult = 8
-                idx_range = 32
-            fig, axarr = plt.subplots(qmult, 4)
-            row_count = -1
-            for idx in range(idx_range):
-                if idx % 4 == 0:
-                    row_count += 1
-                axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
-                axarr[row_count, idx%4].set_axis_off()
-            fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
-            plt.close(fig)
+        if config.dynamic:
+            os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
+            for key in model.net.activation.keys():
+                act = model.net.activation[key].squeeze()
+                qmult = int(act.size(0)/4)
+                idx_range = act.size(0)
+                if key == 'cellhead':
+                    qmult = 8
+                    idx_range = 32
+                fig, axarr = plt.subplots(qmult, 4)
+                row_count = -1
+                for idx in range(idx_range):
+                    if idx % 4 == 0:
+                        row_count += 1
+                    axarr[row_count, idx%4].imshow(act[idx].cpu().numpy())
+                    axarr[row_count, idx%4].set_axis_off()
+                fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
+                plt.close(fig)
 
     logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch + 1, config.epochs, losses.avg))
 

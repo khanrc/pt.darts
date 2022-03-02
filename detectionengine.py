@@ -11,91 +11,13 @@ import torchvision.transforms as tf
 from PIL import ImageDraw
 import numpy as np
 
+import sys
+sys.path.insert(0, "/home2/lgfm95/hem/perceptual")
+sys.path.insert(0, "/hdd/PhD/hem/perceptual")
+sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
+from coco_obj import get_dict
 
-
-class_dict = dict(zip(
-["person",
-"bicycle",
-"car",
-"motorcycle",
-"airplane",
-"bus",
-"train",
-"truck",
-"boat",
-"traffic light",
-"fire hydrant",
-"stop sign",
-"parking meter",
-"bench",
-"bird",
-"cat",
-"dog",
-"horse",
-"sheep",
-"cow",
-"elephant",
-"bear",
-"zebra",
-"giraffe",
-"backpack",
-"umbrella",
-"handbag",
-"tie",
-"suitcase",
-"frisbee",
-"skis",
-"snowboard",
-"sports ball",
-"kite",
-"baseball bat",
-"baseball glove",
-"skateboard",
-"surfboard",
-"tennis racket",
-"bottle",
-"wine glass",
-"cup",
-"fork",
-"knife",
-"spoon",
-"bowl",
-"banana",
-"apple",
-"sandwich",
-"orange",
-"broccoli",
-"carrot",
-"hot dog",
-"pizza",
-"donut",
-"cake",
-"chair",
-"couch",
-"potted plant",
-"bed",
-"dining table",
-"toilet",
-"tv",
-"laptop",
-"mouse",
-"remote",
-"keyboard",
-"cell phone",
-"microwave",
-"oven",
-"toaster",
-"sink",
-"refrigerator",
-"book",
-"clock",
-"vase",
-"scissors",
-"teddy bear",
-"hair drier",
-"toothbrush"], [i for i in range(80)]))
-
-rev_class_dict = {v:k for k,v in class_dict.items()}
+class_dict, rev_class_dict = get_dict()
 
 
 def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):

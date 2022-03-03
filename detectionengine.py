@@ -116,7 +116,7 @@ def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch,
         targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             loss_dict = model(images)
-            loss_dict = tuple(loss.cuda() for loss in loss_dict)
+            loss_dict = tuple(loss.to(device) for loss in loss_dict)
 
             # needs labels in form batchsize x num_objects x 5 (first 4 is bbox, 5th is class label)
             boxlabels = [torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))]
@@ -189,9 +189,9 @@ def evaluate(model, data_loader, device, epoch=0):
             outputs = model(images, targets)
 
             outputs = [{k: v.to(cpu_device) for k, v in t.items()} for t in outputs]
-            if step == 0:
+            if step < 10:
                 for i in range(len(outputs)): # batch size
-                    to_save = f"./tempSave/validate_obj/{epoch}-{i}.png"
+                    to_save = f"./tempSave/validate_obj/{epoch}-{step}-{i}.png"
                     utils.draw_bounding_boxes(images[i].to(cpu_device), outputs[i]["boxes"], to_save, labels=None, fill=True)
             model_time = time.time() - model_time
 

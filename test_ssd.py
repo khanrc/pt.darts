@@ -37,8 +37,8 @@ def main():
         # transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
     ]
     train_transforms = tf.Compose(transf + normalize)
-    train_path = "/hdd/PhD/data/coco"
-    # train_path = '/home/matt/Documents/coco/'
+    # train_path = "/hdd/PhD/data/coco"
+    train_path = '/home/matt/Documents/coco/'
     train_data = Coco_Det(train_path=train_path, transforms=train_transforms, max_size=1000)
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=32, # cheat for now. ensures same number of objects
@@ -51,8 +51,11 @@ def main():
 
     num_classes = 80
 
-
-    device = torch.device("cuda")
+    use_cuda = False
+    if use_cuda:
+        device = torch.device("cuda")
+    else:
+        device = torch.device("cpu")
 
     # Visualize feature maps
     activation = {}
@@ -77,7 +80,7 @@ def main():
     optimizer = torch.optim.SGD(params, lr=4e-3,
                                 momentum=0.9, weight_decay=0.0005)
     criterion = MultiBoxLoss(num_classes, 0.5, True, 0, True, 3, 0.5,
-                             False, True)
+                             False, use_cuda)
 
     for i in range(10):
         # for step, (image, targets) in enumerate(train_loader):

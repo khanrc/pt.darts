@@ -25,7 +25,7 @@ sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
 
 
-def get_data(dataset, data_path, cutout_length, validation, search, bede, is_concat=False):
+def get_data(dataset, data_path, cutout_length, validation, search, bede, is_concat):
     if search:
         config = SearchConfig()
     else:

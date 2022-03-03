@@ -40,7 +40,7 @@ def main():
     train_path = "/hdd/PhD/data/coco"
     train_data = Coco_Det(train_path=train_path, transforms=train_transforms, max_size=1000)
     train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=1, # cheat for now. ensures same number of objects
+                                               batch_size=32, # cheat for now. ensures same number of objects
                                                # per image in batch because only one image.
                                                # sampler=train_sampler,
                                                num_workers=0,
@@ -73,7 +73,7 @@ def main():
             module.register_forward_hook(get_activation(f'loc{i}'))
 
     params = [p for p in model.parameters() if p.requires_grad]
-    optimizer = torch.optim.SGD(params, lr=0.005,
+    optimizer = torch.optim.SGD(params, lr=4e-3,
                                 momentum=0.9, weight_decay=0.0005)
     criterion = MultiBoxLoss(num_classes, 0.5, True, 0, True, 3, 0.5,
                              False, True)

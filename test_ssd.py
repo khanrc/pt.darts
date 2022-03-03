@@ -38,6 +38,7 @@ def main():
     ]
     train_transforms = tf.Compose(transf + normalize)
     train_path = "/hdd/PhD/data/coco"
+    # train_path = '/home/matt/Documents/coco/'
     train_data = Coco_Det(train_path=train_path, transforms=train_transforms, max_size=1000)
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=32, # cheat for now. ensures same number of objects

@@ -119,19 +119,20 @@ def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch,
             loss_dict = tuple(loss.cuda() for loss in loss_dict)
 
             # needs labels in form batchsize x num_objects x 5 (first 4 is bbox, 5th is class label)
-            boxlabels = torch.stack([torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))], 0)
+            boxlabels = [torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))]
             loss_l, loss_c = criterion(loss_dict, boxlabels)
             losses = loss_l + loss_c
+            loss_dict = {"loss_l": loss_l, "loss_c": loss_c}
 
         # # reduce losses over all GPUs for logging purposes
-        # loss_dict_reduced = utils.reduce_dict(loss_dict)
-        # losses_reduced = sum(loss for loss in loss_dict_reduced.values())
-        #
-        # loss_value = losses_reduced.item()
+        loss_dict_reduced = utils.reduce_dict(loss_dict)
+        losses_reduced = sum(loss for loss in loss_dict_reduced.values())
 
-        if not math.isfinite(losses):
-            print(f"Loss is {losses}, stopping training")
-            print(f"loss_l: {loss_l}, loss_c: {loss_c}")
+        loss_value = losses_reduced.item()
+
+        if not math.isfinite(loss_value):
+            print(f"Loss is {loss_value}, stopping training")
+            print(loss_dict_reduced)
             sys.exit(1)
 
         optimizer.zero_grad()

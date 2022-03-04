@@ -49,7 +49,7 @@ def main():
                                                collate_fn=collate_fn
                                                )
 
-    num_classes = 80
+    num_classes = 91
 
 
     device = torch.device("cuda")

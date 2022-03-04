@@ -40,12 +40,23 @@ from detr.models.matcher import HungarianMatcher
 from detr.models.detr import SetCriterion
 from detr.util.box_ops import box_cxcywh_to_xyxy, box_xyxy_to_cxcywh
 
+import sys
+sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
+from coco_obj import get_dict
+from PIL import ImageDraw
+import matplotlib.pyplot as plt
+
+class_dict, rev_class_dict = get_dict()
 
 # torch.multiprocessing.set_start_method('spawn') # https://github.com/pytorch/pytorch/issues/40403
 # caused by putting dictionary elements onto gpu
 def collate_fn(batch):
     data, labels = zip(*batch)
     stacked_data = torch.stack(data, dim=0)
+    # good_indices = [q for q, label in enumerate(labels) if len(label["boxes"]) > 0]
+    # stacked_data = stacked_data[good_indices]
+    # labels = tuple(label for q, label in enumerate(labels) if q in good_indices)
+
     return stacked_data, labels
 
 
@@ -141,11 +152,11 @@ def main():
                                                collate_fn=collate_func
                                                )
 
-    # lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-    #     w_optim, config.epochs, eta_min=config.w_lr_min)
+    lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+        w_optim, config.epochs, eta_min=config.w_lr_min)
     # print ("grep", config.workers, config.batch_size, config.name)
-    lr_scheduler = torch.optim.lr_scheduler.CyclicLR(w_optim, 0.001, 0.01, step_size_up=10,
-                                                     step_size_down=None)  # step_size_down=None means same as _up
+    # lr_scheduler = torch.optim.lr_scheduler.CyclicLR(w_optim, 0.001, 0.01, step_size_up=10,
+    #                                                  step_size_down=None)  # step_size_down=None means same as _up
 
     architect = Architect(model, config.w_momentum, config.w_weight_decay)
 
@@ -347,11 +358,6 @@ def save_indices(data, epoch, images=None):
                 csv_writer.writerow(data)
 
 
-sys.path.insert(0, "/hdd/PhD/hem/perceptual")
-from det_dataset import Imagenet_Det as Pure_Det
-import matplotlib.pyplot as plt
-
-
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
@@ -366,31 +372,18 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
-    # resize_transform = [transforms.Resize((128,128))]
-    # MEAN = [0.13066051707548254]
-    # STD = [0.30810780244715075]
-    # normalize = [
-    #     transforms.ToTensor(),
-    #     transforms.Normalize(MEAN, STD)
-    # ]
-    # valid_transform = transforms.Compose(resize_transform + normalize)
-    # root = '/hdd/PhD/data/imagenet2017detection/'
-    # temp_dset = Pure_Det(root, transforms=valid_transform)
-    # classes = temp_dset.classes
-    # inv_map = {v: k for k, v in classes.items()}
+    print ("summed weight: ", sum([torch.sum(weight) for weight in model.weights()]))
+
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-        # if config.dataset == "pure_det":
-        #     for q, im in enumerate(trn_X):
-        #         os.makedirs(f"/hdd/PhD/nas/pt.darts/tempSave/validate/{(step * batch_size) + q}", exist_ok=True)
-        #         toSave = transforms.ToPILImage()(im.cpu())
-        #         savePath = f"./tempSave/validate/{(step * batch_size) + q}/{0}.png"
-        #         toSave.save(savePath)
-        #         with open(f"/hdd/PhD/nas/pt.darts/tempSave/validate/{(step * batch_size) + q}/0.txt", "w") as new_f:
-        #             for lab in trn_y[q]["labels"][0]:
-        #                 # raise AttributeError(inv_map[lab_class], lab_class)
-        #                 new_f.write(inv_map[lab.item()])
-        #                 new_f.write("\n")
-        #     continue
+
+        # for q, image in enumerate(trn_X): # working
+        #     target = trn_y[q]
+        #     image = transforms.ToPILImage()(image)
+        #     draw = ImageDraw.Draw(image)
+        #     for k in range(len(target["boxes"])):
+        #         draw.rectangle(np.array(target["boxes"][k]))
+        #         draw.text((target['boxes'][k][0].item() + 2, target['boxes'][k][1].item() + 2), str(rev_class_dict[target['labels'][k].item()]))
+        #     image.save(f"tempSave/validate_obj/coco/{target['image_id'].item()}.png")
 
         trn_X = trn_X.to(device, non_blocking=True)
         val_X = val_X.to(device, non_blocking=True)
@@ -406,6 +399,14 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # phase 1. child network step (w)
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
+
+        # modified to return detections even if not in eval mode
+        # 0. per image (rather than per batch as evaluate does): TODO
+            # 1. compute res from detections as per detectionengine evaluate
+            # 2. update cocoevaluator
+            # 3. accumulate evaluator -> recall, precision etc.
+            # 4. use recall, precision and scores to formulate hardness.
+
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)
 
@@ -418,8 +419,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         #       len(train_loader), len(valid_loader))
 
         loss.backward()
+
         # gradient clipping
-        # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
+        nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
 
         if step % config.print_freq == 0 or step == len(train_loader) - 1:
@@ -447,6 +449,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     axarr[row_count, idx%4].set_axis_off()
                 fig.savefig(f"./tempSave/validate_obj/activations/{epoch}/{key}.png")
                 plt.close(fig)
+        print(losses.avg)
 
     logger.info("Train: [{:2d}/{}] Final Loss {:.4%}".format(epoch + 1, config.epochs, losses.avg))
 
@@ -455,8 +458,9 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
     model.eval()
-    evaluate(model, valid_loader, device=device)
+    evaluate(model, valid_loader, device=device, epoch=epoch)
     return 0, 0
+
 
 def train_hardness(train_loader, model):
     hardness = [None for i in range(len(train_loader.dataset))]

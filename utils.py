@@ -104,8 +104,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         is_detection = True
 
         # coco_train_path = '/home2/lgfm95/coco/'
-        # coco_train_path = '/home/matt/Documents/coco/'
-        coco_train_path = '/hdd/PhD/data/coco/'
+        coco_train_path = '/home/matt/Documents/coco/'
+        # coco_train_path = '/hdd/PhD/data/coco/'
     elif dataset == "pure_det":
         n_classes = 200
         dynamic_name = "pure_det"

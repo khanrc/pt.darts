@@ -14,11 +14,10 @@ sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
-from dataloader_convert import DynamicDataset
+from dataloader_convert import DynamicDataset as DynamicObj
+from dataloader_classification import DynamicDataset as DynamicClass
 from subloader import SubDataset
-from subloaderfull import SubDatasetFull
-from imageloader import ImageLoader
-from det_dataset import Imagenet_Det as Pure_Det
+from tiny_imagenet import Tiny_ImageNet
 from coco_obj import COCODetLoader as Coco_Det
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
@@ -41,6 +40,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     isize = 64
     nz = 8
     aisize = 3
+    DynamicDataset = DynamicClass
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"
@@ -106,6 +106,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         # coco_train_path = '/home2/lgfm95/coco/'
         coco_train_path = '/home/matt/Documents/coco/'
         # coco_train_path = '/hdd/PhD/data/coco/'
+        DynamicDataset = DynamicObj
     elif dataset == "pure_det":
         n_classes = 200
         dynamic_name = "pure_det"
@@ -148,9 +149,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             subset_size=config.subset_size,
             is_csv=config.is_csv,
             is_detection=is_detection,
-            # convert_to_paths=convert_to_paths,
-            # convert_to_lbl_paths=convert_to_lbl_paths,
-            # bede=bede,
             is_concat=is_concat)
             # is_csv=False)
         input_size = len(trn_data)
@@ -207,27 +205,19 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         #         tree=config.isTree)
         #     ret.append(val_dataset)
         # else:
-        if dataset == 'planes':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'cityscapes':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'imagenet': # only dset that can be vanilla w/ special things going on (need custom loader since no longer public dset)
-            if search:
-                ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
-            else:
-                ret.append(SubDatasetFull(transforms=val_transform, val=True, dataset_name="imagenet"))
-        elif dataset == 'imageobj':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
-        elif dataset == 'cocomask':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
-        elif dataset == 'pure_det':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="pure_det", bede=bede))
-        elif dataset == 'coco_det':
+        if dataset == 'coco_det':
             # ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
 
             # train_path = '/home2/lgfm95/coco/'
             # train_path = '/home/matt/Documents/coco/'
             ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform))
+        elif dataset == "tiny_image":
+            print("using tiny imagenet")
+            # train_path = '/home2/lgfm95/tiny-imagenet-200/'
+            # train_path = '/data/tiny-imagenet-200/'
+            train_path = '/hdd/PhD/data/tiny-imagenet-200/'
+
+            ret.append(Tiny_ImageNet(root=train_path, transforms=val_transform))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

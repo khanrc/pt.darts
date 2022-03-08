@@ -14,11 +14,11 @@ sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
-from dataloader import DynamicDataset
+from dataloader_convert import DynamicDataset as DynamicObj
+from dataloader_classification import DynamicDataset as DynamicClass
 from subloader import SubDataset
-from subloaderfull import SubDatasetFull
-from imageloader import ImageLoader
-from det_dataset import Imagenet_Det as Pure_Det
+from tiny_imagenet import Tiny_ImageNet
+from coco_obj import COCODetLoader as Coco_Det
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
@@ -39,7 +39,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     convert_to_lbl_paths = False
     isize = 64
     nz = 8
-    aisize = 256
+    aisize = 3
+    DynamicDataset = DynamicClass
     if dataset == 'cifar10':
         dset_cls = dset.CIFAR10
         dynamic_name = "cifar10"
@@ -95,8 +96,19 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         is_detection = True
         convert_to_paths = True
         # convert_to_lbl_paths = True
+    elif dataset == "coco_det":
+        n_classes = 91
+        dynamic_name = "coco_det"
+        grayscale = False
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercCocoOld.pth.tar"
+        is_detection = True
+
+        # coco_train_path = '/home2/lgfm95/coco/'
+        coco_train_path = '/home/matt/Documents/coco/'
+        # coco_train_path = '/hdd/PhD/data/coco/'
+        DynamicDataset = DynamicObj
     elif dataset == "pure_det":
-        n_classes = 16
+        n_classes = 200
         dynamic_name = "pure_det"
         grayscale = False
         is_detection = True
@@ -105,10 +117,11 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         raise ValueError(dataset)
 
     normalize = transforms.Normalize(
-        mean=[0.13066051707548254],
-        std=[0.30810780244715075])
+        mean = [0.485, 0.456, 0.406],
+        std = [0.229, 0.224, 0.225],
+    )
     perc_transforms = transforms.Compose([
-        transforms.RandomResizedCrop(isize),
+        transforms.Resize((isize, isize)),
         transforms.ToTensor(),
         normalize,
     ])
@@ -136,9 +149,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             subset_size=config.subset_size,
             is_csv=config.is_csv,
             is_detection=is_detection,
-            convert_to_paths=convert_to_paths,
-            convert_to_lbl_paths=convert_to_lbl_paths,
-            bede=bede,
             is_concat=is_concat)
             # is_csv=False)
         input_size = len(trn_data)
@@ -150,6 +160,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                                       dataset_name=dynamic_name)
                 input_size = len(trn_data)
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+            elif dataset == "coco_det":
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform)
+                input_size = len(trn_data)
+                input_channels = 3
             else:
                 trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
                 shape = trn_data.data.shape
@@ -157,13 +171,21 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 assert shape[1] == shape[2], "not expected shape = {}".format(shape)
                 input_size = shape[1]
         else:
-            subset_size = 10000
-            if search:
-                subset_size = config.subset_size
-            trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
+            if dataset == "coco_det":
+                subset_size = 10000
+                if search:
+                    subset_size = config.subset_size
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform, max_size=subset_size)
+                input_size = len(trn_data)
+                input_channels = 3
+            else:
+                subset_size = 10000
+                if search:
+                    subset_size = config.subset_size
+                trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
 
-            input_size = len(trn_data)
-            input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+                input_size = len(trn_data)
+                input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
 
 
     ret = [input_size, input_channels, n_classes, trn_data]
@@ -183,22 +205,19 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         #         tree=config.isTree)
         #     ret.append(val_dataset)
         # else:
-        if dataset == 'planes':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'cityscapes':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="planes"))
-        elif dataset == 'imagenet': # only dset that can be vanilla w/ special things going on (need custom loader since no longer public dset)
-            if search:
-                ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imagenet"))
-            else:
-                ret.append(SubDatasetFull(transforms=val_transform, val=True, dataset_name="imagenet"))
-        elif dataset == 'imageobj':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="imageobj"))
-        elif dataset == 'cocomask':
-            ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="cocomask", bede=bede))
-        elif dataset == 'pure_det':
-            root = '/hdd/PhD/data/imagenet2017detection/'
-            ret.append(Pure_Det(root, transforms=val_transform))
+        if dataset == 'coco_det':
+            # ret.append(SubDataset(transforms=val_transform, val=True, dataset_name="coco_det", bede=bede))
+
+            # train_path = '/home2/lgfm95/coco/'
+            # train_path = '/home/matt/Documents/coco/'
+            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform))
+        elif dataset == "tiny_image":
+            print("using tiny imagenet")
+            # train_path = '/home2/lgfm95/tiny-imagenet-200/'
+            # train_path = '/data/tiny-imagenet-200/'
+            train_path = '/hdd/PhD/data/tiny-imagenet-200/'
+
+            ret.append(Tiny_ImageNet(root=train_path, transforms=val_transform))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

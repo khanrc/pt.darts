@@ -39,13 +39,23 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomCrop(64, padding=4),
             transforms.RandomHorizontalFlip()
         ]
-    elif dataset == 'imagenet' or dataset == 'imageobj' or dataset == "cocomask" or dataset == "pure_det":
-        MEAN = [0.13066051707548254]
-        STD = [0.30810780244715075]
+    elif dataset == 'imagenet' or dataset == 'imageobj':
+        MEAN = [0.485, 0.456, 0.406]
+        STD = [0.229, 0.224, 0.225]
         resize_transform = [transforms.Resize((128,128))]
         transf = [
             transforms.Resize((224,224)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
+        ]
+        MEAN_lbl = 0.2807
+        STD_lbl = 0.1765
+    elif dataset == "cocomask" or dataset == "pure_det" or dataset == "coco_det":
+        MEAN = [0.485, 0.456, 0.406]
+        STD = [0.229, 0.224, 0.225]
+        resize_transform = [transforms.Resize((128,128))]
+        transf = [
+            transforms.Resize((224,224)),
+            # transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
         ]
         MEAN_lbl = 0.2807
         STD_lbl = 0.1765

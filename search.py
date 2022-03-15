@@ -327,7 +327,7 @@ def save_indices(data, epoch, images=None):
                 csv_writer.writerow(data)
 
 
-from det_dataset import Imagenet_Det as Pure_Det
+# from det_dataset import Imagenet_Det as Pure_Det
 def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi):
     top1 = utils.AverageMeter()
     top5 = utils.AverageMeter()
@@ -342,18 +342,18 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     correct = [None for i in range(len(train_loader))]
 
     batch_size = config.batch_size
-    resize_transform = [transforms.Resize((128,128))]
-    MEAN = [0.13066051707548254]
-    STD = [0.30810780244715075]
-    normalize = [
-        transforms.ToTensor(),
-        transforms.Normalize(MEAN, STD)
-    ]
-    valid_transform = transforms.Compose(resize_transform + normalize)
-    root = '/hdd/PhD/data/imagenet2017detection/'
-    temp_dset = Pure_Det(root, transforms=valid_transform)
-    classes = temp_dset.classes
-    inv_map = {v: k for k, v in classes.items()}
+    # resize_transform = [transforms.Resize((128,128))]
+    # MEAN = [0.13066051707548254]
+    # STD = [0.30810780244715075]
+    # normalize = [
+    #     transforms.ToTensor(),
+    #     transforms.Normalize(MEAN, STD)
+    # ]
+    # valid_transform = transforms.Compose(resize_transform + normalize)
+    # root = '/hdd/PhD/data/imagenet2017detection/'
+    # temp_dset = Pure_Det(root, transforms=valid_transform)
+    # classes = temp_dset.classes
+    # inv_map = {v: k for k, v in classes.items()}
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
         # if config.dataset == "pure_det":
         #     for q, im in enumerate(trn_X):

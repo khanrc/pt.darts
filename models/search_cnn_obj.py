@@ -168,7 +168,7 @@ class SearchCNN(nn.Module):
         try:
             proposals, proposal_losses = self.rpn(images, features, targets)
         except ValueError:
-            raise AttributeError(targets, len(targets), len(targets[0]))
+            raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images), len(images[0]))
         detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 

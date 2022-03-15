@@ -119,6 +119,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         grayscale = False
         is_detection = True
         auto_resume = "/hdd/PhD/hem/perceptual/ganPercTiny.pth.tar"
+        # auto_resume = "/home/matt/Documents/hem/perceptual/ganPercTiny.pth.tar"
     else:
         raise ValueError(dataset)
 

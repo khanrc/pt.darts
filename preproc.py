@@ -39,7 +39,7 @@ def data_transforms(dataset, cutout_length):
             transforms.RandomCrop(64, padding=4),
             transforms.RandomHorizontalFlip()
         ]
-    elif dataset == 'imagenet' or dataset == 'imageobj':
+    elif dataset == 'imagenet' or dataset == 'imageobj' or dataset == 'tiny_image':
         MEAN = [0.485, 0.456, 0.406]
         STD = [0.229, 0.224, 0.225]
         resize_transform = [transforms.Resize((128,128))]

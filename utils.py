@@ -113,6 +113,12 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         grayscale = False
         is_detection = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercObjGood.pth.tar"
+    elif dataset == "tiny_image":
+        n_classes = 200
+        dynamic_name = "tiny_image"
+        grayscale = False
+        is_detection = True
+        auto_resume = "/hdd/PhD/hem/perceptual/ganPercTiny.pth.tar"
     else:
         raise ValueError(dataset)
 

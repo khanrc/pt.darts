@@ -118,8 +118,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         dynamic_name = "tiny_image"
         grayscale = False
         is_detection = True
-        auto_resume = "/hdd/PhD/hem/perceptual/ganPercTiny.pth.tar"
-        # auto_resume = "/home/matt/Documents/hem/perceptual/ganPercTiny.pth.tar"
+        # auto_resume = "/hdd/PhD/hem/perceptual/ganPercTiny.pth.tar"
+        auto_resume = "/home/matt/Documents/hem/perceptual/ganPercTiny.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -221,8 +221,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         elif dataset == "tiny_image":
             print("using tiny imagenet")
             # train_path = '/home2/lgfm95/tiny-imagenet-200/'
-            # train_path = '/data/tiny-imagenet-200/'
-            train_path = '/hdd/PhD/data/tiny-imagenet-200/'
+            train_path = '/data/tiny-imagenet-200/'
+            # train_path = '/hdd/PhD/data/tiny-imagenet-200/'
 
             ret.append(Tiny_ImageNet(root=train_path, transforms=val_transform))
         else:

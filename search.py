@@ -252,7 +252,7 @@ def main():
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch, mining=config.mining)
             save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
-            raise AttributeError("dont forget to put normalization in")
+            raise AttributeError("dont forget to put normalization in + revert tiny_image to full dataset")
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
             # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want

@@ -99,7 +99,8 @@ def data_transforms(dataset, cutout_length):
         transforms.Normalize(MEAN, STD)
     ]
 
-    train_transform = transforms.Compose(transf + normalize)
+    # train_transform = transforms.Compose(transf + normalize)
+    train_transform = transforms.Compose(transf + [transforms.ToTensor()])# + normalize)
     if dataset == "cityscapes" or dataset == "cocomask":
         normalize = [
             transforms.ToTensor(),

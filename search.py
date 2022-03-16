@@ -250,12 +250,9 @@ def main():
             non_update_epochs += 1
         else:
             print("updating subset")
-            if config.mining:
-                train_loader.dataset.update_subset(hardness, epoch, mining=True)
-            else:
-                train_loader.dataset.update_subset(hardness, epoch)
+            train_loader.dataset.update_subset(hardness, epoch, mining=config.mining)
             save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
-
+            raise AttributeError("dont forget to put normalization in")
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
             # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want
@@ -394,7 +391,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss.backward()
         hardness[(step*batch_size):(step*batch_size)+batch_size] = new_hardness # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
         correct[(step*batch_size):(step*batch_size)+batch_size] = new_correct
-        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader))
+        print(step, batch_size, step*batch_size, (step*batch_size)+batch_size, len(new_correct), len(train_loader), len(valid_loader), train_loader.dataset.train_indices)
         # gradient clipping
         # nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()

@@ -209,7 +209,7 @@ def main():
             just_updated = False
             just_loaded = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
+            hardness, correct, top1 = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch, is_multi)
             if config.dynamic:
                 train_loader.dataset.update_correct(correct)
                 if config.ncc and config.visualize:
@@ -217,7 +217,7 @@ def main():
 
             # validation
             cur_step = (epoch+1) * len(train_loader)
-            top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
+            val_top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
             wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
@@ -423,7 +423,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         cur_step += 1
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
-    return hardness, correct
+    return hardness, correct, top1.avg
 
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
     exp_name = config.name

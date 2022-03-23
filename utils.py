@@ -5,6 +5,7 @@ import logging
 import shutil
 import torch
 import torchvision.datasets as dset
+import torchvision.transforms
 from torchvision import transforms
 import numpy as np
 import preproc
@@ -63,12 +64,14 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         dynamic_name = "mnist"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercMnistGood.pth.tar"
+        aisize = 1
     elif dataset == 'fashionmnist':
         dset_cls = dset.FashionMNIST
         n_classes = 10
         dynamic_name = "fashion"
         grayscale = True
         auto_resume = "/home2/lgfm95/hem/perceptual/ganPercFashionGood.pth.tar"
+        aisize = 1
     elif dataset == 'planes':
         # dset_cls = dset.FashionMNIST
         n_classes = 70
@@ -123,10 +126,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     else:
         raise ValueError(dataset)
 
-    normalize = transforms.Normalize(
-        mean = [0.485, 0.456, 0.406],
-        std = [0.229, 0.224, 0.225],
-    )
+    trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
+    normalize = trn_transform.transforms[-1]
+    assert isinstance(normalize, torchvision.transforms.Normalize)
     perc_transforms = transforms.Compose([
         transforms.Resize((isize, isize)),
         transforms.ToTensor(),
@@ -134,8 +136,6 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
     ])
     if config.badpath:
         auto_resume = "badpath"
-
-    trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     if config.dynamic:
         # print(perc_transforms)
         trn_data = DynamicDataset(
@@ -160,6 +160,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
+        input_channels = 3
+        if dynamic_name == "mnist" or dynamic_name == "fashion":
+            input_channels = 1
     else:
         if config.vanilla:
             if dataset == 'imagenet' or dataset == "imageobj" or dataset == "pure_det":
@@ -174,6 +177,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             else:
                 trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
                 shape = trn_data.data.shape
+                raise AttributeError("needs adjusting for grayscale re input_channels")
                 input_channels = 3 if len(shape) == 4 else 1
                 assert shape[1] == shape[2], "not expected shape = {}".format(shape)
                 input_size = shape[1]
@@ -192,6 +196,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 trn_data = SubDataset(transforms=trn_transform, val_transforms=val_transform, val=False, dataset_name=dynamic_name, subset_size=subset_size)
 
                 input_size = len(trn_data)
+                raise AttributeError("needs adjusting for grayscale re input_channels")
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
 
 

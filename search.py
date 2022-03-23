@@ -251,9 +251,8 @@ def main():
         else:
             print("updating subset")
             train_loader.dataset.update_subset(hardness, epoch, mining=config.mining)
-            save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
-            raise AttributeError("dont forget to put normalization in + revert tiny_image to full dataset")
-            # set lr_scheduler to same as when started.
+            save_indices(train_loader.dataset.get_printable(), epoch, [train_loader.dataset.full_set.__getitem__(idx)[0] for idx in train_loader.dataset.idx])
+            # set lr_scheduler to s306ame as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
             # do we even want this? starting at 'first epoch' means back to coarse tune, which is exactly what we want
             # if it were to start at a 'later epoch' then we have fine tuning, which we don't necessarily want.
@@ -337,6 +336,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     hardness = [None for i in range(len(train_loader))]
     correct = [None for i in range(len(train_loader))]
+    hardness = [0 for i in range(len(train_loader))]
+    correct = [0 for i in range(len(train_loader))]
 
     batch_size = config.batch_size
     # resize_transform = [transforms.Resize((128,128))]
@@ -421,6 +422,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
+        if step > 1:
+            break
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
     return hardness, correct, top1.avg

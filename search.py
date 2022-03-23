@@ -422,8 +422,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         writer.add_scalar('train/top1', prec1.item(), cur_step)
         writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
-        if step > 1:
-            break
 
     logger.info("Train: [{:2d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
     return hardness, correct, top1.avg
@@ -489,8 +487,6 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
-            if step > 100:
-                break
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)

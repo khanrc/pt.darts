@@ -176,8 +176,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_channels = 3
             elif dataset == "tiny_image":
                 # train_path = '/home2/lgfm95/tiny-imagenet-200/'
-                train_path = '/data/tiny-imagenet-200/'
-                # train_path = '/hdd/PhD/data/tiny-imagenet-200/'
+                # train_path = '/data/tiny-imagenet-200/'
+                train_path = '/hdd/PhD/data/tiny-imagenet-200/'
                 trn_data = Tiny_ImageNet(root=train_path, transforms=perc_transforms)
                 input_size = len(trn_data)
                 input_channels = 3
@@ -232,8 +232,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         elif dataset == "tiny_image":
             print("using tiny imagenet")
             # train_path = '/home2/lgfm95/tiny-imagenet-200/'
-            train_path = '/data/tiny-imagenet-200/'
-            # train_path = '/hdd/PhD/data/tiny-imagenet-200/'
+            # train_path = '/data/tiny-imagenet-200/'
+            train_path = '/hdd/PhD/data/tiny-imagenet-200/'
 
             ret.append(Tiny_ImageNet(root=train_path, transforms=val_transform))
         else:

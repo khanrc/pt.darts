@@ -218,7 +218,7 @@ def main():
             # validation
             cur_step = (epoch+1) * len(train_loader)
             val_top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
-            wandb.log({"acc": top1, "loss": new_loss})
+            wandb.log({"acc": top1, "loss": new_loss, "isUpdate": 0})
 
             if print_mode:
                 print_mode = False
@@ -250,7 +250,7 @@ def main():
             non_update_epochs += 1
         else:
             print("updating subset")
-            train_loader.dataset.update_subset(hardness, epoch, mining=config.mining)
+            wandb_log = train_loader.dataset.update_subset(hardness, epoch, mining=config.mining)
             save_indices(train_loader.dataset.get_printable(), epoch, [train_loader.dataset.full_set.__getitem__(idx)[0] for idx in train_loader.dataset.idx])
             # set lr_scheduler to s306ame as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
@@ -265,6 +265,7 @@ def main():
             # just after update.
             just_updated = True
             print_mode = True
+            wandb.log({"isUpdate": 1, "numUpdate": sum(wandb_log)})
 
         # print ("grep {}".format(top1))
         if config.is_csv and top1 > 0.95:
@@ -487,6 +488,9 @@ def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
                     "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
                         epoch+1, config.epochs, step, len(valid_loader)-1, losses=losses,
                         top1=top1, top5=top5))
+
+            if step > 100:
+                break
 
     writer.add_scalar('val/loss', losses.avg, cur_step)
     writer.add_scalar('val/top1', top1.avg, cur_step)

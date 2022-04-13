@@ -128,12 +128,13 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
     normalize = trn_transform.transforms[-1]
-    assert isinstance(normalize, torchvision.transforms.Normalize)
-    perc_transforms = transforms.Compose([
-        transforms.Resize((isize, isize)),
-        transforms.ToTensor(),
-        normalize,
-    ])
+    if search:
+        assert isinstance(normalize, torchvision.transforms.Normalize)
+        perc_transforms = transforms.Compose([
+            transforms.Resize((isize, isize)),
+            transforms.ToTensor(),
+            normalize,
+        ])
     if config.badpath:
         auto_resume = "badpath"
     if config.dynamic:

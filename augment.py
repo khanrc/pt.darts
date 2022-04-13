@@ -37,7 +37,8 @@ def main():
 
     # get data with meta info
     input_size, input_channels, n_classes, train_data, valid_data = utils.get_data(
-        config.dataset, config.data_path, config.cutout_length, validation=True, search=False, bede=config.bede)
+        config.dataset, config.data_path, config.cutout_length, validation=True,
+        search=False, bede=config.bede, is_concat=config.is_concat)
 
     criterion = nn.CrossEntropyLoss().to(device)
     if config.dataset == "imageobj":

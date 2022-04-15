@@ -373,7 +373,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     batch_size = config.batch_size
     print ("summed weight: ", sum([torch.sum(weight) for weight in model.weights()]))
-
+    print ("total epoch duration", len(train_loader), len(valid_loader))
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
 
         for q, image in enumerate(trn_X): # working

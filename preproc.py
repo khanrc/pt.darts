@@ -99,8 +99,8 @@ def data_transforms(dataset, cutout_length):
         transforms.Normalize(MEAN, STD)
     ]
 
-    # train_transform = transforms.Compose(transf + normalize)
-    train_transform = transforms.Compose(transf + [transforms.ToTensor()])# + normalize)
+    train_transform = transforms.Compose(transf + normalize)
+    # train_transform = transforms.Compose(transf + [transforms.ToTensor()])# + normalize)
     if dataset == "cityscapes" or dataset == "cocomask":
         normalize = [
             transforms.ToTensor(),
@@ -109,8 +109,8 @@ def data_transforms(dataset, cutout_length):
         valid_transform = transforms.Compose(transf + normalize)
     else:
         if resize_transform is not None:
-            # valid_transform = transforms.Compose(resize_transform + normalize)
-            valid_transform = transforms.Compose(transf + [transforms.ToTensor()])# + normalize)
+            valid_transform = transforms.Compose(resize_transform + normalize)
+            # valid_transform = transforms.Compose(transf + [transforms.ToTensor()])# + normalize)
 
         else:
             valid_transform = transforms.Compose(normalize)

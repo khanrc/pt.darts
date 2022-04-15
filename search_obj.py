@@ -376,14 +376,14 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
 
-        # for q, image in enumerate(trn_X): # working
-        #     target = trn_y[q]
-        #     image = transforms.ToPILImage()(image)
-        #     draw = ImageDraw.Draw(image)
-        #     for k in range(len(target["boxes"])):
-        #         draw.rectangle(np.array(target["boxes"][k]))
-        #         draw.text((target['boxes'][k][0].item() + 2, target['boxes'][k][1].item() + 2), str(rev_class_dict[target['labels'][k].item()]))
-        #     image.save(f"tempSave/validate_obj/coco/{target['image_id'].item()}.png")
+        for q, image in enumerate(trn_X): # working
+            target = trn_y[q]
+            image = transforms.ToPILImage()(image)
+            draw = ImageDraw.Draw(image)
+            for k in range(len(target["boxes"])):
+                draw.rectangle(np.array(target["boxes"][k]))
+                draw.text((target['boxes'][k][0].item() + 2, target['boxes'][k][1].item() + 2), str(rev_class_dict[target['labels'][k].item()]))
+            image.save(f"tempSave/validate_obj/coco/{target['image_id'].item()}.png")
 
         trn_X = trn_X.to(device, non_blocking=True)
         val_X = val_X.to(device, non_blocking=True)

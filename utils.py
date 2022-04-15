@@ -15,7 +15,7 @@ sys.path.insert(0, "C:\\Users\\Matt\\Documents\\PhD\\x11\\HEM\\perceptual")
 sys.path.insert(0, "/hdd/PhD/hem/perceptual")
 sys.path.insert(0, "/home/matt/Documents/hem/perceptual")
 saved_name = sys.argv[sys.argv.index('--name')+1]
-from dataloader_convert import DynamicDataset as DynamicObj
+from dataloader_detection import DynamicDataset as DynamicObj
 from dataloader_classification import DynamicDataset as DynamicClass
 from subloader import SubDataset
 from tiny_imagenet import Tiny_ImageNet
@@ -107,8 +107,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         is_detection = True
 
         # coco_train_path = '/home2/lgfm95/coco/'
-        coco_train_path = '/home/matt/Documents/coco/'
-        # coco_train_path = '/hdd/PhD/data/coco/'
+        # coco_train_path = '/home/matt/Documents/coco/'
+        coco_train_path = '/hdd/PhD/data/coco/'
         DynamicDataset = DynamicObj
     elif dataset == "pure_det":
         n_classes = 200
@@ -127,9 +127,10 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         raise ValueError(dataset)
 
     trn_transform, val_transform = preproc.data_transforms(dataset, cutout_length)
-    normalize = trn_transform.transforms[-1]
+    # normalize = trn_transform.transforms[-1]
+    normalize = transforms.Lambda(lambda x: x)
     if search:
-        assert isinstance(normalize, torchvision.transforms.Normalize)
+        # assert isinstance(normalize, torchvision.transforms.Normalize)
         perc_transforms = transforms.Compose([
             transforms.Resize((isize, isize)),
             transforms.ToTensor(),

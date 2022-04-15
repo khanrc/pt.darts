@@ -44,7 +44,8 @@ def data_transforms(dataset, cutout_length):
         STD = [0.229, 0.224, 0.225]
         resize_transform = [transforms.Resize((128,128))]
         transf = [
-            transforms.Resize((224,224)),
+            # transforms.Resize((224,224)),
+            transforms.Resize((112,112)),
             transforms.RandomAffine(degrees=15, translate=(0.1, 0.1), scale=(0.9, 1.1), shear=0.1)
         ]
         MEAN_lbl = 0.2807

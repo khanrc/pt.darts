@@ -407,7 +407,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                 obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels'].unsqueeze(1)), dim=1)# ndarray(m, 5)
             except RuntimeError:
                 raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
-            raise AttributeError(obs_detections, obs_detections.shape)
             gt_detections = trn_y[i] # ndarray(n, 4)
             raise AttributeError(gt_detections, gt_detections.shape)
             eval_map(obs_detections, gt_detections)

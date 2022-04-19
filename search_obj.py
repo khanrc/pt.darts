@@ -408,7 +408,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
             except RuntimeError:
                 raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
             gt_detections = trn_y[i] # ndarray(n, 4)
-            raise AttributeError(gt_detections, gt_detections.keys())
+            raise AttributeError(gt_detections, gt_detections['boxes'])
             eval_map(obs_detections, gt_detections)
 
         # we need judge of predictions vs labels.

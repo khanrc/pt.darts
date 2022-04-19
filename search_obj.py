@@ -404,7 +404,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         for i in range(len(detections)): # iterate over batch
             try:
-                obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels']), dim=1)# ndarray(m, 5)
+                obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels'].unsqueeze(1)), dim=1)# ndarray(m, 5)
             except RuntimeError:
                 raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
             raise AttributeError(obs_detections, obs_detections.shape)

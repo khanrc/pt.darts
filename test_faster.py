@@ -146,7 +146,6 @@ def main():
             model.roi_heads.box_predictor.bbox_pred.requires_grad_(True)
 
     model = model.to(device)
-    raise AttributeError(model)
 
     # Visualize feature maps
     activation = {}

@@ -22,6 +22,8 @@ sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
 from detectionengine import evaluate
+from mean_ap_mmdet import eval_map
+
 
 config = SearchConfig()
 
@@ -400,8 +402,20 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
 
-        labels = torch.stack([detection['labels'] for detection in detections], dim=0)
-        raise AttributeError(labels, labels.shape)
+        for i in range(len(detections)): # iterate over batch
+            obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels']), dim=1)# ndarray(m, 5)
+            raise AttributeError(obs_detections, obs_detections.shape)
+            gt_detections = trn_y[i] # ndarray(n, 4)
+            raise AttributeError(gt_detections, gt_detections.shape)
+            eval_map(obs_detections, gt_detections)
+
+        # we need judge of predictions vs labels.
+        # using just classes is not any simpler, since we need associations between given
+        # multilabel, multiclass prediction and ground truth, which will have differing size.
+        # therefore, we need associations in built into our hardness calculator, i.e. we need
+        # to use use location of the prediction.
+
+
         # modified to return detections even if not in eval mode
         # 0. per image (rather than per batch as evaluate does): TODO
             # 1. compute res from detections as per detectionengine evaluate

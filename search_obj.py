@@ -400,7 +400,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
 
-        raise AttributeError([detection['label'] for detection in detections])
+        raise AttributeError([detection['labels'] for detection in detections])
         # modified to return detections even if not in eval mode
         # 0. per image (rather than per batch as evaluate does): TODO
             # 1. compute res from detections as per detectionengine evaluate
@@ -412,12 +412,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         losses.update(loss.item(), N)
 
         print("todo not updating hardness, need logits not loss to be returned by model")
-        # new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
-        # hardness[(step * batch_size):(
-        #                                          step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
-        # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
-        # print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(new_correct),
-        #       len(train_loader), len(valid_loader))
+        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
+        hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+        correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
+        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(new_correct),
+              len(train_loader), len(valid_loader))
 
         loss.backward()
 

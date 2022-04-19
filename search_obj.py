@@ -403,7 +403,10 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         logits, detections = model(trn_X, trn_y, full_ret=True)
 
         for i in range(len(detections)): # iterate over batch
-            obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels']), dim=1)# ndarray(m, 5)
+            try:
+                obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels']), dim=1)# ndarray(m, 5)
+            except RuntimeError:
+                raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
             raise AttributeError(obs_detections, obs_detections.shape)
             gt_detections = trn_y[i] # ndarray(n, 4)
             raise AttributeError(gt_detections, gt_detections.shape)

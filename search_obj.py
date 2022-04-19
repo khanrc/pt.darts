@@ -400,6 +400,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
 
+        raise AttributeError(detections)
         # modified to return detections even if not in eval mode
         # 0. per image (rather than per batch as evaluate does): TODO
             # 1. compute res from detections as per detectionengine evaluate

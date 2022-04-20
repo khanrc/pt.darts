@@ -241,7 +241,7 @@ def main():
             just_updated = False
             just_loaded = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch,
+            hardness, _ = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch,
                                       is_multi)
             # if config.dynamic:
             #     train_loader.dataset.update_correct(correct)
@@ -400,7 +400,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        logits, detections = model(trn_X, trn_y, full_ret=True)
+        logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
 
         # delete when ready:
         # for i in range(len(detections)): # iterate over batch
@@ -416,7 +416,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # multilabel, multiclass prediction and ground truth, which will have differing size.
         # therefore, we need associations in built into our hardness calculator, i.e. we need
         # to use use location of the prediction.
-        raise AttributeError(logits)
 
         # modified to return detections even if not in eval mode
         # 0. per image (rather than per batch as evaluate does): TODO
@@ -429,10 +428,11 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         losses.update(loss.item(), N)
 
         print("todo not updating hardness, need logits not loss to be returned by model")
-        new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
+        new_hardness = [1-new_hardness[i].item() for i in range(len(new_hardness))]
         hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
-        correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
-        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(new_correct),
+
+        # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
+        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size,# len(new_correct),
               len(train_loader), len(valid_loader))
 
         loss.backward()

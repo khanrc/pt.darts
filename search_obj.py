@@ -448,7 +448,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     epoch + 1, config.epochs, step, len(train_loader) - 1, losses=losses))
         cur_step += 1
 
-        if config.dynamic:
+        if config.dynamic and config.visualize:
             os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
             for key in model.net.activation.keys():
                 act = model.net.activation[key].squeeze()

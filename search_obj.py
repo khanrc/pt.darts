@@ -437,6 +437,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
         print(step, batch_size, step * batch_size, (step * batch_size) + batch_size,# len(new_correct),
               len(train_loader), len(valid_loader))
+        print(hardness)
 
         loss.backward()
 

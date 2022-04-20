@@ -12,6 +12,12 @@ from . import _utils as det_utils
 
 from torch.jit.annotations import Optional, List, Dict, Tuple
 
+import sys
+try:
+    bs_idx = sys.argv.index("--batch_size")
+    bs = eval(sys.argv[bs_idx+1])
+except NameError:
+    raise AttributeError(sys.argv)
 
 def fastrcnn_loss(class_logits, box_regression, labels, regression_targets):
     # type: (Tensor, Tensor, List[Tensor], List[Tensor]) -> Tuple[Tensor, Tensor]
@@ -33,7 +39,8 @@ def fastrcnn_loss(class_logits, box_regression, labels, regression_targets):
     labels = torch.cat(labels, dim=0)
     regression_targets = torch.cat(regression_targets, dim=0)
 
-    hardness = [F.cross_entropy(torch.chunk(class_logits,2)[i], labels_copy[i]) for i in range(2)]
+    chunks = torch.chunk(class_logits,bs)
+    hardness = [F.cross_entropy(chunks[i], labels_copy[i]) for i in range(bs)]
 
     # raise AttributeError(class_logits.shape, labels.shape)
     classification_loss = F.cross_entropy(class_logits, labels)

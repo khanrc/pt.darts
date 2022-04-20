@@ -126,7 +126,8 @@ def main():
                                    weight_decay=config.alpha_weight_decay)
 
     # split data to train/validation
-    split = get_split(train_data)
+    # split = get_split(train_data)
+    split = len(train_data)//2
     indices = list(range(len(train_data)))
     random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
     random.shuffle(indices)

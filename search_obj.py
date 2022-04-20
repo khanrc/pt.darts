@@ -427,7 +427,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)
 
-        print("todo not updating hardness, need logits not loss to be returned by model")
         new_hardness = [1-new_hardness[i].item() for i in range(len(new_hardness))]
         hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 

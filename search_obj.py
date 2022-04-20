@@ -434,9 +434,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 
         # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
-        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size,# len(new_correct),
+        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(hardness),
               len(train_loader), len(valid_loader))
-        print(hardness, len(hardness))
 
         loss.backward()
 

@@ -127,12 +127,11 @@ def main():
 
     # split data to train/validation
     # split = get_split(train_data)
-    split = len(train_data)//2
-    indices = list(range(len(train_data)))
-    random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
-    random.shuffle(indices)
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+    # indices = list(range(len(train_data)))
+    # random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
+    # random.shuffle(indices)
+    # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
+    # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
     if config.dynamic:
         train_sampler = None # do not sample as DynamicDataset does this automatically.
         # needs to be this way else dynamicdataset will process validation images + incorporate them
@@ -142,14 +141,14 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
-                                               sampler=train_sampler,
+                                               # sampler=train_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
                                                collate_fn=collate_func
                                                )
     valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
-                                               sampler=valid_sampler,
+                                               # sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
                                                collate_fn=collate_func

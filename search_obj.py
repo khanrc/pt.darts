@@ -402,20 +402,21 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         logits, detections = model(trn_X, trn_y, full_ret=True)
 
-        for i in range(len(detections)): # iterate over batch
-            try:
-                obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels'].unsqueeze(1)), dim=1)# ndarray(m, 5)
-            except RuntimeError:
-                raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
-            gt_detections = trn_y[i]['boxes'] # ndarray(n, 4)
-            eval_map(obs_detections, gt_detections)
+        # delete when ready:
+        # for i in range(len(detections)): # iterate over batch
+        #     try:
+        #         obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels'].unsqueeze(1)), dim=1)# ndarray(m, 5)
+        #     except RuntimeError:
+        #         raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
+        #     gt_detections = trn_y[i]['boxes'] # ndarray(n, 4)
+        #     eval_map(obs_detections, gt_detections)
 
         # we need judge of predictions vs labels.
         # using just classes is not any simpler, since we need associations between given
         # multilabel, multiclass prediction and ground truth, which will have differing size.
         # therefore, we need associations in built into our hardness calculator, i.e. we need
         # to use use location of the prediction.
-
+        raise AttributeError(logits)
 
         # modified to return detections even if not in eval mode
         # 0. per image (rather than per batch as evaluate does): TODO

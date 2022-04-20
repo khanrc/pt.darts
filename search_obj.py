@@ -286,7 +286,10 @@ def main():
             if config.mining:
                 train_loader.dataset.update_subset(hardness, epoch, mining=True)
             else:
-                train_loader.dataset.update_subset(hardness, epoch)
+                try:
+                    train_loader.dataset.update_subset(hardness, epoch)
+                except IndexError:
+                    raise AttributeError(hardness)
             save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
 
             # set lr_scheduler to same as when started.

@@ -398,34 +398,25 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        try:
+            architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        except ValueError:
+            raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader), len(hardness))
         alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
-
-        # delete when ready:
-        # for i in range(len(detections)): # iterate over batch
-        #     try:
-        #         obs_detections = torch.cat((detections[i]['boxes'], detections[i]['labels'].unsqueeze(1)), dim=1)# ndarray(m, 5)
-        #     except RuntimeError:
-        #         raise AttributeError(detections[i]['boxes'], detections[i]['labels'], detections[i]['boxes'].shape, detections[i]['labels'].shape)
-        #     gt_detections = trn_y[i]['boxes'] # ndarray(n, 4)
-        #     eval_map(obs_detections, gt_detections)
+        try:
+            logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
+        except ValueError:
+            raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader),
+                             len(hardness))
 
         # we need judge of predictions vs labels.
         # using just classes is not any simpler, since we need associations between given
         # multilabel, multiclass prediction and ground truth, which will have differing size.
         # therefore, we need associations in built into our hardness calculator, i.e. we need
-        # to use use location of the prediction.
-
-        # modified to return detections even if not in eval mode
-        # 0. per image (rather than per batch as evaluate does): TODO
-            # 1. compute res from detections as per detectionengine evaluate
-            # 2. update cocoevaluator
-            # 3. accumulate evaluator -> recall, precision etc.
-            # 4. use recall, precision and scores to formulate hardness.
+        # to use use location of the prediction. may as well directly use loss
 
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)

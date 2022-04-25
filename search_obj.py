@@ -105,15 +105,15 @@ def main():
     class_loss = None
     weight_dict = None
 
-    matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
-    weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
-    weight_dict['loss_giou'] = 2
-    losses = ['labels', 'boxes', 'cardinality']
-    net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
-                            eos_coef=0.1, losses=losses).to(device)
-    class_loss = nn.NLLLoss().to(device)
+    # matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
+    # weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
+    # weight_dict['loss_giou'] = 2
+    # losses = ['labels', 'boxes', 'cardinality']
+    # net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
+    #                         eos_coef=0.1, losses=losses).to(device)
+    # class_loss = nn.NLLLoss().to(device)
     model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
-                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
+                                   None, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
                                    weight_dict=weight_dict)
 
     model = model.to(device)
@@ -144,14 +144,16 @@ def main():
                                                # sampler=train_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
-                                               collate_fn=collate_func
+                                               collate_fn=collate_func,
+                                               drop_last=True
                                                )
     valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
                                                # sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
-                                               collate_fn=collate_func
+                                               collate_fn=collate_func,
+                                               drop_last=True
                                                )
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

@@ -147,7 +147,7 @@ def main():
                                                collate_fn=collate_func,
                                                drop_last=True
                                                )
-    valid_loader = torch.utils.data.DataLoader(val_data,
+    valid_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
                                                # sampler=valid_sampler,
                                                num_workers=config.workers,

@@ -172,12 +172,7 @@ class SearchCNN(nn.Module):
         try:
             detections, detector_losses, hardness = self.roi_heads(features, proposals, images.image_sizes, targets)
         except AttributeError:
-            print(targets, type(targets))
-            print(len(targets))
-            print(len(targets[0]))
-            print(len(images.tensors))
-
-            raise AttributeError(len(proposals), len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
+            raise AttributeError(len(proposals), len(features), len(proposals[0]), len(features[0]), len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
 
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 

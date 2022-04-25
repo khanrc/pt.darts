@@ -177,7 +177,7 @@ class SearchCNN(nn.Module):
             print(len(targets[0]))
             print(len(images.tensors))
 
-            raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
+            raise AttributeError(len(proposals), len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
 
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 

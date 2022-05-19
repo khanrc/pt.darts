@@ -4,13 +4,6 @@ import torch.nn as nn
 from models.augment_cells import AugmentCell
 from models import ops
 
-class Debug(nn.Module):
-    def __init__(self, name):
-        self.log_name = name
-
-    def forward(self, x):
-        print(x.shape, self.log_name)
-        return x
 
 class AuxiliaryHead(nn.Module):
     """ Auxiliary head in 2/3 place of network to let the gradient flow well """
@@ -20,23 +13,22 @@ class AuxiliaryHead(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.ReLU(inplace=True),
-            Debug("pre avg"),
             nn.AvgPool2d(5, stride=input_size-5, padding=0, count_include_pad=False), # 2x2 out
-            Debug("post avg pre conv1"),
             nn.Conv2d(C, 128, kernel_size=1, bias=False),
-            Debug("post conv1"),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            Debug("pre conv2"),
             nn.Conv2d(128, 768, kernel_size=2, bias=False), # 1x1 out
-            Debug("post conv2"),
             nn.BatchNorm2d(768),
             nn.ReLU(inplace=True)
         )
         self.linear = nn.Linear(768, n_classes)
 
     def forward(self, x):
-        out = self.net(x)
+        out = x
+        for module in self.net:
+            out = module(out)
+            print(out.shape)
+        # out = self.net(x)
         out = out.view(out.size(0), -1) # flatten
         logits = self.linear(out)
         return logits

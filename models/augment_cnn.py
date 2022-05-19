@@ -87,7 +87,10 @@ class AugmentCNN(nn.Module):
         for i, cell in enumerate(self.cells):
             s0, s1 = s1, cell(s0, s1)
             if i == self.aux_pos and self.training:
-                aux_logits = self.aux_head(s1)
+                try:
+                    aux_logits = self.aux_head(s1)
+                except RuntimeError:
+                    raise AttributeError(i, s1.shape)
 
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten

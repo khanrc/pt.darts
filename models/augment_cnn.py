@@ -12,7 +12,7 @@ class AuxiliaryHead(nn.Module):
         if input_size in [7, 8]:
             stride = input_size-5
         else:
-            stride = 3
+            stride = 4
         # else:
         #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()

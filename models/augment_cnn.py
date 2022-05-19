@@ -9,7 +9,7 @@ class AuxiliaryHead(nn.Module):
     """ Auxiliary head in 2/3 place of network to let the gradient flow well """
     def __init__(self, input_size, C, n_classes):
         """ assuming input size 7x7 or 8x8 """
-        assert input_size in [7, 8]
+        # assert input_size in [7, 8]
         super().__init__()
         self.net = nn.Sequential(
             nn.ReLU(inplace=True),

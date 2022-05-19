@@ -22,6 +22,8 @@ sys.path.insert(0, "./torchsample")
 from torchvision.utils import save_image
 import wandb
 from detectionengine import evaluate
+from mean_ap_mmdet import eval_map
+
 
 config = SearchConfig()
 
@@ -103,15 +105,15 @@ def main():
     class_loss = None
     weight_dict = None
 
-    matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
-    weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
-    weight_dict['loss_giou'] = 2
-    losses = ['labels', 'boxes', 'cardinality']
-    net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
-                            eos_coef=0.1, losses=losses).to(device)
-    class_loss = nn.NLLLoss().to(device)
+    # matcher = HungarianMatcher(cost_class=1, cost_bbox=5, cost_giou=2)
+    # weight_dict = {'loss_ce': 1, 'loss_bbox': 5}
+    # weight_dict['loss_giou'] = 2
+    # losses = ['labels', 'boxes', 'cardinality']
+    # net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
+    #                         eos_coef=0.1, losses=losses).to(device)
+    # class_loss = nn.NLLLoss().to(device)
     model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
-                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=class_loss,
+                                   None, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
                                    weight_dict=weight_dict)
 
     model = model.to(device)
@@ -124,12 +126,12 @@ def main():
                                    weight_decay=config.alpha_weight_decay)
 
     # split data to train/validation
-    split = get_split(train_data)
-    indices = list(range(len(train_data)))
-    random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
-    random.shuffle(indices)
-    train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
-    valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
+    # split = get_split(train_data)
+    # indices = list(range(len(train_data)))
+    # random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
+    # random.shuffle(indices)
+    # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
+    # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
     if config.dynamic:
         train_sampler = None # do not sample as DynamicDataset does this automatically.
         # needs to be this way else dynamicdataset will process validation images + incorporate them
@@ -139,17 +141,19 @@ def main():
 
     train_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
-                                               sampler=train_sampler,
+                                               # sampler=train_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
-                                               collate_fn=collate_func
+                                               collate_fn=collate_func,
+                                               drop_last=True
                                                )
-    valid_loader = torch.utils.data.DataLoader(val_data,
+    valid_loader = torch.utils.data.DataLoader(train_data,
                                                batch_size=config.batch_size,
-                                               sampler=valid_sampler,
+                                               # sampler=valid_sampler,
                                                num_workers=config.workers,
                                                pin_memory=True,
-                                               collate_fn=collate_func
+                                               collate_fn=collate_func,
+                                               drop_last=True
                                                )
 
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -239,7 +243,7 @@ def main():
             just_updated = False
             just_loaded = False
             # training
-            hardness, correct = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch,
+            hardness, _ = train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr, epoch,
                                       is_multi)
             # if config.dynamic:
             #     train_loader.dataset.update_correct(correct)
@@ -284,8 +288,11 @@ def main():
             if config.mining:
                 train_loader.dataset.update_subset(hardness, epoch, mining=True)
             else:
-                train_loader.dataset.update_subset(hardness, epoch)
-            save_indices(train_loader.dataset.get_printable(), epoch, [item for item in train_loader.dataset.cur_set])
+                try:
+                    train_loader.dataset.update_subset(hardness, epoch)
+                except IndexError:
+                    raise AttributeError(hardness)
+            save_indices(train_loader.dataset.get_printable(), epoch, [train_loader.dataset.full_set.__getitem__(idx)[0] for idx in train_loader.dataset.idx])
 
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
@@ -393,30 +400,35 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 
         # phase 2. architect step (alpha)
         alpha_optim.zero_grad()
-        architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        try:
+            architect.unrolled_backward(trn_X, trn_y, val_X, val_y, lr, w_optim, is_multi)
+        except ValueError:
+            raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader), len(hardness))
         alpha_optim.step()
 
         # phase 1. child network step (w)
         w_optim.zero_grad()
-        logits, detections = model(trn_X, trn_y, full_ret=True)
+        try:
+            logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
+        except ValueError:
+            raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader),
+                             len(hardness))
 
-        # modified to return detections even if not in eval mode
-        # 0. per image (rather than per batch as evaluate does): TODO
-            # 1. compute res from detections as per detectionengine evaluate
-            # 2. update cocoevaluator
-            # 3. accumulate evaluator -> recall, precision etc.
-            # 4. use recall, precision and scores to formulate hardness.
+        # we need judge of predictions vs labels.
+        # using just classes is not any simpler, since we need associations between given
+        # multilabel, multiclass prediction and ground truth, which will have differing size.
+        # therefore, we need associations in built into our hardness calculator, i.e. we need
+        # to use use location of the prediction. may as well directly use loss
 
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)
 
-        print("todo not updating hardness, need logits not loss to be returned by model")
-        # new_hardness, new_correct = get_hardness(logits.cpu(), trn_y.cpu(), is_multi)
-        # hardness[(step * batch_size):(
-        #                                          step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+        new_hardness = [1-new_hardness[i].item() for i in range(len(new_hardness))]
+        hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
+
         # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct
-        # print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(new_correct),
-        #       len(train_loader), len(valid_loader))
+        print(step, batch_size, step * batch_size, (step * batch_size) + batch_size, len(hardness),
+              len(train_loader), len(valid_loader))
 
         loss.backward()
 
@@ -431,7 +443,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
                     epoch + 1, config.epochs, step, len(train_loader) - 1, losses=losses))
         cur_step += 1
 
-        if config.dynamic:
+        if config.dynamic and config.visualize:
             os.makedirs(f"./tempSave/validate_obj/activations/{epoch}/", exist_ok=True)
             for key in model.net.activation.keys():
                 act = model.net.activation[key].squeeze()

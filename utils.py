@@ -123,6 +123,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         is_detection = True
         # auto_resume = "/hdd/PhD/hem/perceptual/ganPercTiny.pth.tar"
         auto_resume = "/home/matt/Documents/hem/perceptual/ganPercTiny.pth.tar"
+        auto_resume = "/home2/lgfm95/hem/perceptual/ganPercTiny.pth.tar"
     else:
         raise ValueError(dataset)
 
@@ -295,6 +296,30 @@ class AverageMeter():
 #     sigmoid = torch.sigmoid(output)
 #
 #     avp = ap(target, sigmoid)
+def accuracy_multilabel(output, target, topk=(1,)):
+    assert max(topk) == 1 # topk doesn't make sense for multilabel
+
+    sigmoid = torch.sigmoid(output)
+    # sigmoid[output>0.5] = 1
+    # sigmoid[output<=0.5] = 0
+    sigmoid[sigmoid > 0.5] = 1
+    sigmoid[sigmoid <= 0.5] = 0
+
+    # TODO extend to batch-wise / generally validate
+    return accuracy_multilabel_hamming(sigmoid, target)
+    # return accuracy_multilabel_f1(sigmoid, target)
+
+
+from sklearn.metrics import f1_score
+def accuracy_multilabel_f1(output, target):
+    return f1_score(output, target)
+
+
+from sklearn.metrics import hamming_loss
+def accuracy_multilabel_hamming(output, target):
+    loss = hamming_loss(output, target)
+    return 1-loss
+
 
 def accuracy_multilabel_new(output, target, topk=(1,)):
     assert max(topk) == 1 # topk doesn't make sense for multilabel
@@ -313,7 +338,7 @@ def accuracy_multilabel_new(output, target, topk=(1,)):
 
 
 
-def accuracy_multilabel(output, target, topk=(1,), thr=None):
+def accuracy_multilabel_old(output, target, topk=(1,), thr=None):
     assert max(topk) == 1 # topk doesn't make sense for multilabel
 
     if thr is None:

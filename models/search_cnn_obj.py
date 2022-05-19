@@ -14,7 +14,7 @@ from torchvision.models.detection import FasterRCNN
 from torchvision.models.detection.rpn import AnchorGenerator, RPNHead, RegionProposalNetwork
 from collections import OrderedDict
 from torchvision.ops import MultiScaleRoIAlign
-from torchvision.models.detection.roi_heads import RoIHeads
+from torchvision.models.detection.roi_heads_hardness import RoIHeads
 from torchvision.models.detection.faster_rcnn import TwoMLPHead, FastRCNNPredictor
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
@@ -169,20 +169,24 @@ class SearchCNN(nn.Module):
             proposals, proposal_losses = self.rpn(images, features, targets)
         except ValueError:
             raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images), len(images[0]))
-        detections, detector_losses = self.roi_heads(features, proposals, images.image_sizes, targets)
+        try:
+            detections, detector_losses, hardness = self.roi_heads(features, proposals, images.image_sizes, targets)
+        except AttributeError:
+            raise AttributeError(len(proposals), len(features), len(proposals[0]), len(features['0']), len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
+
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         losses = {}
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        return self.eager_outputs(losses, detections, full_ret)
+        return self.eager_outputs(losses, detections, hardness, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
 
-    def eager_outputs(self, losses, detections, full_ret):
+    def eager_outputs(self, losses, detections, hardness, full_ret):
         if self.training:
             if full_ret:
-                return losses, detections
+                return losses, detections, hardness
             return losses
 
         return detections

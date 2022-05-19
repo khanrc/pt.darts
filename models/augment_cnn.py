@@ -11,10 +11,10 @@ class AuxiliaryHead(nn.Module):
         """ assuming input size 7x7 or 8x8 """
         if input_size in [7, 8]:
             stride = input_size-5
-        elif input_size == 16:
-            stride = 3
         else:
-            raise AssertionError("input size not appropriate", input_size)
+            stride = 3
+        # else:
+        #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()
         self.net = nn.Sequential(
             nn.ReLU(inplace=True),

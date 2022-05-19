@@ -13,7 +13,7 @@ class AuxiliaryHead(nn.Module):
         super().__init__()
         self.net = nn.Sequential(
             nn.ReLU(inplace=True),
-            nn.AvgPool2d(5, stride=input_size-5, padding=0, count_include_pad=False), # 2x2 out
+            nn.AvgPool2d(5, stride=input_size//2-5, padding=0, count_include_pad=False), # 2x2 out
             nn.Conv2d(C, 128, kernel_size=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),

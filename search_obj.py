@@ -128,8 +128,8 @@ def main():
     # split data to train/validation
     # split = get_split(train_data)
     # indices = list(range(len(train_data)))
-    # random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
-    # random.shuffle(indices)
+    # # random.seed(1337) # note must use same random seed as dataloader (and thus process same images)
+    # # random.shuffle(indices)
     # train_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[:split])
     # valid_sampler = torch.utils.data.sampler.SubsetRandomSampler(indices[split:])
     if config.dynamic:
@@ -147,7 +147,7 @@ def main():
                                                collate_fn=collate_func,
                                                drop_last=True
                                                )
-    valid_loader = torch.utils.data.DataLoader(train_data,
+    valid_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=config.batch_size,
                                                # sampler=valid_sampler,
                                                num_workers=config.workers,
@@ -382,7 +382,6 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
     print ("summed weight: ", sum([torch.sum(weight) for weight in model.weights()]))
     print ("total epoch duration", len(train_loader), len(valid_loader))
     for step, ((trn_X, trn_y), (val_X, val_y)) in enumerate(zip(train_loader, valid_loader)):
-
         for q, image in enumerate(trn_X): # working
             target = trn_y[q]
             image = transforms.ToPILImage()(image)

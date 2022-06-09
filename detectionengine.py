@@ -165,7 +165,7 @@ def _get_iou_types(model):
     return iou_types
 
 
-def evaluate(model, data_loader, device, epoch=0):
+def evaluate(model, data_loader, device, epoch=0, augment=False):
     n_threads = torch.get_num_threads()
     # FIXME remove this and make paste_masks_in_image run on the GPU
     torch.set_num_threads(1)
@@ -178,6 +178,7 @@ def evaluate(model, data_loader, device, epoch=0):
     iou_types = _get_iou_types(model)
     coco_evaluator = CocoEvaluator(coco, iou_types)
     step = 0
+    zero_preds = True
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
             # images = list(img.to(device) for img in images)
@@ -197,6 +198,12 @@ def evaluate(model, data_loader, device, epoch=0):
             model_time = time.time() - model_time
 
             res = {target["image_id"].item(): output for target, output in zip(targets, outputs)}
+            if len(res) == 0: # do not try to update w/ 0 predictions
+                step += 1
+                continue
+
+            zero_preds = False
+
             # res = {target["image_id"]: output for target, output in zip(targets, outputs)}
             evaluator_time = time.time()
             coco_evaluator.update(res)
@@ -204,6 +211,14 @@ def evaluate(model, data_loader, device, epoch=0):
             metric_logger.update(model_time=model_time, evaluator_time=evaluator_time)
             step += 1
 
+    if zero_preds and not augment:
+        raise AttributeError("using zero pred system for search. are you sure?")
+    elif zero_preds and augment: # create artificial pred (top left, tiny box equivalent, score will still be 0)
+        artificial_res = {targets[0]["image_id"].item(): {"boxes": torch.empty((0,4)),
+                                                      "labels": torch.tensor([], dtype=torch.int64),
+                                                      "scores": torch.tensor([])
+                                                      }}
+        coco_evaluator.update(artificial_res)
     # gather the stats from all processes
     metric_logger.synchronize_between_processes()
     print("Averaged stats:", metric_logger)

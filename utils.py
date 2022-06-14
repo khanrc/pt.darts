@@ -159,7 +159,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             subset_size=config.subset_size,
             is_csv=config.is_csv,
             is_detection=is_detection,
-            is_concat=is_concat)
+            is_concat=is_concat,
+            seed=config.seed)
             # is_csv=False)
         input_size = len(trn_data)
         input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale

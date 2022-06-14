@@ -82,6 +82,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--badpath', default=False, type=bool, help="are we using untrained autoencoder?")
         parser.add_argument('--nosave', default=False, type=bool, help="are we producing visualiation of updates?")
         parser.add_argument('--mining', default=False, type=bool, help="are we producing visualiation of updates?")
+        parser.add_argument('--seed', default=1337, type=int, help="seed in perceptual (+ onwards)")
         parser.add_argument('--new_acc', default=False, type=bool, help="are we using intersection/union accuracy?")
         parser.add_argument('--minedimagefname', default="dynGood", type=str, help="folder name to save mined images under")
         parser.add_argument('--is_concat', default=False, type=bool, help="autoencoder uses concat strategy for non single image classification")

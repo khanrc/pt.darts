@@ -314,6 +314,8 @@ def save_indices(data, epoch, images=None):
                 print(f"saving curriculum in {image_dir}")
                 os.makedirs(image_dir)
                 for q, image in enumerate(images):
+                    if torch.is_tensor(image):
+                        image = transforms.ToPILImage()(image)
                     image.save(image_dir + f"{q}.png")
             else:
                 print("images is none")

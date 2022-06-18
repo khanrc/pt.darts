@@ -310,7 +310,7 @@ def save_indices(data, epoch, images=None):
             #     csv_writer.writerow(data)
             if images is not None:
                 print(f"about to save curriculum; {len(images)}")
-                image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/{config.minedimagefname}_{epoch}'
+                image_dir = f'/home2/lgfm95/nas/darts/tempSave/curriculums/{config.name}/{config.minedimagefname}_{epoch}/'
                 print(f"saving curriculum in {image_dir}")
                 os.makedirs(image_dir)
                 for q, image in enumerate(images):

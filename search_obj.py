@@ -470,6 +470,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
 def validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config):
     model.eval()
     evaluate(model, valid_loader, device=device, epoch=epoch)
+    print (f"epoch: {epoch}")
     return 0, 0
 
 

@@ -182,7 +182,7 @@ class AugmentCNN(nn.Module):
         try:
             proposals, proposal_losses = self.rpn(images, features, targets)
         except ValueError:
-            raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images), len(images[0]))
+            raise AttributeError(targets, len(targets), len(targets[0]), len(images), len(images[0]))#, len(targets[1]))
         try:
             detections, detector_losses, hardness = self.roi_heads(features, proposals, images.image_sizes, targets)
         except AttributeError:

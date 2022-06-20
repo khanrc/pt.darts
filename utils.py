@@ -176,7 +176,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_size = len(trn_data)
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
             elif dataset == "coco_det":
-                trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform)
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=trn_transform)
                 input_size = len(trn_data)
                 input_channels = 3
             elif dataset == "tiny_image":

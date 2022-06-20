@@ -199,6 +199,8 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                     subset_size = config.subset_size
                 trn_data = Coco_Det(train_path=coco_train_path, transforms=val_transform, max_size=subset_size)
                 input_size = len(trn_data)
+                raise AttributeError("are you sure you dont want dyn / vanilla? ")
+
                 input_channels = 3
             else:
                 subset_size = 10000

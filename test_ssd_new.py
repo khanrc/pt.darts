@@ -83,10 +83,10 @@ def main():
                                                )
 
     device = torch.device("cuda")
-    model = ssd300(pretrained=True)
+    model = ssd300()
 
     if is_pretrained:
-        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
+        state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
         model.load_state_dict(state_dict)
         if is_retrained:
             if is_fixed:
@@ -96,8 +96,8 @@ def main():
 
             # load back in new (untrained) backbone
             backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-            backbone[-1][0] = torch.nn.Conv2d(320, 256, kernel_size=(3,3), stride=(1,1), bias=False)
-            backbone[-1][1] = torch.nn.BatchNorm2d(256)
+            backbone[-1][0] = torch.nn.Conv2d(320, 512, kernel_size=(3,3), stride=(1,1), bias=False)
+            backbone[-1][1] = torch.nn.BatchNorm2d(512)
             model.backbone = backbone
 
             for param in model.backbone.parameters():

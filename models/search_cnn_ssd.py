@@ -119,8 +119,11 @@ class SearchCNN(nn.Module):
 
         self.proposal_matcher = SSDMatcher(0.5)
 
-        image_mean = [0.48235, 0.45882, 0.40784]
-        image_std = [(1.0 / 255.0), (1.0 / 255.0), (1.0 / 255.0)],  # undo the 0-1 scaling of toTensor
+        # image_mean = [0.48235, 0.45882, 0.40784]
+        # image_std = [(1.0 / 255.0), (1.0 / 255.0), (1.0 / 255.0)],  # undo the 0-1 scaling of toTensor
+
+        image_mean = [0.485, 0.456, 0.406]
+        image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(
             300, 300, image_mean, image_std#, size_divisible=1, fixed_size=size, **kwargs
         )

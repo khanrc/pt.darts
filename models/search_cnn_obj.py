@@ -146,7 +146,6 @@ class SearchCNN(nn.Module):
             assert len(val) == 2
             original_image_sizes.append((val[0], val[1]))
 
-        raise AttributeError(x.shape)
         images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
         # targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y]
         # images, targets = self.transform(x, y)
@@ -169,7 +168,7 @@ class SearchCNN(nn.Module):
         try:
             proposals, proposal_losses = self.rpn(images, features, targets)
         except ValueError:
-            raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images), len(images[0]))
+            raise AttributeError(targets, len(targets), len(targets[0]), len(targets[1]), len(images))#, len(images[0]))
         try:
             detections, detector_losses, hardness = self.roi_heads(features, proposals, images.image_sizes, targets)
         except AttributeError:

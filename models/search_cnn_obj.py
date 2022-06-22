@@ -11,7 +11,8 @@ import logging
 import sys
 import torchvision
 from torchvision.models.detection import FasterRCNN
-from torchvision.models.detection.rpn import AnchorGenerator, RPNHead, RegionProposalNetwork
+# from torchvision.models.detection.rpn import AnchorGenerator, RPNHead, RegionProposalNetwork
+from rpn36 import AnchorGenerator, RPNHead, RegionProposalNetwork
 from collections import OrderedDict
 from torchvision.ops import MultiScaleRoIAlign
 from torchvision.models.detection.roi_heads_hardness import RoIHeads

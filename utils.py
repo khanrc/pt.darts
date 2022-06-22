@@ -235,7 +235,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
 
             # train_path = '/home2/lgfm95/coco/'
             # train_path = '/home/matt/Documents/coco/'
-            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform))
+            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform, train=False))
         elif dataset == "tiny_image":
             print("using tiny imagenet")
             # train_path = '/home2/lgfm95/tiny-imagenet-200/'

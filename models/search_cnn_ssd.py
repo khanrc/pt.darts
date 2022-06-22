@@ -89,6 +89,7 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
+        self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False),
         # out_channels = 256
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
@@ -105,8 +106,7 @@ class SearchCNN(nn.Module):
 
 
         # out_channels = retrieve_out_channels(backbone, (300,300))
-        # out_channels = [512, 1024, 512, 256, 256, 256]
-        out_channels = [256, 1024, 512, 256, 256, 256]
+        out_channels = [512, 1024, 512, 256, 256, 256]
         # out_channels = [256] # ? ... list of 1 since not using pyramid network w/in backbone
 
         if len(out_channels) != len(self.anchor_generator.aspect_ratios):
@@ -278,7 +278,8 @@ class SearchCNN(nn.Module):
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
 
-        features = s1
+        # features = s1
+        features = self.test_gap(s1)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])

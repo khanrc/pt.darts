@@ -89,7 +89,7 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False),
+        self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False)
         # out_channels = 256
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)

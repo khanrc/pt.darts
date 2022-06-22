@@ -146,7 +146,7 @@ class SearchCNN(nn.Module):
         pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
         pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), num_classes, **kwargs)
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
-        # state_dict = torch.load('/home/matt/Documents/nas/pt.darts/ssd30016.pth')
+        # state_dict = torch.load('/home/matt/Documents/nas/darts/ssd30016.pth')
         pretrained.load_state_dict(state_dict)
 
         # Copy network weights from pretrained.rpn + freeze them?

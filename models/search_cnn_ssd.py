@@ -253,7 +253,6 @@ class SearchCNN(nn.Module):
 
         # transform the input
         # images, targets = self.transform(x, y)
-        raise AttributeError(x.shape)
         images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
 
         # Check for degenerate boxes

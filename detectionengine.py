@@ -182,6 +182,7 @@ def evaluate(model, data_loader, device, epoch=0, augment=False):
     coco_evaluator = CocoEvaluator(coco, iou_types)
     step = 0
     zero_preds = True
+    raise AttributeError(len(data_loader))
     with torch.no_grad():
         for images, targets in metric_logger.log_every(data_loader, 100, header):
             # images = list(img.to(device) for img in images)

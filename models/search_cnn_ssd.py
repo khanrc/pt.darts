@@ -105,7 +105,8 @@ class SearchCNN(nn.Module):
 
 
         # out_channels = retrieve_out_channels(backbone, (300,300))
-        out_channels = [512, 1024, 512, 256, 256, 256]
+        # out_channels = [512, 1024, 512, 256, 256, 256]
+        out_channels = [256, 1024, 512, 256, 256, 256]
         # out_channels = [256] # ? ... list of 1 since not using pyramid network w/in backbone
 
         if len(out_channels) != len(self.anchor_generator.aspect_ratios):

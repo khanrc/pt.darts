@@ -196,6 +196,7 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
 
 def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):
     model.eval()
+    raise AttributeError(len(valid_loader))
     evaluate(model, valid_loader, device=device, epoch=epoch, augment=True)
     print (f"epoch: {epoch}")
     return 0

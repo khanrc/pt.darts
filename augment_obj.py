@@ -96,6 +96,7 @@ def main():
                                                pin_memory=True,
                                                collate_fn=collate_func,
                                                drop_last=True)
+    raise AttributeError(valid_loader)
     lr_scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, config.epochs)
 
     best_top1 = 0.

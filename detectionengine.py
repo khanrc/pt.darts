@@ -85,7 +85,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
     return metric_logger
 
 
-def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch, print_freq, scaler=None):
+def train_one_epoch_ssd(model, optimizer, data_loader, device, epoch, print_freq, scaler=None):
     model.train()
     metric_logger = utils.MetricLogger(delimiter="  ")
     metric_logger.add_meter("lr", utils.SmoothedValue(window_size=1, fmt="{value:.6f}"))
@@ -116,14 +116,17 @@ def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch,
         images = torch.stack([image.to(device) for image in images])
         targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
-            loss_dict = model(images)
-            loss_dict = tuple(loss.to(device) for loss in loss_dict)
+            loss_dict = model(images, targets)
+            losses = sum(loss for loss in loss_dict.values())
+
+            # loss_dict = model(images)
+            # loss_dict = tuple(loss.to(device) for loss in loss_dict)
 
             # needs labels in form batchsize x num_objects x 5 (first 4 is bbox, 5th is class label)
-            boxlabels = [torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))]
-            loss_l, loss_c = criterion(loss_dict, boxlabels)
-            losses = loss_l + loss_c
-            loss_dict = {"loss_l": loss_l, "loss_c": loss_c}
+            # boxlabels = [torch.cat((targets[i]['boxes'], targets[i]['labels'].unsqueeze(1)), 1) for i in range(len(images))]
+            # loss_l, loss_c = criterion(loss_dict, boxlabels)
+            # losses = loss_l + loss_c
+            # loss_dict = {"loss_l": loss_l, "loss_c": loss_c}
 
         # # reduce losses over all GPUs for logging purposes
         loss_dict_reduced = utils.reduce_dict(loss_dict)
@@ -148,7 +151,7 @@ def train_one_epoch_ssd(model, optimizer, criterion, data_loader, device, epoch,
         if lr_scheduler is not None:
             lr_scheduler.step()
 
-        metric_logger.update(loss=losses, **{"loss_l":loss_l, "loss_c": loss_c})
+        metric_logger.update(loss=losses_reduced, **loss_dict_reduced)
         metric_logger.update(lr=optimizer.param_groups[0]["lr"])
 
     return metric_logger

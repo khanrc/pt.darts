@@ -89,14 +89,14 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        out_channels = 256
+        # out_channels = 256
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
 
         # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         # self.backbone.out_channels = out_channels
 
-        anchor_generator = DefaultBoxGenerator(
+        self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
             scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05],
             steps=[8, 16, 32, 64, 100, 300],
@@ -104,20 +104,17 @@ class SearchCNN(nn.Module):
         self.box_coder = det_utils.BoxCoder(weights=(10.0, 10.0, 5.0, 5.0))
 
 
-        if head is None:
-            if hasattr(backbone, "out_channels"):
-                out_channels = backbone.out_channels
-            else:
-                # out_channels = (16, 32, 64, 128, 256, 512) # modified from models/search_cnn_obj
-                out_channels = retrieve_out_channels(backbone, size)
+        # out_channels = retrieve_out_channels(backbone, (300,300))
+        out_channels = [512, 1024, 512, 256, 256, 256]
+        # out_channels = [256] # ? ... list of 1 since not using pyramid network w/in backbone
 
-            if len(out_channels) != len(anchor_generator.aspect_ratios):
-                raise ValueError(
-                    f"The length of the output channels from the backbone ({len(out_channels)}) do not match the length of the anchor generator aspect ratios ({len(anchor_generator.aspect_ratios)})"
-                )
+        if len(out_channels) != len(self.anchor_generator.aspect_ratios):
+            raise ValueError(
+                f"The length of the output channels from the backbone ({len(out_channels)}) do not match the length of the anchor generator aspect ratios ({len(self.anchor_generator.aspect_ratios)})"
+            )
 
-            num_anchors = self.anchor_generator.num_anchors_per_location()
-            head = SSDHead(out_channels, num_anchors, num_classes)
+        num_anchors = self.anchor_generator.num_anchors_per_location()
+        head = SSDHead(out_channels, num_anchors, num_classes)
         self.head = head
 
         self.proposal_matcher = SSDMatcher(0.5)
@@ -144,21 +141,18 @@ class SearchCNN(nn.Module):
             "image_mean": image_mean,
             "image_std": image_std
         }
-        kwargs = {**defaults, **kwargs}
+        kwargs = {**defaults}
         pretrained_backbone = vgg16(pretrained=False, progress=True)
         pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
-        pretrained = SSD(pretrained_backbone, anchor_generator, (300, 300), num_classes, **kwargs)
-        state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
+        pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), num_classes, **kwargs)
+        state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
         pretrained.load_state_dict(state_dict)
 
-        # Copy network weights from pretrained.rpn + freeze them
+        # Copy network weights from pretrained.rpn + freeze them?
         # note not worth doing this (this way) even for a directly copied backbone as those
         # use cell format, which adopts alpha/weights normal/reduce, instantiated in controller.
-        self.rpn.load_state_dict(pretrained.rpn.state_dict())
-        # self.rpn.requires_grad_(False)
-
-        self.roi_heads.load_state_dict(pretrained.roi_heads.state_dict())
-        # self.roi_heads.requires_grad_(False)
+        self.anchor_generator.load_state_dict(pretrained.anchor_generator.state_dict())
+        self.head.load_state_dict(pretrained.head.state_dict())
 
         del pretrained
 
@@ -235,12 +229,12 @@ class SearchCNN(nn.Module):
             "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
 
-    def forward(self, images, targets=None):
+    def forward(self, x, y, weights_normal, weights_reduce, full_ret):
         if self.training:
-            if targets is None:
+            if y is None:
                 assert False, "targets should not be none when in training mode"
             else:
-                for target in targets:
+                for target in y:
                     boxes = target["boxes"]
                     if isinstance(boxes, torch.Tensor):
                         assert (len(boxes.shape) == 2 and boxes.shape[-1] == 4), f"Expected target boxes to be a tensor of shape [N, 4], got {boxes.shape}."
@@ -250,14 +244,15 @@ class SearchCNN(nn.Module):
 
         # get the original image sizes
         original_image_sizes = []
-        for img in images:
+        for img in x:
             val = img.shape[-2:]
             assert len(val) == 2, f"expecting the last two dimensions of the Tensor to be H and W instead got {img.shape[-2:]}"
 
             original_image_sizes.append((val[0], val[1]))
 
         # transform the input
-        images, targets = self.transform(images, targets)
+        # images, targets = self.transform(x, y)
+        images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
 
         # Check for degenerate boxes
         if targets is not None:
@@ -271,7 +266,15 @@ class SearchCNN(nn.Module):
                                          f"Found invalid box {degen_bb} for target at index {target_idx}.")
 
         # get the features from the backbone
-        features = self.backbone(images.tensors)
+        s0 = s1 = self.stem(x) # use tensor form of images not transformed form
+        # s0 = s1 = self.stem(images.tensors)
+
+        for cell in self.cells:
+            weights = weights_reduce if cell.reduction else weights_normal
+            s0, s1 = s1, cell(s0, s1, weights)
+
+        features = s1
+
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])
 
@@ -363,7 +366,7 @@ class SearchCNN(nn.Module):
             )
         return detections
 
-class SearchCNNControllerObj(nn.Module):
+class SearchCNNControllerSSD(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
     def __init__(self, C_in, C, n_classes, n_layers, criterion, n_nodes=4, stem_multiplier=3,
                  device_ids=None, class_loss=None, weight_dict=None):

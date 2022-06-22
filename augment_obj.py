@@ -152,7 +152,6 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
     model.train()
 
     for step, (X, y) in enumerate(train_loader):
-        if step > 1: break
         # X, y = X.to(device, non_blocking=True), y.to(device, non_blocking=True)
         X = X.to(device, non_blocking=True)
         N = X.size(0)

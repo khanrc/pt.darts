@@ -89,7 +89,7 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False)
+        # self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False)
         # out_channels = 256
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
@@ -278,8 +278,8 @@ class SearchCNN(nn.Module):
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
 
-        # features = s1
-        features = self.test_gap(s1)
+        features = s1
+        # features = self.test_gap(s1)
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])

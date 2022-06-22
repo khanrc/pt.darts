@@ -8,18 +8,17 @@ from models.search_cells import SearchCell
 import genotypes as gt
 from torch.nn.parallel._functions import Broadcast
 import logging
-import sys
-import torchvision
-from torchvision.models.detection import FasterRCNN
-from torchvision.models.detection.rpn import AnchorGenerator, RPNHead, RegionProposalNetwork
 from collections import OrderedDict
-from torchvision.ops import MultiScaleRoIAlign
-from torchvision.models.detection.roi_heads import RoIHeads
-from torchvision.models.detection.faster_rcnn import TwoMLPHead, FastRCNNPredictor
 from torchvision.models.detection.transform import GeneralizedRCNNTransform
 
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
 from torch.hub import load_state_dict_from_url
+from torchvision.ops import boxes as box_ops
+import torchvision.models.detection._utils as det_utils
+from anchor_utils import DefaultBoxGenerator
+from torchvision.models.vgg import VGG, vgg16
+import warnings
+from ssd_torchvision import _vgg_extractor, SSD, SSDMatcher, retrieve_out_channels, SSDHead, _topk_min
 
 
 def broadcast_list(l, device_ids):
@@ -56,6 +55,7 @@ class SearchCNN(nn.Module):
         self.C = C
         self.n_classes = n_classes
         self.n_layers = n_layers
+        num_classes = 91
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -93,22 +93,61 @@ class SearchCNN(nn.Module):
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
 
-        self.extras = nn.ModuleList(extras)
+        # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
+        # self.backbone.out_channels = out_channels
 
-        self.loc = nn.ModuleList(head[0])
-        self.conf = nn.ModuleList(head[1])
+        anchor_generator = DefaultBoxGenerator(
+            [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
+            scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05],
+            steps=[8, 16, 32, 64, 100, 300],
+        )
+        self.box_coder = det_utils.BoxCoder(weights=(10.0, 10.0, 5.0, 5.0))
 
-        if phase == 'test':
-            self.softmax = nn.Softmax(dim=-1)
-            self.detect = Detect(num_classes, 0, 200, 0.01, 0.45)
 
-        # load pretrain
-        pretrained_backbone = resnet_fpn_backbone('resnet50', False, trainable_layers=0)
-        pretrained = FasterRCNN(pretrained_backbone,
-                       num_classes=91,
-                       # rpn_anchor_generator=anchor_generator,
-                       box_roi_pool=roi_pooler,
-                       )
+        if head is None:
+            if hasattr(backbone, "out_channels"):
+                out_channels = backbone.out_channels
+            else:
+                # out_channels = (16, 32, 64, 128, 256, 512) # modified from models/search_cnn_obj
+                out_channels = retrieve_out_channels(backbone, size)
+
+            if len(out_channels) != len(anchor_generator.aspect_ratios):
+                raise ValueError(
+                    f"The length of the output channels from the backbone ({len(out_channels)}) do not match the length of the anchor generator aspect ratios ({len(anchor_generator.aspect_ratios)})"
+                )
+
+            num_anchors = self.anchor_generator.num_anchors_per_location()
+            head = SSDHead(out_channels, num_anchors, num_classes)
+        self.head = head
+
+        self.proposal_matcher = SSDMatcher(0.5)
+
+        image_mean = [0.48235, 0.45882, 0.40784]
+        image_std = [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0],  # undo the 0-1 scaling of toTensor
+        self.transform = GeneralizedRCNNTransform(
+            300, 300, image_mean, image_std#, size_divisible=1, fixed_size=size, **kwargs
+        )
+
+        self.score_thresh = 0.01
+        self.nms_thresh = 0.45
+        self.detections_per_img = 200
+        self.topk_candidates = 400
+        self.neg_to_pos_ratio = (1.0 - 0.25) / 0.25
+
+        # used only on torchscript mode
+        self._has_warned = False
+
+        #################################################################
+        # load a pretrained_model, and transfer across the weights of the non-backbone portion
+        defaults = {
+            # Rescale the input in a way compatible to the backbone
+            "image_mean": image_mean,
+            "image_std": image_std
+        }
+        kwargs = {**defaults, **kwargs}
+        pretrained_backbone = vgg16(pretrained=False, progress=True)
+        pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
+        pretrained = SSD(pretrained_backbone, anchor_generator, (300, 300), num_classes, **kwargs)
         state_dict = load_state_dict_from_url('https://download.pytorch.org/models/fasterrcnn_resnet50_fpn_coco-258fb6c6.pth', progress=True)
         pretrained.load_state_dict(state_dict)
 
@@ -124,128 +163,205 @@ class SearchCNN(nn.Module):
         del pretrained
 
 
-    def forward(self, x, y, weights_normal, weights_reduce, full_ret):
-        """Applies network layers and ops on input image(s) x.
-
-        Args:
-            x: input image or batch of images. Shape: [batch,3,300,300].
-
-        Return:
-            Depending on phase:
-            test:
-                Variable(tensor) of output class label predictions,
-                confidence score, and corresponding location predictions for
-                each object detected. Shape: [batch,topk,7]
-
-            train:
-                list of concat outputs from:
-                    1: confidence layers, Shape: [batch*num_priors,num_classes]
-                    2: localization layers, Shape: [batch,num_priors*4]
-                    3: priorbox layers, Shape: [2,num_priors*4]
-        """
-        s0 = s1 = self.stem(x) # use tensor form of images not transformed form
-        # s0 = s1 = self.stem(images.tensors)
-
-        for cell in self.cells:
-            weights = weights_reduce if cell.reduction else weights_normal
-            s0, s1 = s1, cell(s0, s1, weights)
-
-        sources = list()
-        loc = list()
-        conf = list()
-
-        # apply vgg up to conv4_3 relu
-        for k in range(23):
-            x = self.vgg[k](x)
-
-        # apply extra layers and cache source layer outputs
-        for k, v in enumerate(self.extras):
-            x = F.relu(v(x), inplace=True)
-            if k % 2 == 1:
-                sources.append(x)
-
-        # apply multibox head to source layers
-        for (x, l, c) in zip(sources, self.loc, self.conf):
-            loc.append(l(x).permute(0, 2, 3, 1).contiguous())
-            conf.append(c(x).permute(0, 2, 3, 1).contiguous())
-
-        loc = torch.cat([o.view(o.size(0), -1) for o in loc], 1)
-        conf = torch.cat([o.view(o.size(0), -1) for o in conf], 1)
-        if self.phase == "test":
-            output = self.detect(
-                loc.view(loc.size(0), -1, 4),                   # loc preds
-                self.softmax(conf.view(conf.size(0), -1,
-                             self.num_classes)),                # conf preds
-                self.priors.type(type(x.data))                  # default boxes
-            )
-        else:
-            output = (
-                loc.view(loc.size(0), -1, 4),
-                conf.view(conf.size(0), -1, self.num_classes),
-                self.priors
-            )
-        return output
-        # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
-
-    def eager_outputs(self, losses, detections, full_ret):
+    def eager_outputs(self, losses, detections):
         if self.training:
-            if full_ret:
-                return losses, detections
             return losses
 
         return detections
 
-def get_rpn(rpn_anchor_generator, rpn_head, out_channels):
-    if rpn_anchor_generator is None:
-        anchor_sizes = ((32,), (64,), (128,), (256,), (512,))
-        aspect_ratios = ((0.5, 1.0, 2.0),) * len(anchor_sizes)
-        rpn_anchor_generator = AnchorGenerator(
-            anchor_sizes, aspect_ratios
+    def compute_loss(self, targets, head_outputs, anchors, matched_idxs):
+
+        bbox_regression = head_outputs["bbox_regression"]
+        cls_logits = head_outputs["cls_logits"]
+
+        # Match original targets with default boxes
+        num_foreground = 0
+        bbox_loss = []
+        cls_targets = []
+        for (
+            targets_per_image,
+            bbox_regression_per_image,
+            cls_logits_per_image,
+            anchors_per_image,
+            matched_idxs_per_image,
+        ) in zip(targets, bbox_regression, cls_logits, anchors, matched_idxs):
+            # produce the matching between boxes and targets
+            foreground_idxs_per_image = torch.where(matched_idxs_per_image >= 0)[0]
+            foreground_matched_idxs_per_image = matched_idxs_per_image[foreground_idxs_per_image]
+            num_foreground += foreground_matched_idxs_per_image.numel()
+
+            # Calculate regression loss
+            matched_gt_boxes_per_image = targets_per_image["boxes"][foreground_matched_idxs_per_image]
+            bbox_regression_per_image = bbox_regression_per_image[foreground_idxs_per_image, :]
+            anchors_per_image = anchors_per_image[foreground_idxs_per_image, :]
+            target_regression = self.box_coder.encode_single(matched_gt_boxes_per_image, anchors_per_image)
+            bbox_loss.append(
+                torch.nn.functional.smooth_l1_loss(bbox_regression_per_image, target_regression, reduction="sum")
+            )
+
+            # Estimate ground truth for class targets
+            gt_classes_target = torch.zeros(
+                (cls_logits_per_image.size(0),),
+                dtype=targets_per_image["labels"].dtype,
+                device=targets_per_image["labels"].device,
+            )
+            gt_classes_target[foreground_idxs_per_image] = targets_per_image["labels"][
+                foreground_matched_idxs_per_image
+            ]
+            cls_targets.append(gt_classes_target)
+
+        bbox_loss = torch.stack(bbox_loss)
+        cls_targets = torch.stack(cls_targets)
+
+        # Calculate classification loss
+        num_classes = cls_logits.size(-1)
+        cls_loss = F.cross_entropy(cls_logits.view(-1, num_classes), cls_targets.view(-1), reduction="none").view(
+            cls_targets.size()
         )
-    if rpn_head is None:
-        rpn_head = RPNHead(
-            out_channels, rpn_anchor_generator.num_anchors_per_location()[0]
-        )
 
-    rpn_pre_nms_top_n = dict(training=2000, testing=1000)
-    rpn_post_nms_top_n = dict(training=2000, testing=1000)
+        # Hard Negative Sampling
+        foreground_idxs = cls_targets > 0
+        num_negative = self.neg_to_pos_ratio * foreground_idxs.sum(1, keepdim=True)
+        # num_negative[num_negative < self.neg_to_pos_ratio] = self.neg_to_pos_ratio
+        negative_loss = cls_loss.clone()
+        negative_loss[foreground_idxs] = -float("inf")  # use -inf to detect positive values that creeped in the sample
+        values, idx = negative_loss.sort(1, descending=True)
+        # background_idxs = torch.logical_and(idx.sort(1)[1] < num_negative, torch.isfinite(values))
+        background_idxs = idx.sort(1)[1] < num_negative
 
-    rpn = RegionProposalNetwork(
-        rpn_anchor_generator, rpn_head,
-        fg_iou_thresh=0.7, bg_iou_thresh=0.3,
-        batch_size_per_image=256, positive_fraction=0.5,
-        pre_nms_top_n=rpn_pre_nms_top_n, post_nms_top_n=rpn_post_nms_top_n, nms_thresh=0.7)
+        N = max(1, num_foreground)
+        return {
+            "bbox_regression": bbox_loss.sum() / N,
+            "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
+        }
 
-    return rpn
+    def forward(self, images, targets=None):
+        if self.training:
+            if targets is None:
+                assert False, "targets should not be none when in training mode"
+            else:
+                for target in targets:
+                    boxes = target["boxes"]
+                    if isinstance(boxes, torch.Tensor):
+                        assert (len(boxes.shape) == 2 and boxes.shape[-1] == 4), f"Expected target boxes to be a tensor of shape [N, 4], got {boxes.shape}."
 
+                    else:
+                        assert False, f"Expected target boxes to be of type Tensor, got {type(boxes)}."
 
-def get_roi(box_roi_pool, out_channels, num_classes):
-    if box_roi_pool is None:
-        box_roi_pool = MultiScaleRoIAlign(
-            featmap_names=['0', '1', '2', '3'],
-            output_size=7,
-            sampling_ratio=2)
+        # get the original image sizes
+        original_image_sizes = []
+        for img in images:
+            val = img.shape[-2:]
+            assert len(val) == 2, f"expecting the last two dimensions of the Tensor to be H and W instead got {img.shape[-2:]}"
 
-    resolution = box_roi_pool.output_size[0]
-    representation_size = 1024
-    box_head = TwoMLPHead(
-        out_channels * resolution ** 2,
-        representation_size)
+            original_image_sizes.append((val[0], val[1]))
 
-    representation_size = 1024
-    box_predictor = FastRCNNPredictor(
-        representation_size,
-        num_classes)
+        # transform the input
+        images, targets = self.transform(images, targets)
 
-    roi_heads = RoIHeads(
-        # Box
-        box_roi_pool, box_head, box_predictor,
-        fg_iou_thresh=0.5, bg_iou_thresh=0.5,
-        batch_size_per_image=512, positive_fraction=0.25,
-        bbox_reg_weights=None,
-        score_thresh=0.05, nms_thresh=0.5, detections_per_img=100)
+        # Check for degenerate boxes
+        if targets is not None:
+            for target_idx, target in enumerate(targets):
+                boxes = target["boxes"]
+                degenerate_boxes = boxes[:, 2:] <= boxes[:, :2]
+                if degenerate_boxes.any():
+                    bb_idx = torch.where(degenerate_boxes.any(dim=1))[0][0]
+                    degen_bb = boxes[bb_idx].tolist()
+                    raise AssertionError(f"All bounding boxes should have positive height and width. "
+                                         f"Found invalid box {degen_bb} for target at index {target_idx}.")
 
-    return roi_heads
+        # get the features from the backbone
+        features = self.backbone(images.tensors)
+        if isinstance(features, torch.Tensor):
+            features = OrderedDict([("0", features)])
+
+        features = list(features.values())
+
+        # compute the ssd heads outputs using the features
+        head_outputs = self.head(features)
+
+        # create the set of anchors
+        anchors = self.anchor_generator(images, features)
+
+        losses = {}
+        detections = []
+        if self.training:
+            matched_idxs = []
+            if targets is None:
+                assert False, "targets should not be none when in training mode"
+            else:
+                for anchors_per_image, targets_per_image in zip(anchors, targets):
+                    if targets_per_image["boxes"].numel() == 0:
+                        matched_idxs.append(
+                            torch.full(
+                                (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
+                            )
+                        )
+                        continue
+
+                    match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
+                    matched_idxs.append(self.proposal_matcher(match_quality_matrix))
+
+                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
+        else:
+            detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
+            detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
+
+        if torch.jit.is_scripting():
+            if not self._has_warned:
+                warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
+                self._has_warned = True
+            return losses, detections
+        return self.eager_outputs(losses, detections)
+
+    def postprocess_detections(self, head_outputs, image_anchors, image_shapes):
+        bbox_regression = head_outputs["bbox_regression"]
+        pred_scores = F.softmax(head_outputs["cls_logits"], dim=-1)
+
+        num_classes = pred_scores.size(-1)
+        device = pred_scores.device
+
+        detections = []
+
+        for boxes, scores, anchors, image_shape in zip(bbox_regression, pred_scores, image_anchors, image_shapes):
+            boxes = self.box_coder.decode_single(boxes, anchors)
+            boxes = box_ops.clip_boxes_to_image(boxes, image_shape)
+
+            image_boxes = []
+            image_scores = []
+            image_labels = []
+            for label in range(1, num_classes):
+                score = scores[:, label]
+
+                keep_idxs = score > self.score_thresh
+                score = score[keep_idxs]
+                box = boxes[keep_idxs]
+
+                # keep only topk scoring predictions
+                num_topk = _topk_min(score, self.topk_candidates, 0)
+                score, idxs = score.topk(num_topk)
+                box = box[idxs]
+
+                image_boxes.append(box)
+                image_scores.append(score)
+                image_labels.append(torch.full_like(score, fill_value=label, dtype=torch.int64, device=device))
+
+            image_boxes = torch.cat(image_boxes, dim=0)
+            image_scores = torch.cat(image_scores, dim=0)
+            image_labels = torch.cat(image_labels, dim=0)
+
+            # non-maximum suppression
+            keep = box_ops.batched_nms(image_boxes, image_scores, image_labels, self.nms_thresh)
+            keep = keep[: self.detections_per_img]
+
+            detections.append(
+                {
+                    "boxes": image_boxes[keep],
+                    "scores": image_scores[keep],
+                    "labels": image_labels[keep],
+                }
+            )
+        return detections
 
 class SearchCNNControllerObj(nn.Module):
     """ SearchCNN controller supporting multi-gpu """

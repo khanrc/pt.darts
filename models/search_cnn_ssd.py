@@ -120,7 +120,7 @@ class SearchCNN(nn.Module):
         self.proposal_matcher = SSDMatcher(0.5)
 
         image_mean = [0.48235, 0.45882, 0.40784]
-        image_std = [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0],  # undo the 0-1 scaling of toTensor
+        image_std = [(1.0 / 255.0), (1.0 / 255.0), (1.0 / 255.0)],  # undo the 0-1 scaling of toTensor
         self.transform = GeneralizedRCNNTransform(
             300, 300, image_mean, image_std#, size_divisible=1, fixed_size=size, **kwargs
         )
@@ -146,6 +146,7 @@ class SearchCNN(nn.Module):
         pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
         pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), num_classes, **kwargs)
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
+        # state_dict = torch.load('/home/matt/Documents/nas/pt.darts/ssd30016.pth')
         pretrained.load_state_dict(state_dict)
 
         # Copy network weights from pretrained.rpn + freeze them?

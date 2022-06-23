@@ -17,6 +17,7 @@ from torch.hub import load_state_dict_from_url
 model_urls = {
     # "ssd300_vgg16_coco": "https://download.pytorch.org/models/ssd300_vgg16_coco-b556d3b4.pth",
     "ssd300_vgg16_coco": "/hdd/PhD/nas/pt.darts/ssd30016.pth",
+    # "ssd300_vgg16_coco": "/home/matt/Documents/nas/darts/ssd30016.pth",
 }
 
 backbone_urls = {

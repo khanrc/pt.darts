@@ -95,6 +95,7 @@ def main():
 
     if is_pretrained:
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
+        # state_dict = torch.load('/home/matt/Documents/nas/darts/ssd30016.pth')
         model.load_state_dict(state_dict)
         if is_retrained:
             if is_fixed:

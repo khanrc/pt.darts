@@ -24,6 +24,7 @@ is_pretrained = eval(sys.argv[sys.argv.index('--obj_pretrained')+1])
 is_retrained = eval(sys.argv[sys.argv.index('--obj_retrained')+1])
 is_fixed = eval(sys.argv[sys.argv.index('--obj_fixed')+1])
 dataset = sys.argv[sys.argv.index('--dataset')+1]
+batch_size = eval(sys.argv[sys.argv.index('--batch_size')+1])
 
 
 def collate_fn(batch):
@@ -64,12 +65,20 @@ def main():
         # train_path = '/home/matt/Documents/coco/'
         # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
         train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
+        val_data = Coco_Det(train_path=train_path, transforms=trn_transform, train=False)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")
 
     train_loader = torch.utils.data.DataLoader(train_data,
-                                               batch_size=2, # needs to be > 1
+                                               batch_size=batch_size, # needs to be > 1
+                                               # sampler=train_sampler,
+                                               num_workers=0,
+                                               pin_memory=True,
+                                               collate_fn=collate_fn
+                                               )
+    val_loader = torch.utils.data.DataLoader(val_data,
+                                               batch_size=batch_size, # needs to be > 1
                                                # sampler=train_sampler,
                                                num_workers=0,
                                                pin_memory=True,
@@ -191,7 +200,7 @@ def main():
         #     output = model(image, targets)
         train_one_epoch(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
-        evaluate(model, train_loader, device=device, epoch=i)
+        evaluate(model, val_loader, device=device, epoch=i)
         os.makedirs(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/", exist_ok=True)
         for q, key in enumerate(activation.keys()):
             act = activation[key][0] # take first of batch arbitrarily

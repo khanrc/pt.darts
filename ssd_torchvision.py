@@ -639,10 +639,14 @@ def SSD300_VGG16(
         steps=[8, 16, 32, 64, 100, 300],
     )
 
+    # defaults = {
+    #     # Rescale the input in a way compatible to the backbone
+    #     "image_mean": [0.48235, 0.45882, 0.40784],
+    #     "image_std": [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0],  # undo the 0-1 scaling of toTensor
+    # }
     defaults = {
-        # Rescale the input in a way compatible to the backbone
-        "image_mean": [0.48235, 0.45882, 0.40784],
-        "image_std": [1.0 / 255.0, 1.0 / 255.0, 1.0 / 255.0],  # undo the 0-1 scaling of toTensor
+        "image_mean": [0.485, 0.456, 0.406],
+        "image_std": [0.229, 0.224, 0.225]
     }
     kwargs = {**defaults, **kwargs}
     model = SSD(backbone, anchor_generator, (300, 300), num_classes, **kwargs)

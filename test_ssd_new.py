@@ -69,12 +69,20 @@ def main():
         # train_path = '/home/matt/Documents/coco/'
         # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
         train_data = Coco_Det(train_path=train_path, transforms=trn_transform)
+        val_data = Coco_Det(train_path=train_path, transforms=trn_transform, train=False)
         num_classes = 91
     else:
         raise AttributeError("bad dataset")
 
     print(f"batch size {batch_size}")
     train_loader = torch.utils.data.DataLoader(train_data,
+                                               batch_size=batch_size, # needs to be > 1
+                                               # sampler=train_sampler,
+                                               num_workers=0,
+                                               pin_memory=True,
+                                               collate_fn=collate_fn
+                                               )
+    val_loader = torch.utils.data.DataLoader(val_data,
                                                batch_size=batch_size, # needs to be > 1
                                                # sampler=train_sampler,
                                                num_workers=0,
@@ -156,7 +164,7 @@ def main():
         #     output = model(image, targets)
         train_one_epoch_ssd(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
-        evaluate(model, train_loader, device=device, epoch=i)
+        evaluate(model, val_loader, device=device, epoch=i)
         # os.makedirs(f"./tempSave/validate_obj/activations_{visualization_stem}/{i}/", exist_ok=True)
         # for q, key in enumerate(activation.keys()):
         #     act = activation[key][0] # take first of batch arbitrarily

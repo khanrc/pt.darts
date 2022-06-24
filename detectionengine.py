@@ -53,6 +53,7 @@ def train_one_epoch(model, optimizer, data_loader, device, epoch, print_freq, sc
         targets = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in targets]
         with torch.cuda.amp.autocast(enabled=scaler is not None):
             # loss_dict = model(images, targets)
+            raise AttributeError(model(images, targets))
             loss_dict, detections = model(images, targets)
             losses = sum(loss for loss in loss_dict.values())
 

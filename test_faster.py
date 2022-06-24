@@ -62,6 +62,7 @@ def main():
                 # normalize,
             ])
         train_path = '/hdd/PhD/data/coco/'
+        # train_path = '/home2/lgfm95/coco/'
         # train_path = '/home/matt/Documents/coco/'
         # train_data = SubDataset(transforms=trn_transform, dataset_name="coco_det", convert_to_paths=True)
         train_data = Coco_Det(train_path=train_path, transforms=trn_transform)

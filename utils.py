@@ -177,7 +177,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_size = len(trn_data)
                 input_channels = 3 if len(trn_data.bands) == 3 else 1 # getbands() gives rgb if rgb, l if grayscale
             elif dataset == "coco_det":
-                trn_data = Coco_Det(train_path=coco_train_path, transforms=trn_transform)
+                trn_data = Coco_Det(train_path=coco_train_path, transforms=trn_transform, max_size=config.max_size)
                 input_size = len(trn_data)
                 input_channels = 3
             elif dataset == "tiny_image":
@@ -236,7 +236,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
 
             # train_path = '/home2/lgfm95/coco/'
             # train_path = '/home/matt/Documents/coco/'
-            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform, train=False))
+            ret.append(Coco_Det(train_path=coco_train_path, transforms=val_transform, train=False, max_size=config.max_size))
         elif dataset == "tiny_image":
             print("using tiny imagenet")
             # train_path = '/home2/lgfm95/tiny-imagenet-200/'

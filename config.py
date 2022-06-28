@@ -143,6 +143,7 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--vanilla', default=False, type=bool, help="are we using vanilla data")
         parser.add_argument('--badpath', default=False, type=bool, help="are we using untrained autoencoder?")
         parser.add_argument('--is_concat', default=False, type=bool, help="autoencoder uses concat strategy for non single image classification")
+        parser.add_argument('--max_size', default=118280, type=int, help="max size for coco")
 
         return parser
 

@@ -125,7 +125,6 @@ class AugmentCNN(nn.Module):
                                         sampling_ratio=2)
         self.roi_heads = get_roi(roi_pooler, out_channels, n_classes)
 
-        # TODO currently using cifar, change mean/std to pure_det
         image_mean = [0.485, 0.456, 0.406]
         image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)
@@ -152,7 +151,7 @@ class AugmentCNN(nn.Module):
 
         del pretrained
 
-    def forward(self, x, y):
+    def forward(self, x, y, full_ret):
 
         original_image_sizes = []
         for img in x:
@@ -196,10 +195,19 @@ class AugmentCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        return losses
-        # return self.eager_outputs(losses, detections, hardness, full_ret)
+        # return losses
+        return self.eager_outputs(losses, detections, hardness, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
         # return logits, aux_logits
+
+    def eager_outputs(self, losses, detections, hardness, full_ret):
+        if self.training:
+            if full_ret:
+                return losses, detections, hardness
+            return losses
+
+        return detections
+
 
     def drop_path_prob(self, p):
         """ Set drop path probability """

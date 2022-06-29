@@ -166,7 +166,7 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
                 param = parameter.numel()
                 total_params+=param
             print("grep params", total_params)
-        logits = model(X, y)
+        logits, _, _ = model(X, y, full_ret=True) # full ret true same as search for debugging purposes
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)
 

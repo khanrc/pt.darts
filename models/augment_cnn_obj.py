@@ -200,7 +200,7 @@ class AugmentCNN(nn.Module):
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
         # return logits, aux_logits
 
-    def eager_outputs(self, losses, detections, hardness, full_ret):
+    def eager_outputs(self, losses, detections, hardness, full_ret=False):
         if self.training:
             if full_ret:
                 return losses, detections, hardness

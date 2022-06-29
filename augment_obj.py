@@ -58,8 +58,8 @@ def main():
     criterion = nn.CrossEntropyLoss().to(device)
     if config.dataset == "imageobj":
         criterion = nn.BCEWithLogitsLoss().to(device)
-    # use_aux = config.aux_weight > 0.
-    use_aux = False
+    use_aux = config.aux_weight > 0.
+
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
                        use_aux, config.genotype).to(device)
     # model = nn.DataParallel(model, device_ids=config.gpus).to(device)
@@ -166,12 +166,13 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
                 param = parameter.numel()
                 total_params+=param
             print("grep params", total_params)
-        logits, _, _ = model(X, y, full_ret=True) # full ret true same as search for debugging purposes
+        # logits, _, _ = model(X, y, full_ret=True) # full ret true same as search for debugging purposes
+        logits, aux_logits = model(X, y, full_ret=True) # full ret true same as search for debugging purposes
         loss = sum(_loss for _loss in logits.values())
         losses.update(loss.item(), N)
 
-        # if config.aux_weight > 0.:
-        #     loss += config.aux_weight * criterion(aux_logits, y)
+        if config.aux_weight > 0.:
+            loss += config.aux_weight * criterion(aux_logits, y)
         loss.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)

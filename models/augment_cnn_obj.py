@@ -164,14 +164,14 @@ class AugmentCNN(nn.Module):
 
         s0 = s1 = self.stem(x)
 
-        # aux_logits = None
+        aux_logits = None
         for i, cell in enumerate(self.cells):
             s0, s1 = s1, cell(s0, s1)
-        #     if i == self.aux_pos and self.training:
-        #         try:
-        #             aux_logits = self.aux_head(s1)
-        #         except RuntimeError:
-        #             raise AttributeError(i, s1.shape)
+            if i == self.aux_pos and self.training:
+                try:
+                    aux_logits = self.aux_head(s1)
+                except RuntimeError:
+                    raise AttributeError(i, s1.shape)
 
         # out = self.gap(s1)
         # out = out.view(out.size(0), -1) # flatten
@@ -196,7 +196,8 @@ class AugmentCNN(nn.Module):
         losses.update(proposal_losses)
 
         # return losses
-        return self.eager_outputs(losses, detections, hardness, full_ret)
+        return losses, aux_logits
+        # return self.eager_outputs(losses, detections, hardness, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
         # return logits, aux_logits
 

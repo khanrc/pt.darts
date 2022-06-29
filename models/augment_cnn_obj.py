@@ -151,7 +151,7 @@ class AugmentCNN(nn.Module):
 
         del pretrained
 
-    def forward(self, x, y, full_ret):
+    def forward(self, x, y, full_ret=False):
 
         original_image_sizes = []
         for img in x:
@@ -200,7 +200,7 @@ class AugmentCNN(nn.Module):
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
         # return logits, aux_logits
 
-    def eager_outputs(self, losses, detections, hardness, full_ret=False):
+    def eager_outputs(self, losses, detections, hardness, full_ret):
         if self.training:
             if full_ret:
                 return losses, detections, hardness

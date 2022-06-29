@@ -110,7 +110,6 @@ class SearchCNN(nn.Module):
                                         sampling_ratio=2)
         self.roi_heads = get_roi(roi_pooler, out_channels, n_classes)
 
-        # TODO currently using cifar, change mean/std to pure_det
         image_mean = [0.485, 0.456, 0.406]
         image_std = [0.229, 0.224, 0.225]
         self.transform = GeneralizedRCNNTransform(min_size=800, max_size=1333, image_mean=image_mean, image_std=image_std)

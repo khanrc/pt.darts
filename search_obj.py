@@ -291,7 +291,7 @@ def main():
                 try:
                     train_loader.dataset.update_subset(hardness, epoch)
                 except IndexError:
-                    raise AttributeError(hardness)
+                    raise AttributeError(hardness, len(hardness), len(train_loader), len(valid_loader))
             save_indices(train_loader.dataset.get_printable(), epoch, [train_loader.dataset.full_set.__getitem__(idx)[0] for idx in train_loader.dataset.idx])
 
             # set lr_scheduler to same as when started.

@@ -181,16 +181,15 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:3d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "
-                "Prec@(1,5) ({top1.avg:.1%}, {top5.avg:.1%})".format(
-                    epoch+1, config.epochs, step, len(train_loader)-1, losses=losses,
-                    top1=top1, top5=top5))
+                .format(
+                    epoch+1, config.epochs, step, len(train_loader)-1, losses=losses))
 
         writer.add_scalar('train/loss', loss.item(), cur_step)
         # writer.add_scalar('train/top1', prec1.item(), cur_step)
         # writer.add_scalar('train/top5', prec5.item(), cur_step)
         cur_step += 1
 
-    logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, top1.avg))
+    logger.info("Train: [{:3d}/{}] Final Prec@1 {:.4%}".format(epoch+1, config.epochs, losses.avg))
 
 
 def validate(valid_loader, model, criterion, epoch, cur_step, is_multi):

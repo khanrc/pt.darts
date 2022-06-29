@@ -188,7 +188,7 @@ class AugmentCNN(nn.Module):
             detections, detector_losses, hardness = self.roi_heads(features, proposals, images.image_sizes, targets)
         except AttributeError:
             raise AttributeError(len(proposals), len(features), len(proposals[0]), len(features['0']), len(targets), len(targets[0]), len(targets[1]), len(images.tensors))#, len(images[0]))
-        raise AttributeError(detections)
+
         detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         losses = {}

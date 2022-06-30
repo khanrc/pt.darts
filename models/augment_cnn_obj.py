@@ -55,9 +55,16 @@ class AuxiliaryHead(nn.Module):
         return logits
 
 
+def get_multihot(labels, num_classes):
+    multihot = [0] * num_classes
+    for lab in labels:
+        multihot[lab] = 1
+    return torch.tensor(multihot).cuda()
+
+
 class AugmentCNN(nn.Module):
     """ Augmented CNN model """
-    def __init__(self, input_size, C_in, C, n_classes, n_layers, auxiliary, genotype,
+    def __init__(self, input_size, C_in, C, n_classes, n_layers, genotype, aux_criterion, aux_weight,
                  stem_multiplier=3):
         """
         Args:
@@ -72,7 +79,10 @@ class AugmentCNN(nn.Module):
         self.n_layers = n_layers
         self.genotype = genotype
         # aux head position
-        self.aux_pos = 2*n_layers//3 if auxiliary else -1
+        self.aux_criterion = aux_criterion
+        self.aux_weight = aux_weight
+        self.use_aux = self.aux_weight > 0.
+        self.aux_pos = 2*n_layers//3 if self.use_aux else -1
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -195,12 +205,16 @@ class AugmentCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        # if full_ret:
-        #     return losses, aux_logits
-        # return losses
+        if self.use_aux:
+            y_classes = [get_multihot(labels=label["labels"], num_classes=91) for label in y]
+            y_classes = torch.stack(y_classes, dim=0)
+            sigmoid = torch.sigmoid(aux_logits)
+            rounded = torch.round(sigmoid)
+            aux_loss = self.aux_criterion(rounded, y_classes.float())
+            aux_loss = self.aux_weight * aux_loss
+            losses.update({'aux_loss': aux_loss})
+
         return self.eager_outputs(losses, detections, hardness, full_ret)
-        # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
-        # return logits, aux_logits
 
     def eager_outputs(self, losses, detections, hardness, full_ret):
         if self.training:

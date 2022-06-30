@@ -22,6 +22,7 @@ writer.add_text('config', config.as_markdown(), 0)
 logger = utils.get_logger(os.path.join(config.path, "{}.log".format(config.name)))
 config.print_params(logger.info)
 
+
 def collate_fn(batch):
     data, labels = zip(*batch)
     stacked_data = torch.stack(data, dim=0)
@@ -31,11 +32,20 @@ def collate_fn(batch):
 
     return stacked_data, labels
 
+
 def get_split(dataset):
     n_train = len(dataset)
     split = n_train * 0.8
     remainder = split % 8
     return int(split - remainder)
+
+
+def get_multihot(labels, num_classes):
+    multihot = [0] * num_classes
+    for lab in labels:
+        multihot[lab] = 1
+    return torch.tensor(multihot).cuda()
+
 
 def main():
     logger.info("Logger is set - training start")
@@ -55,9 +65,7 @@ def main():
         config.dataset, config.data_path, config.cutout_length, validation=True,
         search=False, bede=config.bede, is_concat=config.is_concat)
 
-    criterion = nn.CrossEntropyLoss().to(device)
-    if config.dataset == "imageobj":
-        criterion = nn.BCEWithLogitsLoss().to(device)
+    criterion = nn.BCELoss().to(device)
     use_aux = config.aux_weight > 0.
 
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
@@ -172,7 +180,13 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
         losses.update(loss.item(), N)
 
         if config.aux_weight > 0.:
-            loss += config.aux_weight * criterion(aux_logits, y)
+            y_classes = [get_multihot(labels=label["labels"], num_classes=91) for label in y]
+            y_classes = torch.stack(y_classes, dim=0)
+            # raise AttributeError(y_classes.shape, y_classes.dtype, aux_logits.shape, aux_logits.dtype)
+            sigmoid = torch.sigmoid(aux_logits)
+            rounded = torch.round(sigmoid)
+            aux_loss = criterion(rounded, y_classes.float())
+            loss += config.aux_weight * aux_loss
         loss.backward()
         # gradient clipping
         nn.utils.clip_grad_norm_(model.parameters(), config.grad_clip)

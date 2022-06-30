@@ -195,10 +195,10 @@ class AugmentCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        if full_ret:
-            return losses, aux_logits
-        return losses
-        # return self.eager_outputs(losses, detections, hardness, full_ret)
+        # if full_ret:
+        #     return losses, aux_logits
+        # return losses
+        return self.eager_outputs(losses, detections, hardness, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
         # return logits, aux_logits
 

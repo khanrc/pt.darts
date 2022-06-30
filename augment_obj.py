@@ -180,6 +180,7 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
         losses.update(loss.item(), N)
 
         if config.aux_weight > 0.:
+            raise AttributeError("guilty")
             y_classes = [get_multihot(labels=label["labels"], num_classes=91) for label in y]
             y_classes = torch.stack(y_classes, dim=0)
             # raise AttributeError(y_classes.shape, y_classes.dtype, aux_logits.shape, aux_logits.dtype)

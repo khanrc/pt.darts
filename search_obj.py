@@ -71,11 +71,14 @@ def get_split(dataset):
 
 def main():
     os.environ['WANDB_SILENT'] = "true"
+    old_name = config.name
+    config.name = f"{config.dataset_name}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.lr}"
     wandb.init(
         entity="mattpoyser",
         project="darts",
         config=config,
     )
+    config.name = old_name
     start_time = time.time()
     logger.info("Logger is set - training start {}".format(start_time))
 
@@ -253,7 +256,6 @@ def main():
             # validation
             cur_step = (epoch + 1) * len(train_loader)
             top1, new_loss = validate(valid_loader, model, epoch, cur_step, print_mode, is_multi, config)
-            wandb.log({"acc": top1, "loss": new_loss})
 
             if print_mode:
                 print_mode = False
@@ -434,6 +436,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
+        wandb.log({"acc": top1, "loss": losses.avg})
 
         if step % config.print_freq == 0 or step == len(train_loader) - 1:
             logger.info(

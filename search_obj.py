@@ -72,7 +72,7 @@ def get_split(dataset):
 def main():
     os.environ['WANDB_SILENT'] = "true"
     old_name = config.name
-    config.name = f"{config.dataset_name}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.lr}"
+    config.name = f"{config.dataset}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.lr}"
     wandb.init(
         entity="mattpoyser",
         project="darts",

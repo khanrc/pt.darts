@@ -288,13 +288,14 @@ def main():
         else:
             print("updating subset")
             if config.mining:
-                train_loader.dataset.update_subset(hardness, epoch, mining=True)
+                wandb_log = train_loader.dataset.update_subset(hardness, epoch, mining=True)
             else:
                 try:
-                    train_loader.dataset.update_subset(hardness, epoch)
+                    wandb_log = train_loader.dataset.update_subset(hardness, epoch)
                 except IndexError:
                     raise AttributeError(hardness, len(hardness), len(train_loader), len(valid_loader))
             save_indices(train_loader.dataset.get_printable(), epoch, [train_loader.dataset.full_set.__getitem__(idx)[0] for idx in train_loader.dataset.idx])
+            wandb.log({"isUpdate": 1, "numUpdate": sum(wandb_log)})
 
             # set lr_scheduler to same as when started.
             # TODO configure such that does not necessarily start at "first epoch" -
@@ -436,7 +437,8 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
-        wandb.log({"loss": losses.avg})
+        wandb.log({"loss": losses.avg, "isUpdate": 0})
+
 
         if step % config.print_freq == 0 or step == len(train_loader) - 1:
             logger.info(

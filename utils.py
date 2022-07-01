@@ -48,6 +48,12 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         n_classes = 10
         nz = 32
         auto_resume = "/home2/lgfm95/hem/perceptual/tripletCifarMseKGood.pth.tar"
+    if dataset == 'cifar100':
+        dset_cls = dset.CIFAR100
+        dynamic_name = "cifar100"
+        n_classes = 100
+        nz = 32
+        auto_resume = "/home2/lgfm95/hem/perceptual/tripletCifarMseKGood.pth.tar"
     elif dataset == 'imagenet':
         dset_cls = dset.ImageNet
         dynamic_name = "imagenet"
@@ -188,7 +194,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 input_size = len(trn_data)
                 input_channels = 3
             else:
-                trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
+                trn_data = dset_cls(root=data_path, train=True, download=True, transform=trn_transform)        # # assuming shape is NHW or NHWC
                 shape = trn_data.data.shape
                 input_channels = 3 if len(shape) == 4 else 1
                 assert shape[1] == shape[2], "not expected shape = {}".format(shape)

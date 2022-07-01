@@ -100,8 +100,8 @@ class AugmentCNN(nn.Module):
             if i == self.aux_pos and self.training:
                 try:
                     aux_logits = self.aux_head(s1)
-                except RuntimeError:
-                    raise AttributeError(i, s1.shape)
+                except RuntimeError as e:
+                    raise AttributeError(i, s1.shape, e)
 
         out = self.gap(s1)
         out = out.view(out.size(0), -1) # flatten

@@ -48,7 +48,7 @@ class AuxiliaryHead(nn.Module):
         out = x
         for module in self.net:
             out = module(out)
-            print(out.shape)
+            # print(out.shape)
         # out = self.net(x)
         out = out.view(out.size(0), -1) # flatten
         logits = self.linear(out)
@@ -64,8 +64,8 @@ def get_multihot(labels, num_classes):
 
 class AugmentCNN(nn.Module):
     """ Augmented CNN model """
-    def __init__(self, input_size, C_in, C, n_classes, n_layers, genotype, aux_criterion, aux_weight,
-                 stem_multiplier=3):
+    def __init__(self, input_size, C_in, C, n_classes, n_layers, genotype, aux_criterion,
+                 aux_weight, use_kendall, stem_multiplier=3):
         """
         Args:
             input_size: size of height and width (assuming height = width)
@@ -83,6 +83,8 @@ class AugmentCNN(nn.Module):
         self.aux_weight = aux_weight
         self.use_aux = self.aux_weight > 0.
         self.aux_pos = 2*n_layers//3 if self.use_aux else -1
+
+        self.use_kendall = use_kendall
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -161,6 +163,9 @@ class AugmentCNN(nn.Module):
 
         del pretrained
 
+        num_log_vars = 5 if self.use_aux else 4
+        self.log_vars = nn.Parameter(torch.zeros((num_log_vars)))
+
     def forward(self, x, y, full_ret=False):
 
         original_image_sizes = []
@@ -205,7 +210,7 @@ class AugmentCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
-        if self.use_aux:
+        if self.use_aux and self.training:
             y_classes = [get_multihot(labels=label["labels"], num_classes=91) for label in y]
             y_classes = torch.stack(y_classes, dim=0)
             sigmoid = torch.sigmoid(aux_logits)
@@ -214,6 +219,11 @@ class AugmentCNN(nn.Module):
             aux_loss = self.aux_weight * aux_loss
             losses.update({'aux_loss': aux_loss})
 
+        if self.use_kendall:
+            for q, (key, loss) in enumerate(losses.items()):
+                precision = torch.exp(-self.log_vars[q])
+                new_loss = torch.sum(precision * loss ** 2. + self.log_vars[q], -1)
+                losses[key] = new_loss
         return self.eager_outputs(losses, detections, hardness, full_ret)
 
     def eager_outputs(self, losses, detections, hardness, full_ret):

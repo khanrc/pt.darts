@@ -70,7 +70,7 @@ def main():
     criterion = nn.BCELoss().to(device)
 
     model = AugmentCNN(input_size, input_channels, config.init_channels, n_classes, config.layers,
-                       config.genotype, criterion, config.aux_weight).to(device)
+                       config.genotype, criterion, config.aux_weight, config.use_kendall).to(device)
     # model = nn.DataParallel(model, device_ids=config.gpus).to(device)
 
     # model size

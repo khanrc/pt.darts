@@ -436,7 +436,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         # gradient clipping
         nn.utils.clip_grad_norm_(model.weights(), config.w_grad_clip)
         w_optim.step()
-        wandb.log({"acc": top1, "loss": losses.avg})
+        wandb.log({"loss": losses.avg})
 
         if step % config.print_freq == 0 or step == len(train_loader) - 1:
             logger.info(

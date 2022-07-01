@@ -187,7 +187,7 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
         optimizer.step()
 
 
-        wandb.log({"acc": top1, "loss": losses.avg})
+        wandb.log({"loss": losses.avg})
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:3d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "

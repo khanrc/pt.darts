@@ -10,6 +10,7 @@ from models.augment_cnn_obj import AugmentCNN
 from curriculum import Curriculum_loader
 from torchvision import transforms
 from detectionengine import evaluate
+import wandb
 
 config = AugmentConfig()
 
@@ -41,6 +42,14 @@ def get_split(dataset):
 
 
 def main():
+    old_name = config.name
+    config.name = f"{config.dataset_name}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.lr}"
+    wandb.init(
+        entity="mattpoyser",
+        project="darts",
+        config=config,
+    )
+    config.name = old_name
     logger.info("Logger is set - training start")
 
     # set default gpu device id
@@ -137,6 +146,7 @@ def main():
         print("")
 
     logger.info("Final best Prec@1 = {:.4%}".format(best_top1))
+    wandb.finish()
 
 
 def train(train_loader, model, optimizer, criterion, epoch, is_multi):
@@ -177,6 +187,7 @@ def train(train_loader, model, optimizer, criterion, epoch, is_multi):
         optimizer.step()
 
 
+        wandb.log({"acc": top1, "loss": losses.avg})
         if step % config.print_freq == 0 or step == len(train_loader)-1:
             logger.info(
                 "Train: [{:3d}/{}] Step {:03d}/{:03d} Loss {losses.avg:.3f} "

@@ -72,7 +72,7 @@ def get_split(dataset):
 def main():
     os.environ['WANDB_SILENT'] = "true"
     old_name = config.name
-    config.name = f"{config.dataset}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.lr}"
+    config.name = f"{config.dataset}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.w_lr}"
     wandb.init(
         entity="mattpoyser",
         project="darts",
@@ -115,7 +115,7 @@ def main():
     # net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
     #                         eos_coef=0.1, losses=losses).to(device)
     # class_loss = nn.NLLLoss().to(device)
-    model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.layers,
+    model = SearchCNNControllerObj(input_channels, config.init_channels, n_classes, config.use_kendall, config.layers,
                                    None, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
                                    weight_dict=weight_dict)
 

@@ -33,7 +33,7 @@ def broadcast_list(l, device_ids):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -57,6 +57,8 @@ class SearchCNN(nn.Module):
         self.C = C
         self.n_classes = n_classes
         self.n_layers = n_layers
+
+        self.use_kendall = use_kendall
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -135,6 +137,8 @@ class SearchCNN(nn.Module):
 
         del pretrained
 
+        if self.use_kendall:
+            self.log_vars = nn.Parameter(torch.zeros((4)))
 
     def forward(self, x, y, weights_normal, weights_reduce, full_ret):
         # using torchvision.models.detection.generalized_rcnn
@@ -180,6 +184,11 @@ class SearchCNN(nn.Module):
         losses.update(detector_losses)
         losses.update(proposal_losses)
 
+        if self.use_kendall:
+            for q, (key, loss) in enumerate(losses.items()):
+                precision = torch.exp(-self.log_vars[q])
+                new_loss = torch.sum(precision * loss ** 2. + self.log_vars[q], -1)
+                losses[key] = new_loss
         return self.eager_outputs(losses, detections, hardness, full_ret)
         # return self.model(x, targets=[{"labels": label["labels"].cuda(), "boxes": label["boxes"].cuda()} for label in y])
 
@@ -245,7 +254,7 @@ def get_roi(box_roi_pool, out_channels, num_classes):
 
 class SearchCNNControllerObj(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
-    def __init__(self, C_in, C, n_classes, n_layers, criterion, n_nodes=4, stem_multiplier=3,
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, n_nodes=4, stem_multiplier=3,
                  device_ids=None, class_loss=None, weight_dict=None):
         super().__init__()
         self.n_nodes = n_nodes
@@ -272,7 +281,7 @@ class SearchCNNControllerObj(nn.Module):
             if 'alpha' in n:
                 self._alphas.append((n, p))
 
-        self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
+        self.net = SearchCNN(C_in, C, n_classes, use_kendall, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x, y, full_ret=False):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]

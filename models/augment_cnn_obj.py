@@ -96,6 +96,7 @@ class AugmentCNN(nn.Module):
 
         self.cells = nn.ModuleList()
         reduction_p = False
+        last_concat_length = 0
         for i in range(n_layers):
             if i in [n_layers//3, 2*n_layers//3]:
                 C_cur *= 2
@@ -108,6 +109,8 @@ class AugmentCNN(nn.Module):
             self.cells.append(cell)
             C_cur_out = C_cur * len(cell.concat)
             C_pp, C_p = C_p, C_cur_out
+            last_concat_length = len(cell.concat)
+            print(f"cell{i} shape is {cell.preproc1.net[1]}")
 
             if i == self.aux_pos:
                 # [!] this auxiliary head is ignored in computing parameter size
@@ -116,8 +119,12 @@ class AugmentCNN(nn.Module):
 
         self.gap = nn.AdaptiveAvgPool2d(1)
         # self.linear = nn.Linear(C_p, n_classes)
+        self.additional_pipe = None
+        if last_concat_length == 8: # nodes=8
+            self.additional_pipe = nn.Conv2d(C_p, 256, kernel_size=(1,1))
 
         out_channels = 256
+        # out_channels = 512
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
 
@@ -191,8 +198,10 @@ class AugmentCNN(nn.Module):
         # out = self.gap(s1)
         # out = out.view(out.size(0), -1) # flatten
         # logits = self.linear(out)
-
         features = s1
+        if self.additional_pipe is not None:
+            features = self.additional_pipe(features)
+        # raise AttributeError(features.shape)
         if isinstance(features, torch.Tensor):
             features = OrderedDict([('0', features)])
         try:

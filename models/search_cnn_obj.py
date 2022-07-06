@@ -92,6 +92,11 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
+
+        self.additional_pipe = None
+        if n_nodes == 8: # nodes=8
+            self.additional_pipe = nn.Conv2d(C_p, 256, kernel_size=(1,1))
+            
         out_channels = 256
         # out_channels = 1280
         # self.linear = nn.Linear(C_p, out_channels)
@@ -164,6 +169,8 @@ class SearchCNN(nn.Module):
         # out = self.gap(s1)
         # features = self.gap(s1)
         features = s1
+        if self.additional_pipe is not None:
+            features = self.additional_pipe(features)
         # out = out.view(out.size(0), -1)  # flatten
         # features = self.linear(out).unsqueeze(-1).unsqueeze(-1)
 

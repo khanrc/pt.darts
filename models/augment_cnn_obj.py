@@ -30,7 +30,7 @@ class AuxiliaryHead(nn.Module):
         elif input_size == 56: # TODO too brutal? even if its for just aux.
             kernel_size = 10
             stride = 6
-            second_kernel_size = 6
+            second_kernel_size = 8
         else:
             kernel_size = 10
             stride = 4
@@ -55,7 +55,6 @@ class AuxiliaryHead(nn.Module):
             out = module(out)
             # print(out.shape)
         # out = self.net(x)
-        raise AttributeError(out.shape)
         out = out.view(out.size(0), -1) # flatten
         logits = self.linear(out)
         return logits

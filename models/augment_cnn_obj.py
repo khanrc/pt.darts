@@ -27,10 +27,10 @@ class AuxiliaryHead(nn.Module):
         if input_size in [7, 8]:
             kernel_size = 5
             stride = input_size-5
-        elif input_size == 56:
+        elif input_size == 56: # TODO too brutal? even if its for just aux.
             kernel_size = 10
             stride = 6
-            second_kernel_size = 4
+            second_kernel_size = 6
         else:
             kernel_size = 10
             stride = 4

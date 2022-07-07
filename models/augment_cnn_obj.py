@@ -23,14 +23,17 @@ class AuxiliaryHead(nn.Module):
     """ Auxiliary head in 2/3 place of network to let the gradient flow well """
     def __init__(self, input_size, C, n_classes):
         """ assuming input size 7x7 or 8x8 """
+        second_kernel_size = 2
         if input_size in [7, 8]:
             kernel_size = 5
             stride = input_size-5
+        elif input_size == 56:
+            kernel_size = 10
+            stride = 4
+            second_kernel_size = 4
         else:
             kernel_size = 10
             stride = 4
-        self.input_size = input_size
-        self.C = C
         # else:
         #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()
@@ -40,7 +43,7 @@ class AuxiliaryHead(nn.Module):
             nn.Conv2d(C, 128, kernel_size=1, bias=False),
             nn.BatchNorm2d(128),
             nn.ReLU(inplace=True),
-            nn.Conv2d(128, 768, kernel_size=2, bias=False), # 1x1 out
+            nn.Conv2d(128, 768, kernel_size=second_kernel_size, bias=False), # 1x1 out
             nn.BatchNorm2d(768),
             nn.ReLU(inplace=True)
         )
@@ -52,12 +55,9 @@ class AuxiliaryHead(nn.Module):
             out = module(out)
             # print(out.shape)
         # out = self.net(x)
-        raise AttributeError(out.shape, self.linear, self.input_size, self.C, x.shape)
+        raise AttributeError(out.shape)
         out = out.view(out.size(0), -1) # flatten
-        try:
-            logits = self.linear(out)
-        except RuntimeError:
-            raise AttributeError(out.shape, self.linear)
+        logits = self.linear(out)
         return logits
 
 

@@ -29,6 +29,8 @@ class AuxiliaryHead(nn.Module):
         else:
             kernel_size = 10
             stride = 4
+        self.input_size = input_size
+        self.C = C
         # else:
         #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()
@@ -50,7 +52,7 @@ class AuxiliaryHead(nn.Module):
             out = module(out)
             # print(out.shape)
         # out = self.net(x)
-        raise AttributeError(out.shape, self.linear)
+        raise AttributeError(out.shape, self.linear, self.input_size, self.C)
         out = out.view(out.size(0), -1) # flatten
         try:
             logits = self.linear(out)

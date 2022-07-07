@@ -29,7 +29,7 @@ class AuxiliaryHead(nn.Module):
             stride = input_size-5
         elif input_size == 56:
             kernel_size = 10
-            stride = 4
+            stride = 6
             second_kernel_size = 8
         else:
             kernel_size = 10

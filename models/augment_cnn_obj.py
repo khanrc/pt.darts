@@ -52,7 +52,7 @@ class AuxiliaryHead(nn.Module):
             out = module(out)
             # print(out.shape)
         # out = self.net(x)
-        raise AttributeError(out.shape, self.linear, self.input_size, self.C)
+        raise AttributeError(out.shape, self.linear, self.input_size, self.C, x)
         out = out.view(out.size(0), -1) # flatten
         try:
             logits = self.linear(out)

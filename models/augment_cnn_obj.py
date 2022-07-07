@@ -193,7 +193,7 @@ class AugmentCNN(nn.Module):
                 try:
                     aux_logits = self.aux_head(s1)
                 except RuntimeError:
-                    raise AttributeError(i, s1.shape)
+                    raise AttributeError(i, s1.shape, self.aux_head)
 
         # out = self.gap(s1)
         # out = out.view(out.size(0), -1) # flatten

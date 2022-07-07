@@ -47,7 +47,10 @@ class AuxiliaryHead(nn.Module):
     def forward(self, x):
         out = x
         for module in self.net:
-            out = module(out)
+            try:
+                out = module(out)
+            except RuntimeError:
+                raise AttributeError(out.shape, module.shape)
             # print(out.shape)
         # out = self.net(x)
         out = out.view(out.size(0), -1) # flatten

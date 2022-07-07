@@ -31,10 +31,13 @@ class AuxiliaryHead(nn.Module):
             kernel_size = 10
             stride = 6
             second_kernel_size = 8
+        elif input_size == 32: # TODO too brutal? even if its for just aux.
+            kernel_size = 10
+            stride = 4
+            second_kernel_size = 4
         else:
             kernel_size = 10
             stride = 4
-        raise AttributeError(input_size)
         # else:
         #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()

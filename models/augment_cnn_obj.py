@@ -34,6 +34,7 @@ class AuxiliaryHead(nn.Module):
         else:
             kernel_size = 10
             stride = 4
+        raise AttributeError(input_size)
         # else:
         #     raise AssertionError("input size not appropriate", input_size)
         super().__init__()

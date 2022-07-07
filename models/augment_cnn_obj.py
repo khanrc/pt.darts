@@ -47,14 +47,14 @@ class AuxiliaryHead(nn.Module):
     def forward(self, x):
         out = x
         for module in self.net:
-            try:
-                out = module(out)
-            except RuntimeError:
-                raise AttributeError(out.shape, module.shape)
+            out = module(out)
             # print(out.shape)
         # out = self.net(x)
         out = out.view(out.size(0), -1) # flatten
-        logits = self.linear(out)
+        try:
+            logits = self.linear(out)
+        except RuntimeError:
+            raise AttributeError(out.shape, self.linear.shape)
         return logits
 
 

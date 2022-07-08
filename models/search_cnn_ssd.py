@@ -18,7 +18,7 @@ import torchvision.models.detection._utils as det_utils
 from anchor_utils import DefaultBoxGenerator
 from torchvision.models.vgg import VGG, vgg16
 import warnings
-from ssd_torchvision import _vgg_extractor, SSD, SSDMatcher, retrieve_out_channels, SSDHead, _topk_min
+from ssd_torchvision import _vgg_extractor, SSD, SSDMatcher, retrieve_out_channels, SSDHead, _topk_min, _xavier_init
 
 
 def broadcast_list(l, device_ids):
@@ -50,7 +50,7 @@ class SearchCNN(nn.Module):
                 self.activation[name] = output.detach()
             return hook
 
-
+        C = C*2  # double such that after cells we have 512 dim size rather than 256 for ssd piping purposes
         self.C_in = C_in
         self.C = C
         self.n_classes = n_classes
@@ -97,6 +97,9 @@ class SearchCNN(nn.Module):
         # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
         # self.backbone.out_channels = out_channels
 
+        # ssd extras as per SSDFeatureExtractor
+        # self.extra, self.scale_weight = get_ssd_extras(self.cells, False)
+
         self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
             scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05],
@@ -104,10 +107,7 @@ class SearchCNN(nn.Module):
         )
         self.box_coder = det_utils.BoxCoder(weights=(10.0, 10.0, 5.0, 5.0))
 
-
-        # out_channels = retrieve_out_channels(backbone, (300,300))
         out_channels = [512, 1024, 512, 256, 256, 256]
-        # out_channels = [256] # ? ... list of 1 since not using pyramid network w/in backbone
 
         if len(out_channels) != len(self.anchor_generator.aspect_ratios):
             raise ValueError(
@@ -278,8 +278,21 @@ class SearchCNN(nn.Module):
             weights = weights_reduce if cell.reduction else weights_normal
             s0, s1 = s1, cell(s0, s1, weights)
 
+        # begin *ssdfeatureextractor*
+
         features = s1
-        # features = self.test_gap(s1)
+        # rescaled = self.scale_weight.view(1, -1, 1, 1) * F.normalize(features)
+        # output = [rescaled]
+        #
+        # # Calculating Feature maps for the rest blocks
+        # x = features
+        # for block in self.extra:
+        #     x = block(x)
+        #     output.append(x)
+        #
+        # features = OrderedDict([(str(i), v) for i, v in enumerate(output)])
+
+        # *end ssdfeatureextractor*
 
         if isinstance(features, torch.Tensor):
             features = OrderedDict([("0", features)])
@@ -474,3 +487,75 @@ class SearchCNNControllerSSD(nn.Module):
     def named_alphas(self):
         for n, p in self._alphas:
             yield n, p
+
+
+def get_ssd_extras(backbone: nn.Module, highres: bool):
+
+    # _, _, maxpool3_pos, maxpool4_pos, _ = (i for i, layer in enumerate(backbone) if isinstance(layer, nn.MaxPool2d))
+    #
+    # # Patch ceil_mode for maxpool3 to get the same WxH output sizes as the paper
+    # backbone[maxpool3_pos].ceil_mode = True
+
+    # parameters used for L2 regularization + rescaling
+    scale_weight = nn.Parameter(torch.ones(512) * 20)
+
+    # Multiple Feature maps - page 4, Fig 2 of SSD paper
+    # self.features = nn.Sequential(*backbone)  # until conv4_3
+
+    # SSD300 case - page 4, Fig 2 of SSD paper
+    extra = nn.ModuleList(
+        [
+            nn.Sequential(
+                nn.Conv2d(1024, 256, kernel_size=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(256, 512, kernel_size=3, padding=1, stride=2),  # conv8_2
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv2d(512, 128, kernel_size=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, 256, kernel_size=3, padding=1, stride=2),  # conv9_2
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv2d(256, 128, kernel_size=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, 256, kernel_size=3),  # conv10_2
+                nn.ReLU(inplace=True),
+            ),
+            nn.Sequential(
+                nn.Conv2d(256, 128, kernel_size=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, 256, kernel_size=3),  # conv11_2
+                nn.ReLU(inplace=True),
+            ),
+        ]
+    )
+    if highres:
+        # Additional layers for the SSD512 case. See page 11, footernote 5.
+        extra.append(
+            nn.Sequential(
+                nn.Conv2d(256, 128, kernel_size=1),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(128, 256, kernel_size=4),  # conv12_2
+                nn.ReLU(inplace=True),
+            )
+        )
+    _xavier_init(extra)
+
+    fc = nn.Sequential(
+        nn.MaxPool2d(kernel_size=3, stride=1, padding=1, ceil_mode=False),  # add modified maxpool5
+        nn.Conv2d(in_channels=512, out_channels=1024, kernel_size=3, padding=6, dilation=6),  # FC6 with atrous
+        nn.ReLU(inplace=True),
+        nn.Conv2d(in_channels=1024, out_channels=1024, kernel_size=1),  # FC7
+        nn.ReLU(inplace=True),
+    )
+    _xavier_init(fc)
+    extra.insert(
+        0,
+        nn.Sequential(
+            # *backbone,  # until conv5_3, skip maxpool5
+            fc,
+        ),
+    )
+    return extra, scale_weight

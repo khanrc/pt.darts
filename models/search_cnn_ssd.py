@@ -172,7 +172,6 @@ class SearchCNN(nn.Module):
 
         bbox_regression = head_outputs["bbox_regression"]
         cls_logits = head_outputs["cls_logits"]
-        raise AttributeError(cls_logits.shape)
         # Match original targets with default boxes
         num_foreground = 0
         bbox_loss = []
@@ -305,29 +304,29 @@ class SearchCNN(nn.Module):
         # create the set of anchors
         anchors = self.anchor_generator(images, features)
 
-        losses = {}
-        detections = []
-        if self.training:
-            matched_idxs = []
-            if targets is None:
-                assert False, "targets should not be none when in training mode"
-            else:
-                for anchors_per_image, targets_per_image in zip(anchors, targets):
-                    if targets_per_image["boxes"].numel() == 0:
-                        matched_idxs.append(
-                            torch.full(
-                                (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
-                            )
-                        )
-                        continue
-
-                    match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
-                    matched_idxs.append(self.proposal_matcher(match_quality_matrix))
-
-                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
+        # losses = {}
+        # detections = []
+        # if self.training:
+        matched_idxs = []
+        if targets is None:
+            assert False, "targets should not be none when in training mode"
         else:
-            detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
-            detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
+            for anchors_per_image, targets_per_image in zip(anchors, targets):
+                if targets_per_image["boxes"].numel() == 0:
+                    matched_idxs.append(
+                        torch.full(
+                            (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
+                        )#.requires_grad_(False)
+                    )
+                    continue
+
+                match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
+                matched_idxs.append(self.proposal_matcher(match_quality_matrix))
+
+            losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
+        # else:
+        detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
+        detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         if torch.jit.is_scripting():
             if not self._has_warned:

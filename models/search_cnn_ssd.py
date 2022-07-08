@@ -90,16 +90,6 @@ class SearchCNN(nn.Module):
             C_pp, C_p = C_p, C_cur_out
 
         self.gap = nn.AdaptiveAvgPool2d(1)
-        # self.test_gap = nn.Conv2d(256, 512, 1, 1, 1, bias=False)
-        # out_channels = 256
-        # out_channels = 1280
-        # self.linear = nn.Linear(C_p, out_channels)
-
-        # self.backbone = torchvision.models.mobilenet_v2(pretrained=True).features
-        # self.backbone.out_channels = out_channels
-
-        # ssd extras as per SSDFeatureExtractor
-        # self.extra, self.scale_weight = get_ssd_extras(self.cells, False)
 
         self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
@@ -107,25 +97,20 @@ class SearchCNN(nn.Module):
             steps=[8, 16, 32, 64, 100, 300],
         )
         self.box_coder = det_utils.BoxCoder(weights=(10.0, 10.0, 5.0, 5.0))
-
-        out_channels = [512, 1024, 512, 256, 256, 256]
-
-        if len(out_channels) != len(self.anchor_generator.aspect_ratios):
-            raise ValueError(
-                f"The length of the output channels from the backbone ({len(out_channels)}) do not match the length of the anchor generator aspect ratios ({len(self.anchor_generator.aspect_ratios)})"
-            )
-
-        num_anchors = self.anchor_generator.num_anchors_per_location()
-        head = SSDHead(out_channels, num_anchors, num_classes)
-        self.head = head
-
-        self.proposal_matcher = SSDMatcher(0.5)
-
-        # image_mean = [0.48235, 0.45882, 0.40784]
-        # image_std = [(1.0 / 255.0), (1.0 / 255.0), (1.0 / 255.0)],  # undo the 0-1 scaling of toTensor
-
         image_mean = [0.485, 0.456, 0.406]
         image_std = [0.229, 0.224, 0.225]
+        defaults = {
+            # Rescale the input in a way compatible to the backbone
+            "image_mean": image_mean,
+            "image_std": image_std
+        }
+        kwargs = {**defaults}
+
+        out_channels = [512, 1024, 512, 256, 256, 256]
+        num_anchors = self.anchor_generator.num_anchors_per_location()
+        self.head = SSDHead(out_channels, num_anchors, 91)
+        self.proposal_matcher = SSDMatcher(0.5)
+
         self.transform = GeneralizedRCNNTransform(
             300, 300, image_mean, image_std#, size_divisible=1, fixed_size=size, **kwargs
         )
@@ -135,32 +120,103 @@ class SearchCNN(nn.Module):
         self.detections_per_img = 200
         self.topk_candidates = 400
         self.neg_to_pos_ratio = (1.0 - 0.25) / 0.25
-
-        # used only on torchscript mode
         self._has_warned = False
 
-        #################################################################
-        # load a pretrained_model, and transfer across the weights of the non-backbone portion
-        defaults = {
-            # Rescale the input in a way compatible to the backbone
-            "image_mean": image_mean,
-            "image_std": image_std
-        }
-        kwargs = {**defaults}
         pretrained_backbone = vgg16(pretrained=False, progress=True)
         pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
-        pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), num_classes, **kwargs)
+        pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), 91, **kwargs)
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
-        # state_dict = torch.load('/home/matt/Documents/nas/darts/ssd30016.pth')
         pretrained.load_state_dict(state_dict)
-
-        # Copy network weights from pretrained.rpn + freeze them?
-        # note not worth doing this (this way) even for a directly copied backbone as those
-        # use cell format, which adopts alpha/weights normal/reduce, instantiated in controller.
         self.anchor_generator.load_state_dict(pretrained.anchor_generator.state_dict())
         self.head.load_state_dict(pretrained.head.state_dict())
-
         del pretrained
+
+    def forward(self, x, y, weights_normal, weights_reduce, full_ret):
+        if self.training:
+            if y is None:
+                assert False, "targets should not be none when in training mode"
+            else:
+                for target in y:
+                    boxes = target["boxes"]
+                    if isinstance(boxes, torch.Tensor):
+                        assert (len(boxes.shape) == 2 and boxes.shape[-1] == 4), f"Expected target boxes to be a tensor of shape [N, 4], got {boxes.shape}."
+
+                    else:
+                        assert False, f"Expected target boxes to be of type Tensor, got {type(boxes)}."
+
+        original_image_sizes = []
+        for img in x:
+            val = img.shape[-2:]
+        assert len(val) == 2, f"expecting the last two dimensions of the Tensor to be H and W instead got {img.shape[-2:]}"
+
+        original_image_sizes.append((val[0], val[1]))
+
+        # transform the input
+        # raise AttributeError(images.shape, targets[0])
+        images, targets = self.transform(x, [{k: v.cuda() for k, v in t.items() if not isinstance(v, str)} for t in y])
+
+        # Check for degenerate boxes
+        if targets is not None:
+            for target_idx, target in enumerate(targets):
+                boxes = target["boxes"]
+                degenerate_boxes = boxes[:, 2:] <= boxes[:, :2]
+                if degenerate_boxes.any():
+                    bb_idx = torch.where(degenerate_boxes.any(dim=1))[0][0]
+                    degen_bb = boxes[bb_idx].tolist()
+                    raise AssertionError(f"All bounding boxes should have positive height and width. "
+                                         f"Found invalid box {degen_bb} for target at index {target_idx}.")
+
+        # get the features from the backbone
+        s0 = s1 = self.stem(x) # use tensor form of images not transformed form
+        # s0 = s1 = self.stem(images.tensors)
+        for cell in self.cells:
+            weights = weights_reduce if cell.reduction else weights_normal
+            s0, s1 = s1, cell(s0, s1, weights)
+
+
+        features = s1
+        if isinstance(features, torch.Tensor):
+            features = OrderedDict([("0", features)])
+        features = list(features.values())
+
+        # compute the ssd heads outputs using the features
+        head_outputs = self.head(features)
+
+        # create the set of anchors
+        anchors = self.anchor_generator(images, features)
+
+        losses = {}
+        detections = []
+        if self.training:
+            matched_idxs = []
+            if targets is None:
+                assert False, "targets should not be none when in training mode"
+            else:
+                for anchors_per_image, targets_per_image in zip(anchors, targets):
+                    if targets_per_image["boxes"].numel() == 0:
+                        matched_idxs.append(
+                            torch.full(
+                                (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
+                            )
+                        )
+                        continue
+
+                    match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
+                    matched_idxs.append(self.proposal_matcher(match_quality_matrix))
+
+                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
+        else:
+            detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
+            detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
+
+        losses = utils.reduce_dict(losses)
+
+        if torch.jit.is_scripting():
+            if not self._has_warned:
+                warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
+                self._has_warned = True
+            return losses, detections
+        return self.eager_outputs(losses, detections)
 
     def eager_outputs(self, losses, detections):
         if self.training:
@@ -168,10 +224,65 @@ class SearchCNN(nn.Module):
 
         return detections
 
-    def compute_loss(self, targets, head_outputs, anchors, matched_idxs):
+    def postprocess_detections(self, head_outputs, image_anchors, image_shapes):
+        bbox_regression = head_outputs["bbox_regression"]
+        pred_scores = F.softmax(head_outputs["cls_logits"], dim=-1)
+
+        num_classes = pred_scores.size(-1)
+        device = pred_scores.device
+
+        detections = []
+
+        for boxes, scores, anchors, image_shape in zip(bbox_regression, pred_scores, image_anchors, image_shapes):
+            boxes = self.box_coder.decode_single(boxes, anchors)
+            boxes = box_ops.clip_boxes_to_image(boxes, image_shape)
+
+            image_boxes = []
+            image_scores = []
+            image_labels = []
+            for label in range(1, num_classes):
+                score = scores[:, label]
+
+                keep_idxs = score > self.score_thresh
+                score = score[keep_idxs]
+                box = boxes[keep_idxs]
+
+                # keep only topk scoring predictions
+                num_topk = _topk_min(score, self.topk_candidates, 0)
+                score, idxs = score.topk(num_topk)
+                box = box[idxs]
+
+                image_boxes.append(box)
+                image_scores.append(score)
+                image_labels.append(torch.full_like(score, fill_value=label, dtype=torch.int64, device=device))
+
+            image_boxes = torch.cat(image_boxes, dim=0)
+            image_scores = torch.cat(image_scores, dim=0)
+            image_labels = torch.cat(image_labels, dim=0)
+
+            # non-maximum suppression
+            keep = box_ops.batched_nms(image_boxes, image_scores, image_labels, self.nms_thresh)
+            keep = keep[: self.detections_per_img]
+
+            detections.append(
+                {
+                    "boxes": image_boxes[keep],
+                    "scores": image_scores[keep],
+                    "labels": image_labels[keep],
+                }
+            )
+        return detections
+
+    def compute_loss(
+        self,
+        targets,
+        head_outputs,
+        anchors,
+        matched_idxs):
 
         bbox_regression = head_outputs["bbox_regression"]
         cls_logits = head_outputs["cls_logits"]
+
         # Match original targets with default boxes
         num_foreground = 0
         bbox_loss = []
@@ -232,159 +343,6 @@ class SearchCNN(nn.Module):
             "bbox_regression": bbox_loss.sum() / N,
             "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
-
-    def forward(self, x, y, weights_normal, weights_reduce, full_ret):
-        if self.training:
-            if y is None:
-                assert False, "targets should not be none when in training mode"
-            else:
-                for target in y:
-                    boxes = target["boxes"]
-                    if isinstance(boxes, torch.Tensor):
-                        assert (len(boxes.shape) == 2 and boxes.shape[-1] == 4), f"Expected target boxes to be a tensor of shape [N, 4], got {boxes.shape}."
-
-                    else:
-                        assert False, f"Expected target boxes to be of type Tensor, got {type(boxes)}."
-
-        # get the original image sizes
-        original_image_sizes = []
-        for img in x:
-            val = img.shape[-2:]
-            assert len(val) == 2, f"expecting the last two dimensions of the Tensor to be H and W instead got {img.shape[-2:]}"
-
-            original_image_sizes.append((val[0], val[1]))
-
-        # transform the input
-        # images, targets = self.transform(x, y)
-        images, targets = self.transform(x, [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in y])
-
-        # Check for degenerate boxes
-        if targets is not None:
-            for target_idx, target in enumerate(targets):
-                boxes = target["boxes"]
-                degenerate_boxes = boxes[:, 2:] <= boxes[:, :2]
-                if degenerate_boxes.any():
-                    bb_idx = torch.where(degenerate_boxes.any(dim=1))[0][0]
-                    degen_bb = boxes[bb_idx].tolist()
-                    raise AssertionError(f"All bounding boxes should have positive height and width. "
-                                         f"Found invalid box {degen_bb} for target at index {target_idx}.")
-
-        # get the features from the backbone
-        s0 = s1 = self.stem(x) # use tensor form of images not transformed form
-        # s0 = s1 = self.stem(images.tensors)
-
-        for cell in self.cells:
-            weights = weights_reduce if cell.reduction else weights_normal
-            s0, s1 = s1, cell(s0, s1, weights)
-
-        # begin *ssdfeatureextractor*
-
-        features = s1
-        # rescaled = self.scale_weight.view(1, -1, 1, 1) * F.normalize(features)
-        # output = [rescaled]
-        #
-        # # Calculating Feature maps for the rest blocks
-        # x = features
-        # for block in self.extra:
-        #     x = block(x)
-        #     output.append(x)
-        #
-        # features = OrderedDict([(str(i), v) for i, v in enumerate(output)])
-
-        # *end ssdfeatureextractor*
-
-        if isinstance(features, torch.Tensor):
-            features = OrderedDict([("0", features)])
-
-        features = list(features.values())
-
-        # compute the ssd heads outputs using the features
-        head_outputs = self.head(features)
-
-        # create the set of anchors
-        anchors = self.anchor_generator(images, features)
-
-        losses = {}
-        detections = []
-        if self.training:
-            matched_idxs = []
-            if targets is None:
-                assert False, "targets should not be none when in training mode"
-            else:
-                for anchors_per_image, targets_per_image in zip(anchors, targets):
-                    if targets_per_image["boxes"].numel() == 0:
-                        matched_idxs.append(
-                            torch.full(
-                                (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
-                            )
-                        )
-                        continue
-
-                    match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
-                    matched_idxs.append(self.proposal_matcher(match_quality_matrix))
-
-                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
-        else:
-            detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
-            detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
-
-        losses = utils.reduce_dict(losses)
-
-        if torch.jit.is_scripting():
-            if not self._has_warned:
-                warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
-                self._has_warned = True
-            return losses, detections
-        return self.eager_outputs(losses, detections)
-
-    def postprocess_detections(self, head_outputs, image_anchors, image_shapes):
-        bbox_regression = head_outputs["bbox_regression"]
-        pred_scores = F.softmax(head_outputs["cls_logits"], dim=-1)
-
-        num_classes = pred_scores.size(-1)
-        device = pred_scores.device
-
-        detections = []
-
-        for boxes, scores, anchors, image_shape in zip(bbox_regression, pred_scores, image_anchors, image_shapes):
-            boxes = self.box_coder.decode_single(boxes, anchors)
-            boxes = box_ops.clip_boxes_to_image(boxes, image_shape)
-
-            image_boxes = []
-            image_scores = []
-            image_labels = []
-            for label in range(1, num_classes):
-                score = scores[:, label]
-
-                keep_idxs = score > self.score_thresh
-                score = score[keep_idxs]
-                box = boxes[keep_idxs]
-
-                # keep only topk scoring predictions
-                num_topk = _topk_min(score, self.topk_candidates, 0)
-                score, idxs = score.topk(num_topk)
-                box = box[idxs]
-
-                image_boxes.append(box)
-                image_scores.append(score)
-                image_labels.append(torch.full_like(score, fill_value=label, dtype=torch.int64, device=device))
-
-            image_boxes = torch.cat(image_boxes, dim=0)
-            image_scores = torch.cat(image_scores, dim=0)
-            image_labels = torch.cat(image_labels, dim=0)
-
-            # non-maximum suppression
-            keep = box_ops.batched_nms(image_boxes, image_scores, image_labels, self.nms_thresh)
-            keep = keep[: self.detections_per_img]
-
-            detections.append(
-                {
-                    "boxes": image_boxes[keep],
-                    "scores": image_scores[keep],
-                    "labels": image_labels[keep],
-                }
-            )
-        return detections
 
 class SearchCNNControllerSSD(nn.Module):
     """ SearchCNN controller supporting multi-gpu """

@@ -45,13 +45,13 @@ class Architect():
             bad_count = 0
             for w, vw, g, (name, _) in zip(self.net.weights(), self.v_net.weights(), gradients, list(self.net.named_parameters())[8:]):
                 m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
-                # try:
-                vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
-                # except TypeError:
-                #     print(name)
-                #     bad_count += 1
-                #     if bad_count > 50:
-                #         exit()
+                try:
+                    vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
+                except TypeError:
+                    print(name)
+                    bad_count += 1
+                    if bad_count > 50:
+                        exit()
             # exit()
 
             # synchronize alphas

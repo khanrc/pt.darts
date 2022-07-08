@@ -218,6 +218,10 @@ class SearchCNN(nn.Module):
             cls_targets.size()
         )
 
+        return {
+            "bbox_regression": bbox_loss.sum(),
+            "classification": cls_loss.sum()
+        }
         # Hard Negative Sampling
         foreground_idxs = cls_targets > 0
         num_negative = self.neg_to_pos_ratio * foreground_idxs.sum(1, keepdim=True)

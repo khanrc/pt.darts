@@ -5,6 +5,7 @@ from torchvision.models.detection.rpn import AnchorGenerator
 
 import torch
 import sys
+import copy
 
 import ssd_torchvision
 import utils
@@ -20,6 +21,7 @@ from subloader import SubDataset
 from detectionengine import train_one_epoch_ssd, evaluate
 from ssd_torchvision import SSD300_VGG16 as ssd300
 
+from new_test_class import test_class
 # from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torch.hub import load_state_dict_from_url
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
@@ -91,7 +93,8 @@ def main():
                                                )
 
     device = torch.device("cuda")
-    model = ssd300()
+    # model = ssd300()
+    model = test_class()
 
     if is_pretrained:
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
@@ -163,6 +166,24 @@ def main():
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
         #     output = model(image.to(device), targets)
         #     output = model(image, targets)
+        X, y = next(iter(train_loader))
+        X = torch.stack([image.to(device) for image in X])
+        y = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in y]
+        v_net = copy.deepcopy(model)
+        losses = model.forward(X, y)
+        virtual_step = sum(_loss for _loss in losses.values())
+        gradients = torch.autograd.grad(virtual_step, model.parameters(), allow_unused=True)
+        with torch.no_grad():
+            bad_count = 0
+            for w, vw, g, (name, _) in zip(model.parameters(), v_net.parameters(), gradients, list(model.named_parameters())[8:]):
+                m = optimizer.state[w].get('momentum_buffer', 0.) * 0.9
+                try:
+                    vw.copy_(w - 0.025 * (m + g + w))
+                except TypeError:
+                    print(name, m , g)
+                    bad_count += 1
+                    if bad_count > 50:
+                        exit()
         train_one_epoch_ssd(model, optimizer, train_loader, device, i, print_freq=10)
         model.eval()
         evaluate(model, val_loader, device=device, epoch=i)

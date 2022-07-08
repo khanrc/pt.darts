@@ -43,12 +43,15 @@ class Architect():
             # be iterated also.
             # assert len(list(self.net.weights())) == len(list(self.net.named_parameters())), (len(list(self.net.weights())), len(list(self.net.named_parameters())))
             bad_count = 0
+            # for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
+            #     m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
+            #     vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
             for w, vw, g, (name, _) in zip(self.net.weights(), self.v_net.weights(), gradients, list(self.net.named_parameters())[8:]):
                 m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
                 try:
                     vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
                 except TypeError:
-                    print(name)
+                    print(name, m , g)
                     bad_count += 1
                     if bad_count > 50:
                         exit()

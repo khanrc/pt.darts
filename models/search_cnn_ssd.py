@@ -19,6 +19,7 @@ from anchor_utils import DefaultBoxGenerator
 from torchvision.models.vgg import VGG, vgg16
 import warnings
 from ssd_torchvision import _vgg_extractor, SSD, SSDMatcher, retrieve_out_channels, SSDHead, _topk_min, _xavier_init
+import detection_utils as utils
 
 
 def broadcast_list(l, device_ids):
@@ -160,7 +161,6 @@ class SearchCNN(nn.Module):
         self.head.load_state_dict(pretrained.head.state_dict())
 
         del pretrained
-
 
     def eager_outputs(self, losses, detections):
         if self.training:
@@ -304,29 +304,31 @@ class SearchCNN(nn.Module):
         # create the set of anchors
         anchors = self.anchor_generator(images, features)
 
-        # losses = {}
-        # detections = []
-        # if self.training:
-        matched_idxs = []
-        if targets is None:
-            assert False, "targets should not be none when in training mode"
+        losses = {}
+        detections = []
+        if self.training:
+            matched_idxs = []
+            if targets is None:
+                assert False, "targets should not be none when in training mode"
+            else:
+                for anchors_per_image, targets_per_image in zip(anchors, targets):
+                    if targets_per_image["boxes"].numel() == 0:
+                        matched_idxs.append(
+                            torch.full(
+                                (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
+                            )
+                        )
+                        continue
+
+                    match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
+                    matched_idxs.append(self.proposal_matcher(match_quality_matrix))
+
+                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
         else:
-            for anchors_per_image, targets_per_image in zip(anchors, targets):
-                if targets_per_image["boxes"].numel() == 0:
-                    matched_idxs.append(
-                        torch.full(
-                            (anchors_per_image.size(0),), -1, dtype=torch.int64, device=anchors_per_image.device
-                        )#.requires_grad_(False)
-                    )
-                    continue
+            detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
+            detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
-                match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
-                matched_idxs.append(self.proposal_matcher(match_quality_matrix))
-
-            losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
-        # else:
-        detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
-        detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
+        losses = utils.reduce_dict(losses)
 
         if torch.jit.is_scripting():
             if not self._has_warned:

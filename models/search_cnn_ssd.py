@@ -172,7 +172,7 @@ class SearchCNN(nn.Module):
 
         bbox_regression = head_outputs["bbox_regression"]
         cls_logits = head_outputs["cls_logits"]
-
+        raise AttributeError(cls_logits.shape)
         # Match original targets with default boxes
         num_foreground = 0
         bbox_loss = []
@@ -218,10 +218,6 @@ class SearchCNN(nn.Module):
             cls_targets.size()
         )
 
-        return {
-            "bbox_regression": bbox_loss.sum(),
-            "classification": cls_loss.sum()
-        }
         # Hard Negative Sampling
         foreground_idxs = cls_targets > 0
         num_negative = self.neg_to_pos_ratio * foreground_idxs.sum(1, keepdim=True)

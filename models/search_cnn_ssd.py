@@ -220,17 +220,17 @@ class SearchCNN(nn.Module):
 
         losses = utils.reduce_dict(losses)
 
-        if torch.jit.is_scripting():
-            if not self._has_warned:
-                warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
-                self._has_warned = True
-            return losses, detections
+        # if torch.jit.is_scripting():
+        #     if not self._has_warned:
+        #         warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
+        #         self._has_warned = True
+        #     return losses, detections
         return self.eager_outputs(losses, detections, hardness, full_ret)
 
     def eager_outputs(self, losses, detections, hardness, full_ret):
         if self.training:
             if full_ret:
-                return losses, detections, hardness
+                return losses, hardness
             return losses
 
         return detections

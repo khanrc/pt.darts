@@ -36,7 +36,7 @@ class Architect_SSD():
         loss = self.net.partial_loss(trn_X, trn_y, is_multi) # L_trn(w)
 
         # compute gradient
-        gradients = torch.autograd.grad(loss, list(self.net.weights())[:-self.bad_len], allow_unused=True)
+        gradients = torch.autograd.grad(loss, list(self.net.weights())[:-self.bad_len])
 
         # do virtual step (update gradient)
         # below operations do not need gradient tracking

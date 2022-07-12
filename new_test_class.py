@@ -262,7 +262,7 @@ class backbonevgg(nn.Module):
 class backbonecell(nn.Module):
     def __init__(self):
         super().__init__()
-        self.backbone = Simple_Cell(3, 16, 91, 8)
+        self.backbone = Simple_Cell(3, 16, 91, 4)
         self.alpha_normal = nn.ParameterList()
         self.alpha_reduce = nn.ParameterList()
         n_ops = len(gt.PRIMITIVES)

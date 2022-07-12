@@ -225,11 +225,13 @@ class SearchCNN(nn.Module):
                 warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
                 self._has_warned = True
             return losses, detections
-        return self.eager_outputs(losses, detections, hardness)
+        return self.eager_outputs(losses, detections, hardness, full_ret)
 
-    def eager_outputs(self, losses, detections, hardness):
+    def eager_outputs(self, losses, detections, hardness, full_ret):
         if self.training:
-            return losses, hardness
+            if full_ret:
+                return losses, detections, hardness
+            return losses
 
         return detections
 

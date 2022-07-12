@@ -10,11 +10,13 @@ import warnings
 import torch.nn as nn
 import torch.nn.functional as F
 
+from simple_cell import Simple_Cell
+import genotypes as gt
+
 class test_class(nn.Module):
-    def __init__(self):
+    def __init__(self, backbone):
         super().__init__()
-        self.backbone = vgg16(pretrained=False)
-        self.backbone = _vgg_extractor(self.backbone, False, trainable_layers=None)
+        self.backbone = backbone
         self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
             scales=[0.07, 0.15, 0.33, 0.51, 0.69, 0.87, 1.05],
@@ -246,3 +248,29 @@ class test_class(nn.Module):
             "bbox_regression": bbox_loss.sum() / N,
             "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
+
+class backbonevgg(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.backbone = vgg16(pretrained=False)
+        self.backbone = _vgg_extractor(self.backbone, False, trainable_layers=None)
+
+    def forward(self, x):
+        return self.backbone(x)
+
+class backbonecell(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.backbone = Simple_Cell(3, 16, 91, 8)
+        self.alpha_normal = nn.ParameterList()
+        self.alpha_reduce = nn.ParameterList()
+        n_ops = len(gt.PRIMITIVES)
+
+        for i in range(4):
+            self.alpha_normal.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+            self.alpha_reduce.append(nn.Parameter(1e-3*torch.randn(i+2, n_ops)))
+
+    def forward(self, x):
+        weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
+        weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
+        return self.backbone(x, weights_normal, weights_reduce)

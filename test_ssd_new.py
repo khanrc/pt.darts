@@ -21,7 +21,7 @@ from subloader import SubDataset
 from detectionengine import train_one_epoch_ssd, evaluate
 from ssd_torchvision import SSD300_VGG16 as ssd300
 
-from new_test_class import test_class
+from new_test_class import test_class, backbonevgg, backbonecell
 # from torchvision._internally_replaced_utils import load_state_dict_from_url
 from torch.hub import load_state_dict_from_url
 from torchvision.models.detection.backbone_utils import resnet_fpn_backbone
@@ -94,7 +94,9 @@ def main():
 
     device = torch.device("cuda")
     # model = ssd300()
-    model = test_class()
+    # backbone = backbonevgg()
+    backbone = backbonecell()
+    model = test_class(backbone)
 
     if is_pretrained:
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')

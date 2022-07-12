@@ -82,14 +82,14 @@ class SearchCNN(nn.Module):
                 reduction = False
 
             cell = SearchCell(n_nodes, C_pp, C_p, C_cur, reduction_p, reduction)
-            cell.preproc1.net[1].register_forward_hook(get_activation(f'cell{i}')) # cell preproc1 is necessarily ops.stdconv
+            # cell.preproc1.net[1].register_forward_hook(get_activation(f'cell{i}')) # cell preproc1 is necessarily ops.stdconv
             print(f"cell{i} shape is {cell.preproc1.net[1]}")
             reduction_p = reduction
             self.cells.append(cell)
             C_cur_out = C_cur * n_nodes
             C_pp, C_p = C_p, C_cur_out
 
-        self.gap = nn.AdaptiveAvgPool2d(1)
+        # self.gap = nn.AdaptiveAvgPool2d(1)
 
         self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],

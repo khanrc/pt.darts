@@ -52,6 +52,7 @@ class test_class(nn.Module):
         pretrained_backbone = _vgg_extractor(pretrained_backbone, False, trainable_layers=0)
         pretrained = SSD(pretrained_backbone, self.anchor_generator, (300, 300), 91, **kwargs)
         state_dict = torch.load('/hdd/PhD/nas/pt.darts/ssd30016.pth')
+        # state_dict = torch.load('/home/matt/Documents/nas/darts/ssd30016.pth')
         pretrained.load_state_dict(state_dict)
         self.anchor_generator.load_state_dict(pretrained.anchor_generator.state_dict())
         self.head.load_state_dict(pretrained.head.state_dict())

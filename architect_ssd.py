@@ -15,7 +15,8 @@ class Architect_SSD():
         self.v_net = copy.deepcopy(net)
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
-        self.bad_len = 24
+        self.bad_len = 24 # hard coded, determined by bad_count. represents the
+        # number of weights/biases in self.head
 
     def virtual_step(self, trn_X, trn_y, xi, w_optim, is_multi):
         """

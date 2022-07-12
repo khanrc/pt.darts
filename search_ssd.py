@@ -416,8 +416,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         try:
             # logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
-            logits, detections = model(trn_X, trn_y, full_ret=True)
-            raise AttributeError(logits, detections)
+            logits = model(trn_X, trn_y, full_ret=True)
         except ValueError:
             raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader),
                              len(hardness))

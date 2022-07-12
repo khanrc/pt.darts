@@ -168,10 +168,22 @@ def main():
         #     targets = [{k: v.cuda() for k,v in label.items() if not isinstance(v, str)} for label in targets]
         #     output = model(image.to(device), targets)
         #     output = model(image, targets)
-        X, y = next(iter(train_loader))
+        X, y = train_loader.dataset.__getitem__(0)
+        X = X.unsqueeze(0)
+        y = [y]
         X = torch.stack([image.to(device) for image in X])
         y = [{k: v.to(device) for k, v in t.items() if not isinstance(v, str)} for t in y]
         v_net = copy.deepcopy(model)
+        param_size = 0
+        for param in model.parameters():
+            param_size += param.nelement() * param.element_size()
+        buffer_size = 0
+        for buffer in model.buffers():
+            buffer_size += buffer.nelement() * buffer.element_size()
+
+        size_all_mb = (param_size + buffer_size) / 1024**2
+        print('model size: {:.3f}MB'.format(size_all_mb))
+        # raise AttributeError(len(model.backbone.backbone.cells), len(model.backbone.backbone.cells[0].dag), X.shape)
         losses = model.forward(X, y)
         virtual_step = sum(_loss for _loss in losses.values())
         gradients = torch.autograd.grad(virtual_step, model.parameters(), allow_unused=True)

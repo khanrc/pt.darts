@@ -30,6 +30,13 @@ def broadcast_list(l, device_ids):
     return l_copies
 
 
+def get_multihot(labels, num_classes):
+    multihot = [0] * num_classes
+    for lab in labels:
+        multihot[lab] = 1
+    return torch.tensor(multihot).cuda()
+
+
 class SearchCNN(nn.Module):
     """ Search CNN model """
     def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
@@ -89,7 +96,8 @@ class SearchCNN(nn.Module):
             C_cur_out = C_cur * n_nodes
             C_pp, C_p = C_p, C_cur_out
 
-        # self.gap = nn.AdaptiveAvgPool2d(1)
+        self.gap = nn.AdaptiveAvgPool2d(1)
+        self.linear = nn.Linear(C_p, n_classes)
 
         self.anchor_generator = DefaultBoxGenerator(
             [[2], [2, 3], [2, 3], [2, 3], [2], [2]],
@@ -344,6 +352,23 @@ class SearchCNN(nn.Module):
             "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
         }
 
+    def partial_forward(self, x, weights_normal, weights_reduce, full_ret=False): # cannot do ssdhead in autograd
+        # therefore do partial forwards only of searched portion, ie backbone
+        # use multitarget multiclass classification loss to generate loss of just this portion.
+        # however uses a non optimized linear layer.
+        # get the features from the backbone
+        s0 = s1 = self.stem(x) # use tensor form of images not transformed form
+        # s0 = s1 = self.stem(images.tensors)
+        for cell in self.cells:
+            weights = weights_reduce if cell.reduction else weights_normal
+            s0, s1 = s1, cell(s0, s1, weights)
+
+        out = self.gap(s1)
+        out = out.view(out.size(0), -1) # flatten
+        logits = self.linear(out)
+        return logits
+
+
 class SearchCNNControllerSSD(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
     def __init__(self, C_in, C, n_classes, n_layers, criterion, n_nodes=4, stem_multiplier=3,
@@ -382,6 +407,16 @@ class SearchCNNControllerSSD(nn.Module):
         if len(self.device_ids) == 1:
             return self.net(x, y, weights_normal, weights_reduce, full_ret)
 
+    def partial_forward(self, x, full_ret=False): # cannot do ssdhead in autograd
+        # therefore do partial forwards only of searched portion, ie backbone
+        # use multitarget multiclass classification loss to generate loss of just this portion.
+        # however uses a non optimized linear layer.
+        weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]
+        weights_reduce = [F.softmax(alpha, dim=-1) for alpha in self.alpha_reduce]
+
+        if len(self.device_ids) == 1:
+            return self.net.partial_forward(x, weights_normal, weights_reduce, full_ret)
+
         # # scatter x
         # xs = nn.parallel.scatter(x, self.device_ids)
         #
@@ -403,6 +438,14 @@ class SearchCNNControllerSSD(nn.Module):
         return sum(_loss for _loss in losses.values())
 
         # return self.criterion(logits, y)
+
+    def partial_loss(self, X, y, is_multi):
+        logits = self.partial_forward(X) # cannot do ssdhead in autograd
+        # therefore do partial forwards only of searched portion, ie backbone
+        # use multitarget multiclass classification loss to generate loss of just this portion.
+        # however uses a non optimized linear layer.
+        gt_logits = torch.stack([get_multihot(label["labels"], 91) for label in y])
+        return self.criterion(logits, gt_logits.float())
 
     def print_alphas(self, logger):
         # remove formats

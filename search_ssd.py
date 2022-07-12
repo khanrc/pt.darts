@@ -11,6 +11,7 @@ import utils
 from models.search_cnn import SearchCNNController
 from models.search_cnn_ssd import SearchCNNControllerSSD
 from architect import Architect
+from architect_ssd import Architect_SSD
 from visualize import plot
 import torch.nn.functional as F
 import time
@@ -112,8 +113,9 @@ def main():
     # net_crit = SetCriterion(n_classes, matcher=matcher, weight_dict=weight_dict,
     #                         eos_coef=0.1, losses=losses).to(device)
     # class_loss = nn.NLLLoss().to(device)
+    net_crit = nn.BCEWithLogitsLoss().to(device)
     model = SearchCNNControllerSSD(input_channels, config.init_channels, n_classes, config.layers,
-                                   None, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
+                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
                                    weight_dict=weight_dict)
 
     model = model.to(device)
@@ -162,7 +164,12 @@ def main():
     # lr_scheduler = torch.optim.lr_scheduler.CyclicLR(w_optim, 0.001, 0.01, step_size_up=10,
     #                                                  step_size_down=None)  # step_size_down=None means same as _up
 
-    architect = Architect(model, config.w_momentum, config.w_weight_decay)
+    # architect = Architect(model, config.w_momentum, config.w_weight_decay)
+    architect = Architect_SSD(model, config.w_momentum, config.w_weight_decay)
+    # cannot do ssdhead in autograd
+    # therefore do partial forwards only of searched portion, ie backbone
+    # use multitarget multiclass classification loss to generate loss of just this portion.
+    # however uses a non optimized linear layer.
 
     # training loop
     best_top1 = 0.

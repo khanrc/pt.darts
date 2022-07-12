@@ -329,7 +329,7 @@ class SearchCNN(nn.Module):
             cls_targets.append(gt_classes_target)
 
             # compute hardness here since we need class prediction confidence per image.
-            raise AttributeError(gt_classes_target.shape, cls_logits_per_image.shape)
+            raise AttributeError(F.cross_entropy(cls_logits_per_image, gt_classes_target).shape)
 
 
         bbox_loss = torch.stack(bbox_loss)

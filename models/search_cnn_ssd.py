@@ -195,6 +195,7 @@ class SearchCNN(nn.Module):
 
         losses = {}
         detections = []
+        hardness = []
         if self.training:
             matched_idxs = []
             if targets is None:
@@ -212,7 +213,7 @@ class SearchCNN(nn.Module):
                     match_quality_matrix = box_ops.box_iou(targets_per_image["boxes"], anchors_per_image)
                     matched_idxs.append(self.proposal_matcher(match_quality_matrix))
 
-                losses = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
+                losses, hardness = self.compute_loss(targets, head_outputs, anchors, matched_idxs)
         else:
             detections = self.postprocess_detections(head_outputs, anchors, images.image_sizes)
             detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
@@ -226,9 +227,9 @@ class SearchCNN(nn.Module):
             return losses, detections
         return self.eager_outputs(losses, detections)
 
-    def eager_outputs(self, losses, detections):
+    def eager_outputs(self, losses, detections, hardness):
         if self.training:
-            return losses
+            return losses, hardness
 
         return detections
 
@@ -329,7 +330,7 @@ class SearchCNN(nn.Module):
             cls_targets.append(gt_classes_target)
 
             # compute hardness here since we need class prediction confidence per image.
-            raise AttributeError(F.cross_entropy(cls_logits_per_image, gt_classes_target))
+            hardness.append(F.cross_entropy(cls_logits_per_image, gt_classes_target))
 
 
         bbox_loss = torch.stack(bbox_loss)
@@ -355,7 +356,7 @@ class SearchCNN(nn.Module):
         return {
             "bbox_regression": bbox_loss.sum() / N,
             "classification": (cls_loss[foreground_idxs].sum() + cls_loss[background_idxs].sum()) / N,
-        }
+        }, hardness
 
     def partial_forward(self, x, weights_normal, weights_reduce, full_ret=False): # cannot do ssdhead in autograd
         # therefore do partial forwards only of searched portion, ie backbone

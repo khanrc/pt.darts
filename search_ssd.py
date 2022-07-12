@@ -416,7 +416,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         w_optim.zero_grad()
         try:
             # logits, detections, new_hardness = model(trn_X, trn_y, full_ret=True)
-            logits = model(trn_X, trn_y, full_ret=True)
+            logits, new_hardness = model(trn_X, trn_y, full_ret=True)
         except ValueError:
             raise AttributeError(len(trn_X), len(val_X), len(trn_y), len(val_y), len(train_loader), len(valid_loader),
                              len(hardness))
@@ -431,6 +431,7 @@ def train(train_loader, valid_loader, model, architect, w_optim, alpha_optim, lr
         losses.update(loss.item(), N)
 
         new_hardness = [1-new_hardness[i].item() for i in range(len(new_hardness))]
+        raise AttributeError(len(new_hardness))
         hardness[(step * batch_size):(step * batch_size) + batch_size] = new_hardness  # assumes batch 1 takes idx 0-8, batch 2 takes 9-16, etc.
 
         # correct[(step * batch_size):(step * batch_size) + batch_size] = new_correct

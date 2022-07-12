@@ -15,6 +15,7 @@ class Architect_SSD():
         self.v_net = copy.deepcopy(net)
         self.w_momentum = w_momentum
         self.w_weight_decay = w_weight_decay
+        self.bad_len = 24
 
     def virtual_step(self, trn_X, trn_y, xi, w_optim, is_multi):
         """
@@ -34,8 +35,7 @@ class Architect_SSD():
         loss = self.net.partial_loss(trn_X, trn_y, is_multi) # L_trn(w)
 
         # compute gradient
-        bad_len = 24
-        gradients = torch.autograd.grad(loss, list(self.net.weights())[:-bad_len], allow_unused=True)
+        gradients = torch.autograd.grad(loss, list(self.net.weights())[:-self.bad_len], allow_unused=True)
 
         # do virtual step (update gradient)
         # below operations do not need gradient tracking
@@ -47,9 +47,9 @@ class Architect_SSD():
             # for w, vw, g in zip(self.net.weights(), self.v_net.weights(), gradients):
             #     m = w_optim.state[w].get('momentum_buffer', 0.) * self.w_momentum
             #     vw.copy_(w - xi * (m + g + self.w_weight_decay*w))
-            q_len = len(list(self.net.weights())) - bad_len
+            q_len = len(list(self.net.weights())) - self.bad_len
             assert len(list(self.net.weights())) == len(list(self.v_net.weights()))
-            assert len(list(self.net.weights()))-bad_len == len(gradients), f"{len(list(self.net.weights()))}, {len(gradients)}"
+            assert len(list(self.net.weights()))-self.bad_len == len(gradients), f"{len(list(self.net.weights()))}, {len(gradients)}"
             for q, (w, vw, g, (name, _)) in enumerate(zip(self.net.weights(), self.v_net.weights(), gradients, list(self.net.named_parameters())[8:])):
                 if q > q_len:
                     break
@@ -81,8 +81,8 @@ class Architect_SSD():
         loss = self.v_net.partial_loss(val_X, val_y, is_multi) # L_val(w`)
 
         # compute gradient
-        v_alphas = tuple(self.v_net.alphas())
-        v_weights = tuple(self.v_net.weights())
+        v_alphas = tuple(self.v_net.alphas())[:-self.bad_len]
+        v_weights = tuple(self.v_net.weights())[:-self.bad_len]
         v_grads = torch.autograd.grad(loss, v_alphas + v_weights)
         dalpha = v_grads[:len(v_alphas)]
         dw = v_grads[len(v_alphas):]

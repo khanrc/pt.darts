@@ -295,6 +295,7 @@ class SearchCNN(nn.Module):
         num_foreground = 0
         bbox_loss = []
         cls_targets = []
+        hardness = []
         for (
             targets_per_image,
             bbox_regression_per_image,
@@ -326,6 +327,10 @@ class SearchCNN(nn.Module):
                 foreground_matched_idxs_per_image
             ]
             cls_targets.append(gt_classes_target)
+
+            # compute hardness here since we need class prediction confidence per image.
+            raise AttributeError(gt_classes_target.shape, cls_logits.shape)
+
 
         bbox_loss = torch.stack(bbox_loss)
         cls_targets = torch.stack(cls_targets)

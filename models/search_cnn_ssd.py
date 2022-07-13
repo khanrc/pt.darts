@@ -39,7 +39,7 @@ def get_multihot(labels, num_classes):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, n_nodes=4, stem_multiplier=3):
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, train_cls=False, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -66,6 +66,7 @@ class SearchCNN(nn.Module):
         num_classes = 91
         self.use_kendall = use_kendall
         self.criterion = criterion
+        self.train_cls = train_cls
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -225,7 +226,7 @@ class SearchCNN(nn.Module):
 
         losses = utils.reduce_dict(losses)
 
-        if train_cls:
+        if self.train_cls:
             out = self.gap(s1)
             out = out.view(out.size(0), -1) # flatten
             logits = self.linear(out)

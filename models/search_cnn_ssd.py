@@ -39,7 +39,7 @@ def get_multihot(labels, num_classes):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__(self, C_in, C, n_classes, n_layers, n_nodes=4, stem_multiplier=3):
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -64,6 +64,7 @@ class SearchCNN(nn.Module):
         self.n_classes = n_classes
         self.n_layers = n_layers
         num_classes = 91
+        self.use_kendall = use_kendall
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -138,6 +139,9 @@ class SearchCNN(nn.Module):
         self.anchor_generator.load_state_dict(pretrained.anchor_generator.state_dict())
         self.head.load_state_dict(pretrained.head.state_dict())
         del pretrained
+
+        if self.use_kendall:
+            self.log_vars = nn.Parameter(torch.zeros((2)))
 
     def forward(self, x, y, weights_normal, weights_reduce, full_ret):
         if self.training:
@@ -220,6 +224,11 @@ class SearchCNN(nn.Module):
 
         losses = utils.reduce_dict(losses)
 
+        if self.use_kendall:
+            for q, (key, loss) in enumerate(losses.items()):
+                precision = torch.exp(-self.log_vars[q])
+                new_loss = torch.sum(precision * loss ** 2. + self.log_vars[q], -1)
+                losses[key] = new_loss
         # if torch.jit.is_scripting():
         #     if not self._has_warned:
         #         warnings.warn("SSD always returns a (Losses, Detections) tuple in scripting")
@@ -379,7 +388,7 @@ class SearchCNN(nn.Module):
 
 class SearchCNNControllerSSD(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
-    def __init__(self, C_in, C, n_classes, n_layers, criterion, n_nodes=4, stem_multiplier=3,
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, n_nodes=4, stem_multiplier=3,
                  device_ids=None, class_loss=None, weight_dict=None):
         super().__init__()
         self.n_nodes = n_nodes
@@ -406,7 +415,7 @@ class SearchCNNControllerSSD(nn.Module):
             if 'alpha' in n:
                 self._alphas.append((n, p))
 
-        self.net = SearchCNN(C_in, C, n_classes, n_layers, n_nodes, stem_multiplier)
+        self.net = SearchCNN(C_in, C, n_classes, use_kendall, n_layers, n_nodes, stem_multiplier)
 
     def forward(self, x, y, full_ret=False):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]

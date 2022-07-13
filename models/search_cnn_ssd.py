@@ -39,7 +39,7 @@ def get_multihot(labels, num_classes):
 
 class SearchCNN(nn.Module):
     """ Search CNN model """
-    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, n_nodes=4, stem_multiplier=3):
+    def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, n_nodes=4, stem_multiplier=3):
         """
         Args:
             C_in: # of input channels
@@ -65,6 +65,7 @@ class SearchCNN(nn.Module):
         self.n_layers = n_layers
         num_classes = 91
         self.use_kendall = use_kendall
+        self.criterion = criterion
 
         C_cur = stem_multiplier * C
         self.stem = nn.Sequential(
@@ -223,6 +224,14 @@ class SearchCNN(nn.Module):
             detections = self.transform.postprocess(detections, images.image_sizes, original_image_sizes)
 
         losses = utils.reduce_dict(losses)
+
+        if train_cls:
+            out = self.gap(s1)
+            out = out.view(out.size(0), -1) # flatten
+            logits = self.linear(out)
+            gt_logits = torch.stack([get_multihot(label["labels"], 91) for label in y])
+            cls_loss = self.criterion(logits, gt_logits.float())
+            losses.update({"cls_loss", cls_loss*0.4})
 
         if self.use_kendall:
             for q, (key, loss) in enumerate(losses.items()):

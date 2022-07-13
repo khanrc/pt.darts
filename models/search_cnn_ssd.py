@@ -425,7 +425,7 @@ class SearchCNNControllerSSD(nn.Module):
             if 'alpha' in n:
                 self._alphas.append((n, p))
 
-        self.net = SearchCNN(C_in, C, n_classes, use_kendall, n_layers, n_nodes, stem_multiplier)
+        self.net = SearchCNN(C_in, C, n_classes, use_kendall, n_layers, n_nodes, criterion, stem_multiplier=stem_multiplier)
 
     def forward(self, x, y, full_ret=False):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]

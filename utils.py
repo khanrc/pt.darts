@@ -112,6 +112,7 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
         dynamic_name = "coco_det"
         grayscale = False
         auto_resume = "/home2/lgfm95/hem/perceptual/caeCoco.pth.tar"
+        # auto_resume = "/home/matt/Documents/hem/perceptual/caeCoco.pth.tar"
         is_detection = True
 
         # coco_train_path = '/home2/lgfm95/coco/'

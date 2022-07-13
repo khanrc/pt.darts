@@ -232,8 +232,7 @@ class SearchCNN(nn.Module):
             logits = self.linear(out)
             gt_logits = torch.stack([get_multihot(label["labels"], 91) for label in y])
             cls_loss = self.criterion(logits, gt_logits.float())
-            raise AttributeError(losses, cls_loss)
-            losses.update({"cls_loss", cls_loss*0.4})
+            losses.update({"cls_loss": cls_loss*0.4})
 
         if self.use_kendall:
             for q, (key, loss) in enumerate(losses.items()):

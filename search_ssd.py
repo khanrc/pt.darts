@@ -115,7 +115,7 @@ def main():
     # class_loss = nn.NLLLoss().to(device)
     net_crit = nn.BCEWithLogitsLoss().to(device)
     model = SearchCNNControllerSSD(input_channels, config.init_channels, n_classes, config.use_kendall, config.layers,
-                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, class_loss=None,
+                                   net_crit, device_ids=config.gpus, n_nodes=config.nodes, train_cls=config.train_cls,
                                    weight_dict=weight_dict)
 
     model = model.to(device)

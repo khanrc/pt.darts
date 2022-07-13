@@ -86,6 +86,7 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--minedimagefname', default="dynGood", type=str, help="folder name to save mined images under")
         parser.add_argument('--is_concat', default=False, type=bool, help="autoencoder uses concat strategy for non single image classification")
         parser.add_argument('--max_size', default=118280, type=int, help="max size for coco")
+        parser.add_argument('--train_cls', default=False, type=bool, help="train partial cls within autograd")
         parser.add_argument('--use_kendall', default=False, type=bool, help="use kendall loss during training?")
         parser.add_argument('--obj_pretrained', default=False, type=bool, help="use pretrained one/two stage detector")
         parser.add_argument('--obj_retrained', default=False, type=bool, help="use retrained one/two stage detector")

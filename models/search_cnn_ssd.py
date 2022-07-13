@@ -399,11 +399,10 @@ class SearchCNN(nn.Module):
 class SearchCNNControllerSSD(nn.Module):
     """ SearchCNN controller supporting multi-gpu """
     def __init__(self, C_in, C, n_classes, use_kendall, n_layers, criterion, n_nodes=4, stem_multiplier=3,
-                 device_ids=None, class_loss=None, weight_dict=None):
+                 device_ids=None, train_cls=False, weight_dict=None):
         super().__init__()
         self.n_nodes = n_nodes
         self.criterion = criterion
-        self.class_loss = class_loss
         self.weight_dict = weight_dict # for detr loss
         if device_ids is None:
             device_ids = list(range(torch.cuda.device_count()))
@@ -425,7 +424,8 @@ class SearchCNNControllerSSD(nn.Module):
             if 'alpha' in n:
                 self._alphas.append((n, p))
 
-        self.net = SearchCNN(C_in=C_in, C=C, n_classes=n_classes, use_kendall=use_kendall, n_layers=n_layers, n_nodes=n_nodes, criterion=criterion, stem_multiplier=stem_multiplier)
+        self.net = SearchCNN(C_in=C_in, C=C, n_classes=n_classes, use_kendall=use_kendall, n_layers=n_layers,
+                             n_nodes=n_nodes, criterion=criterion, stem_multiplier=stem_multiplier, train_cls=train_cls)
 
     def forward(self, x, y, full_ret=False):
         weights_normal = [F.softmax(alpha, dim=-1) for alpha in self.alpha_normal]

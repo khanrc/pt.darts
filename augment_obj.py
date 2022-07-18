@@ -44,6 +44,7 @@ def get_split(dataset):
 def main():
     old_name = config.name
     config.name = f"{config.dataset}_{config.max_size}_{config.lr}"
+    os.environ['WANDB_MODE'] = "offline"
     wandb.init(
         entity="mattpoyser",
         project="darts",

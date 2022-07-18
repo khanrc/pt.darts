@@ -72,6 +72,7 @@ def get_split(dataset):
 
 def main():
     os.environ['WANDB_SILENT'] = "true"
+    os.environ['WANDB_MODE'] = "offline"
     wandb.init(
         entity="mattpoyser",
         project="darts",

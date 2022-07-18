@@ -71,6 +71,7 @@ def get_split(dataset):
 
 def main():
     os.environ['WANDB_SILENT'] = "true"
+    os.environ['WANDB_MODE'] = "offline"
     old_name = config.name
     config.name = f"{config.dataset}_{config.subset_size}_{config.hardness}_{config.mastery}_{config.max_size}_{config.w_lr}"
     wandb.init(

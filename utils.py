@@ -20,6 +20,7 @@ from dataloader_classification import DynamicDataset as DynamicClass
 from subloader import SubDataset
 from tiny_imagenet import Tiny_ImageNet
 from coco_obj import COCODetLoader as Coco_Det
+from compressed_loader import Compressed_Loader
 sys.argv.insert(1, saved_name)
 sys.argv.insert(1, "--name")
 from sklearn.metrics import average_precision_score as ap
@@ -197,6 +198,11 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
                 trn_data = Tiny_ImageNet(root=train_path, transforms=perc_transforms)
                 input_size = len(trn_data)
                 input_channels = 3
+            elif config.is_compression:
+                assert config.compression_level != -1
+                trn_data = Compressed_Loader(dataset, config.compression_level, trn_transform)
+                input_channels = 3 if "cifar" in dataset else 1
+                input_size = trn_data.__getitem__(0)[0].shape[1]
             else:
                 trn_data = dset_cls(root=data_path, train=True, download=False, transform=trn_transform)        # # assuming shape is NHW or NHWC
                 shape = trn_data.data.shape
@@ -254,6 +260,9 @@ def get_data(dataset, data_path, cutout_length, validation, search, bede, is_con
             train_path = '/hdd/PhD/data/tiny-imagenet-200/'
 
             ret.append(Tiny_ImageNet(root=train_path, transforms=val_transform))
+        elif config.is_compression:
+            assert config.compression_level != -1
+            ret.append(Compressed_Loader(dataset, config.compression_level, trn_transform, train=False))
         else:
             ret.append(dset_cls(root=data_path, train=False, download=False, transform=val_transform))
 

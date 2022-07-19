@@ -91,6 +91,8 @@ class SearchConfig(BaseConfig):
         parser.add_argument('--obj_pretrained', default=False, type=bool, help="use pretrained one/two stage detector")
         parser.add_argument('--obj_retrained', default=False, type=bool, help="use retrained one/two stage detector")
         parser.add_argument('--obj_fixed', default=False, type=bool, help="fix non backbone weights?")
+        parser.add_argument('--is_compression', default=False, type=bool, help="use compressed dataset?")
+        parser.add_argument('--compression_level', default=-1, type=int, help="compression level to use")
 
         # TODO remove last configs since only used for performance validation
 
@@ -148,6 +150,8 @@ class AugmentConfig(BaseConfig):
         parser.add_argument('--is_concat', default=False, type=bool, help="autoencoder uses concat strategy for non single image classification")
         parser.add_argument('--max_size', default=118280, type=int, help="max size for coco")
         parser.add_argument('--use_kendall', default=False, type=bool, help="use kendall loss during training?")
+        parser.add_argument('--is_compression', default=False, type=bool, help="use compressed dataset?")
+        parser.add_argument('--compression_level', default=-1, type=int, help="compression level to use")
 
         return parser
 
